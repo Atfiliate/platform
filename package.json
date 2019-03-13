@@ -1,0 +1,45 @@
+{
+	"name": "Boilerplate",
+	"version": "0.0.2",
+	"description": "Main services website.",
+	"engines": {
+		"node": "10.x"
+	},
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"dependencies": {
+		"ejs":					"*",
+		"express":				"*",
+		"moment":				"*",
+		"client-sessions":		"*",
+		"body-parser":			"*",
+		"promise": 				"*",
+		"request": 				"*",
+		"request-promise": 		"*",
+		"memory-cache": 		"*",
+		"stripe":				"*",
+		"twilio":				"*",
+		"plivo":				"*",
+		"firebase": 			"*",
+		"firebase-admin": 		"*",
+		"cloudinary":			"*",
+		"connect-busboy":		"*",
+		"phaxio":				"*",
+		"cheerio":				"*",
+		"mongodb":				"*",
+		"googleapis":			"*",
+		"mailparser-mit":		"*",
+		"puppeteer":			"*",
+		"compression":			"*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/apex2060/boilerplate"
+	},
+	"keywords": [
+		"boilerplate"
+	],
+	"license": "GNU AGPLv3"
+}

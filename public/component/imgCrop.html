@@ -1,0 +1,20 @@
+<md-dialog layout-padding style="overflow:hidden;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>Manage Image</h2>
+		</div>
+	</md-toolbar>
+
+	<div class="demo-dialog-content">
+		<div style="width:{{temp.img.target.w}}px; height:{{temp.img.target.h}}px; overflow:hidden;">
+			<img zoom-src="{{temp.img.src}}" zoom="tempImgCrop" style="width:{{temp.img.target.w}}px; height:{temp.img.target.h}}px;">
+		</div>
+	</div>
+
+	<div layout="row" class="demo-dialog-button">
+		<md-button ng-click="tools.img.browse2crop($event)">Browse</md-button>
+		<md-button ng-click="tools.img.upload2crop($event)">Upload</md-button>
+		<span flex></span>
+		<md-button class="pull-right" ng-click="tools.img.set()">use</md-button>
+	</div>
+</md-dialog>

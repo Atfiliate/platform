@@ -1,0 +1,51 @@
+<md-sidenav class="md-sidenav-left" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')" md-disable-backdrop md-whiteframe="4" md-swipe-left="rootTools.sidebar('close')">
+	<md-toolbar class="md-accent md-toolbar-tools" flex ng-click="tools.partial('main')">
+		<img ng-src="{{group.image.thumbnail_url}}" style="height:40px; margin-right:15px;">
+		<h1 flex>{{group.title}} <i class="fa fa-home pull-right"></i></h1>
+	</md-toolbar>
+	
+	<md-content layout-padding>
+		<md-grid-list md-cols="3" md-row-height="1:1" md-gutter="8px" md-gutter-gt-sm="4px">
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" title="Messages" ng-click="tools.partial('feed')">
+				<i class="fa fa-comments"></i>
+			</md-grid-tile>
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" title="Resources">
+				<i class="fa fa-puzzle-piece"></i>
+			</md-grid-tile>
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" title="Events">
+				<i class="fa fa-calendar"></i>
+			</md-grid-tile>
+		</md-grid-list>
+	</md-content>
+	
+	<md-content ng-hide="addPeople" layout-padding>
+		<md-grid-list md-cols="3" md-row-height="1:1" md-gutter="8px" md-gutter-gt-sm="4px">
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" ng-repeat="m in members" title="{{m.displayName | capitalize:true}}">
+				<img ng-src="{{m.photoURL}}" style="height:100%;">
+			</md-grid-tile>
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" ng-click="tools.people.toggleSearch()">
+				<md-grid-tile-header>
+					<h3>Add</h3>
+				</md-grid-tile-header>
+				<!--<img cl-src="{{r.images[0].secure_url}}" transform_w="400" transform_h="400" style="width:100%;">-->
+			</md-grid-tile>
+		</md-grid-list>
+	</md-content>
+	
+	<md-content ng-show="addPeople" layout-padding>
+		<md-input-container class="md-block" flex>
+			<label>Search</label>
+			<input id="peopleSearch" type="text" ng-model="nameSearch" ng-change="tools.people.search(nameSearch)">
+			<md-icon class="icon" ng-click="tools.people.toggleSearch()"><i class="fa fa-close"></i></md-icon>
+		</md-input-container>
+		<md-grid-list md-cols="3" md-row-height="1:1" md-gutter="8px" md-gutter-gt-sm="4px">
+			<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" ng-repeat="p in people" ng-click="tools.people.add(p)">
+				<md-grid-tile-header>
+					<h3>{{p.displayName | capitalize:true}}</h3>
+				</md-grid-tile-header>
+				<img ng-src="{{p.photoURL}}" style="width:100%;">
+			</md-grid-tile>
+		</md-grid-list>
+	</md-content>
+</md-sidenav>
+<div ng-include="tools.partial()" flex class="content"></div>

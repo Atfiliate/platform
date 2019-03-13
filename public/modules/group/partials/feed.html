@@ -1,0 +1,33 @@
+<div layout="row" flex layout-align="center start" layout-wrap>
+	<md-card flex-xl="60" flex="80">
+		<md-card-title>
+			<md-card-title-text>
+				<md-input-container class="md-block">
+					<label>Share Something</label>
+					<textarea ng-model="temp.entry.message" md-maxlength="300" rows="4" md-select-on-focus></textarea>
+				</md-input-container>
+			</md-card-title-text>
+			<md-card-title-media>
+				<i class="fa fa-camera" ng-click="tools.feed.addPicture()" ng-hide="temp.entry.images"></i>
+				<img ng-src="{{temp.entry.images[0].thumbnail_url}}" alt="Add Images" ng-click="tools.feed.addPicture()" ng-show="temp.entry.images">
+			</md-card-title-media>
+		</md-card-title>
+		<md-card-actions layout="row" layout-align="end center">
+			<md-button ng-click="tools.feed.add(temp.entry)">Share</md-button>
+		</md-card-actions>
+	</md-card>
+
+	<md-card flex-xl="60" flex="80" ng-repeat="entry in feed">
+		<md-card-title>
+			<md-card-title-text>
+				{{entry.message}}
+			</md-card-title-text>
+			<md-card-title-media>
+				<img ng-src="{{entry.images[0].thumbnail_url}}">
+			</md-card-title-media>
+		</md-card-title>
+		<md-card-actions layout="row" layout-align="end center">
+			<md-button ng-click="tools.feed.respond(entry)">Contribute</md-button>
+		</md-card-actions>
+	</md-card>
+</div>
