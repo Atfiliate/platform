@@ -32,6 +32,7 @@
 		"googleapis":			"*",
 		"mailparser-mit":		"*",
 		"puppeteer":			"*",
+		"jimp": 				"*",
 		"compression":			"*"
 	},
 	"repository": {
