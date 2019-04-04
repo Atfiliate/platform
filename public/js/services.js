@@ -128,7 +128,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		var fire = this;
 		fire._path = path;
 		fire._parts = path.split('/');
-		fire._cd = cd || !!(fire._parts.length % 2) ? 'collection' : 'doc';
+		fire._cd = cd || (!!(fire._parts.length % 2) ? 'collection' : 'doc');
 		fire._ref = firebase.database().ref(fire._path);
 		fire._qref = fire._ref;
 		fire._become = function(doc){
