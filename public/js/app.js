@@ -81,30 +81,52 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	});
 	$translateProvider.preferredLanguage('en');
 	
-	$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
-		return function(exception, cause) {
-			if(typeof exception == 'string')
-				exception = {message: exception}
+	if(!config.debug){
+		$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
+			return function(exception, cause) {
+				if(typeof exception == 'string')
+					exception = {message: exception}
+				var $http = $injector.get("$http");
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Angular Exception',
+					message:	exception.message, 
+					stack:		exception.stack,
+					file:		exception.fileName,
+					line:		exception.lineNumber,
+					cause:		cause,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+				console.error(exception);
+			}
+		}]);
+		widnow.onerror = function(message,source,lineno,colno,error) {
 			var $http = $injector.get("$http");
 			$http.post('cloud/log', {
 				url:		window.location.href,
 				createdOn:	new Date().toISOString(),
 				user:		it.uid || null,
-				name:		'Angular Exception',
-				message:	exception.message, 
-				stack:		exception.stack,
-				file:		exception.fileName,
-				line:		exception.lineNumber,
-				cause:		cause,
+				name:		'Console Error',
+				message:	message, 
+				stack:		source,
+				line:		lineno,
+				col:		colno,
+				error:		error,
 				env:		{
 					browser:	navigator.appName,
 					agent:		navigator.userAgent,
 					version:	navigator.appVersion
 				}
 			})
-			console.error(exception);
-		}
-	}]);
+			console.warn(exception);
+		};
+	}
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $translate, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config){
