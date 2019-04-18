@@ -82,31 +82,9 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	$translateProvider.preferredLanguage('en');
 	
 	if(!config.debug){
-		var $http = $injector.get("$http");
 		$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
-			return function(exception, cause) {
-				if(typeof exception == 'string')
-					exception = {message: exception}
-				$http.post('cloud/log', {
-					url:		window.location.href,
-					createdOn:	new Date().toISOString(),
-					user:		it.uid || null,
-					name:		'Angular Exception',
-					message:	exception.message, 
-					stack:		exception.stack,
-					file:		exception.fileName,
-					line:		exception.lineNumber,
-					cause:		cause,
-					env:		{
-						browser:	navigator.appName,
-						agent:		navigator.userAgent,
-						version:	navigator.appVersion
-					}
-				})
-				console.error(exception);
-			}
-		}]);
-		window.onerror = function(message,source,lineno,colno,error) {
+			var $http = $injector.get("$http");
+			window.onerror = function(message,source,lineno,colno,error) {
 			$http.post('cloud/log', {
 				url:		window.location.href,
 				createdOn:	new Date().toISOString(),
@@ -140,8 +118,30 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 					version:	navigator.appVersion
 				}
 			})
-			
 		}
+		
+			return function(exception, cause) {
+				if(typeof exception == 'string')
+					exception = {message: exception}
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Angular Exception',
+					message:	exception.message, 
+					stack:		exception.stack,
+					file:		exception.fileName,
+					line:		exception.lineNumber,
+					cause:		cause,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+				console.error(exception);
+			}
+		}]);
 	}
 })
 
