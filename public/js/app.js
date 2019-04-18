@@ -82,11 +82,11 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	$translateProvider.preferredLanguage('en');
 	
 	if(!config.debug){
+		var $http = $injector.get("$http");
 		$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
 			return function(exception, cause) {
 				if(typeof exception == 'string')
 					exception = {message: exception}
-				var $http = $injector.get("$http");
 				$http.post('cloud/log', {
 					url:		window.location.href,
 					createdOn:	new Date().toISOString(),
@@ -107,12 +107,11 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			}
 		}]);
 		window.onerror = function(message,source,lineno,colno,error) {
-			var $http = $injector.get("$http");
 			$http.post('cloud/log', {
 				url:		window.location.href,
 				createdOn:	new Date().toISOString(),
 				user:		it.uid || null,
-				name:		'Console Error',
+				name:		'Window Error',
 				message:	message, 
 				stack:		source,
 				line:		lineno,
@@ -124,8 +123,25 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 					version:	navigator.appVersion
 				}
 			})
-			console.warn(exception);
+			return true;
 		};
+		var origError = console.error;
+		console.error = function(error){
+			origError(error);
+			$http.post('cloud/log', {
+				url:		window.location.href,
+				createdOn:	new Date().toISOString(),
+				user:		it.uid || null,
+				name:		'Console Error',
+				error:		error,
+				env:		{
+					browser:	navigator.appName,
+					agent:		navigator.userAgent,
+					version:	navigator.appVersion
+				}
+			})
+			
+		}
 	}
 })
 
