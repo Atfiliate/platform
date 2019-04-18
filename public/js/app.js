@@ -106,7 +106,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 				console.error(exception);
 			}
 		}]);
-		widnow.onerror = function(message,source,lineno,colno,error) {
+		window.onerror = function(message,source,lineno,colno,error) {
 			var $http = $injector.get("$http");
 			$http.post('cloud/log', {
 				url:		window.location.href,
