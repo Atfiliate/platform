@@ -220,7 +220,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			})
 		},
 		errors: ()=>{
-			window.onerror = function(message,source,lineno,colno,error) {
+			window.onerror = function(message,source,lineno,colno) {
 				$http.post('cloud/log', {
 					url:		window.location.href,
 					createdOn:	new Date().toISOString(),
@@ -230,7 +230,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					stack:		source,
 					line:		lineno,
 					col:		colno,
-					error:		error,
 					env:		{
 						browser:	navigator.appName,
 						agent:		navigator.userAgent,
