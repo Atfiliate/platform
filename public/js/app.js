@@ -127,9 +127,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	$rootScope.site = $firebaseObject(siteRef);
 	
 	var tools = $rootScope.rootTools = $rootScope.tools = {
-		init: function(){
-			tools.errors();
-		},
+		init: function(){},
 		component: function(name){
 			return 'component/'+name+'.html'
 		},
@@ -218,40 +216,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				targetEvent: event,
 				clickOutsideToClose: true
 			})
-		},
-		errors: ()=>{
-			window.onerror = function(message,source,lineno,colno) {
-				$http.post('cloud/log', {
-					url:		window.location.href,
-					createdOn:	new Date().toISOString(),
-					user:		it.uid || null,
-					name:		'Window Error',
-					message:	message, 
-					stack:		source,
-					line:		lineno,
-					col:		colno,
-					env:		{
-						browser:	navigator.appName,
-						agent:		navigator.userAgent,
-						version:	navigator.appVersion
-					}
-				})
-				return true;
-			};
-			console.error = function(error){
-				$http.post('cloud/log', {
-					url:		window.location.href,
-					createdOn:	new Date().toISOString(),
-					user:		it.uid || null,
-					name:		'Console Error',
-					error:		error,
-					env:		{
-						browser:	navigator.appName,
-						agent:		navigator.userAgent,
-						version:	navigator.appVersion
-					}
-				})
-			}
 		}
 	}
 	tools.init();
