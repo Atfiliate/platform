@@ -103,7 +103,6 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 						version:	navigator.appVersion
 					}
 				})
-				console.error(exception);
 			}
 		}]);
 	}
@@ -240,9 +239,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				})
 				return true;
 			};
-			var origError = console.error;
 			console.error = function(error){
-				origError(error);
 				$http.post('cloud/log', {
 					url:		window.location.href,
 					createdOn:	new Date().toISOString(),
