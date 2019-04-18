@@ -81,31 +81,31 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	});
 	$translateProvider.preferredLanguage('en');
 	
-	if(!config.debug){
-		$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
-			var $http = $injector.get("$http");		
-			return function(exception, cause) {
-				if(typeof exception == 'string')
-					exception = {message: exception}
-				$http.post('cloud/log', {
-					url:		window.location.href,
-					createdOn:	new Date().toISOString(),
-					user:		it.uid || null,
-					name:		'Angular Exception',
-					message:	exception.message, 
-					stack:		exception.stack,
-					file:		exception.fileName,
-					line:		exception.lineNumber,
-					cause:		cause,
-					env:		{
-						browser:	navigator.appName,
-						agent:		navigator.userAgent,
-						version:	navigator.appVersion
-					}
-				})
-			}
-		}]);
-	}
+	// if(!config.debug){
+	// 	$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
+	// 		var $http = $injector.get("$http");		
+	// 		return function(exception, cause) {
+	// 			if(typeof exception == 'string')
+	// 				exception = {message: exception}
+	// 			$http.post('cloud/log', {
+	// 				url:		window.location.href,
+	// 				createdOn:	new Date().toISOString(),
+	// 				user:		it.uid || null,
+	// 				name:		'Angular Exception',
+	// 				message:	exception.message, 
+	// 				stack:		exception.stack,
+	// 				file:		exception.fileName,
+	// 				line:		exception.lineNumber,
+	// 				cause:		cause,
+	// 				env:		{
+	// 					browser:	navigator.appName,
+	// 					agent:		navigator.userAgent,
+	// 					version:	navigator.appVersion
+	// 				}
+	// 			})
+	// 		}
+	// 	}]);
+	// }
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $translate, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config){
@@ -127,7 +127,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	$rootScope.site = $firebaseObject(siteRef);
 	
 	var tools = $rootScope.rootTools = $rootScope.tools = {
-		init: function(){},
+		init: function(){
+			tools.errors();
+		},
 		component: function(name){
 			return 'component/'+name+'.html'
 		},
@@ -216,6 +218,40 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				targetEvent: event,
 				clickOutsideToClose: true
 			})
+		},
+		errors: ()=>{
+			window.onerror = function(message,source,lineno,colno) {
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Window Error',
+					message:	message, 
+					stack:		source,
+					line:		lineno,
+					col:		colno,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+				return true;
+			};
+			console.error = function(error){
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Console Error',
+					error:		error,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+			}
 		}
 	}
 	tools.init();
