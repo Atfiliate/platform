@@ -83,43 +83,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	
 	if(!config.debug){
 		$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
-			var $http = $injector.get("$http");
-			window.onerror = function(message,source,lineno,colno,error) {
-			$http.post('cloud/log', {
-				url:		window.location.href,
-				createdOn:	new Date().toISOString(),
-				user:		it.uid || null,
-				name:		'Window Error',
-				message:	message, 
-				stack:		source,
-				line:		lineno,
-				col:		colno,
-				error:		error,
-				env:		{
-					browser:	navigator.appName,
-					agent:		navigator.userAgent,
-					version:	navigator.appVersion
-				}
-			})
-			return true;
-		};
-		var origError = console.error;
-		console.error = function(error){
-			origError(error);
-			$http.post('cloud/log', {
-				url:		window.location.href,
-				createdOn:	new Date().toISOString(),
-				user:		it.uid || null,
-				name:		'Console Error',
-				error:		error,
-				env:		{
-					browser:	navigator.appName,
-					agent:		navigator.userAgent,
-					version:	navigator.appVersion
-				}
-			})
-		}
-		
+			var $http = $injector.get("$http");		
 			return function(exception, cause) {
 				if(typeof exception == 'string')
 					exception = {message: exception}
@@ -164,7 +128,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	$rootScope.site = $firebaseObject(siteRef);
 	
 	var tools = $rootScope.rootTools = $rootScope.tools = {
-		init: function(){},
+		init: function(){
+			tools.errors();
+		},
 		component: function(name){
 			return 'component/'+name+'.html'
 		},
@@ -253,6 +219,43 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				targetEvent: event,
 				clickOutsideToClose: true
 			})
+		},
+		errors: ()=>{
+			window.onerror = function(message,source,lineno,colno,error) {
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Window Error',
+					message:	message, 
+					stack:		source,
+					line:		lineno,
+					col:		colno,
+					error:		error,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+				return true;
+			};
+			var origError = console.error;
+			console.error = function(error){
+				origError(error);
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					user:		it.uid || null,
+					name:		'Console Error',
+					error:		error,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+			}
 		}
 	}
 	tools.init();
