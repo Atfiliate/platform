@@ -220,14 +220,15 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			})
 		},
 		errors: ()=>{
-			window.onerror = function(message,source,lineno,colno) {
+			window.onerror = function(message,source,lineno,colno,error) {
 				$http.post('cloud/log', {
 					url:		window.location.href,
 					createdOn:	new Date().toISOString(),
 					user:		it.uid || null,
 					name:		'Window Error',
-					message:	message, 
-					stack:		source,
+					message:	message,
+					source: 	source,
+					stack:		error.stack,
 					line:		lineno,
 					col:		colno,
 					env:		{
@@ -245,6 +246,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					user:		it.uid || null,
 					name:		'Console Error',
 					error:		error,
+					stack:		error & error.stack || null,
 					env:		{
 						browser:	navigator.appName,
 						agent:		navigator.userAgent,
