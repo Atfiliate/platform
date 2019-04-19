@@ -92,9 +92,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			//[] WIP
 			if(fire._cd == 'collection'){
 				fire._qref.onSnapshot(snap=>{
+					var promises = [];
 					snap.docChanges().forEach(change=>{
-						var update = (check & check(change)) || true;
-						if(update){
+						check = check || Promise.resolve();
+						promises.push(check(change).then(r=>{
 							if(change.type === 'added'){
 								var doc = change.doc;
 								fire.list.push(fire._become(doc));
@@ -108,9 +109,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 								var idx = fire.list.findIndex(d=>d.id==change.doc.id);
 								fire.list.splice(idx, 1);
 							}
-						}
+						}))
 					})
-					callback && callback(fire.list);
+					Promise.all(promises).then(()=>{
+						callback && callback(fire.list);	
+					})
 				})
 			}else{
 				fire._qref.onSnapshot().then(doc=>{
@@ -118,7 +121,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					if(update){
 						fire.obj = fire._become(doc);
 					}
-					callback(fire.obj)
+					callback && callback(fire.obj)
 				})
 			}
 			//setup listener and trigger callback on data-change.
