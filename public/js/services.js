@@ -89,6 +89,38 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return fire.get(null, true);
 		}
 		fire.listen = function(callback){
+			//[] WIP
+			if(fire._cd == 'collection'){
+				fire._qref.onSnapshot(snap=>{
+					snap.docChanges().forEach(change=>{
+						if(change.type === 'added'){
+							var doc = change.doc;
+							fire.list.push(fire._become(doc));
+						}else if(change.type === 'modified'){
+							var data = change.doc.data();
+							var doc = fire.list.find(d=>d.id==change.doc.id);
+							Object.keys(data).forEach(k=>{
+								doc[k] = data[k];
+							})
+						}else if(change.type === 'removed'){
+							var idx = fire.list.findIndex(d=>d.id==change.doc.id);
+							fire.list.splice(idx, 1);
+						}
+					})
+					callback && callback(fire.list);
+				})
+			}else{
+				// if(fire.obj)
+				// 	deferred.resolve(fire.obj);
+				// else{
+				// 	fire._qref.onSnapshot().then(doc=>{
+				// 		fire.obj = fire._become(doc);
+				// 		deferred.resolve(fire.obj);
+				// 	}).catch(e=>{
+				// 		deferred.reject(e);
+				// 	})
+				// }
+			}
 			//setup listener and trigger callback on data-change.
 		}
 		fire.add = function(item){
