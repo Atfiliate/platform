@@ -98,7 +98,9 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						promises.push(check(change).then(r=>{
 							if(change.type === 'added'){
 								var doc = change.doc;
-								fire.list.push(fire._become(doc));
+								var odoc = fire.list.find(d=>d.id==change.doc.id);
+								if(!odoc)
+									fire.list.push(fire._become(doc));
 							}else if(change.type === 'modified'){
 								var data = change.doc.data();
 								var doc = fire.list.find(d=>d.id==change.doc.id);
