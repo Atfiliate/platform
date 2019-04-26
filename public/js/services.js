@@ -118,7 +118,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					})
 				})
 			}else{
-				fire._qref.onSnapshot().then(doc=>{
+				fire._qref.onSnapshot(doc=>{
 					var update = (check & check(doc)) || true;
 					if(update){
 						fire.obj = fire._become(doc);
