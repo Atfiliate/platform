@@ -89,6 +89,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return fire.get(null, true);
 		}
 		fire.listen = function(check, callback){
+			fire._listen = callback;
 			//[] WIP
 			if(fire._cd == 'collection'){
 				fire._qref.onSnapshot(snap=>{
@@ -114,7 +115,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						}))
 					})
 					Promise.all(promises).then(()=>{
-						callback && callback(fire.list);	
+						fire._listen && fire._listen(fire.list);	
 					})
 				})
 			}else{
@@ -123,7 +124,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					if(update){
 						fire.obj = fire._become(doc);
 					}
-					callback && callback(fire.obj)
+					fire._listen && fire._listen(fire.obj)
 				})
 			}
 			//setup listener and trigger callback on data-change.
@@ -134,7 +135,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			fire._ref.add(item).then(r=>{
 				r.get().then(doc=>{
 					var obj = fire._become(doc);
-					if(fire.list)
+					if(fire.list && !fire._listen)
 						fire.list.push(obj);
 					deferred.resolve(obj);
 				}).catch(e=>{
