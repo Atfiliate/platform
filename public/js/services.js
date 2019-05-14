@@ -97,20 +97,22 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					snap.docChanges().forEach(change=>{
 						check = check || Promise.resolve();
 						promises.push(check(change).then(r=>{
-							if(change.type === 'added'){
-								var doc = change.doc;
-								var odoc = fire.list.find(d=>d.id==change.doc.id);
-								if(!odoc)
-									fire.list.push(fire._become(doc));
-							}else if(change.type === 'modified'){
-								var data = change.doc.data();
-								var doc = fire.list.find(d=>d.id==change.doc.id);
-								Object.keys(data).forEach(k=>{
-									doc[k] = data[k];
-								})
-							}else if(change.type === 'removed'){
-								var idx = fire.list.findIndex(d=>d.id==change.doc.id);
-								fire.list.splice(idx, 1);
+							if(fire.list){
+								if(change.type === 'added'){
+									var doc = change.doc;
+									var odoc = fire.list.find(d=>d.id==change.doc.id);
+									if(!odoc)
+										fire.list.push(fire._become(doc));
+								}else if(change.type === 'modified'){
+									var data = change.doc.data();
+									var doc = fire.list.find(d=>d.id==change.doc.id);
+									Object.keys(data).forEach(k=>{
+										doc[k] = data[k];
+									})
+								}else if(change.type === 'removed'){
+									var idx = fire.list.findIndex(d=>d.id==change.doc.id);
+									fire.list.splice(idx, 1);
+								}
 							}
 						}))
 					})
