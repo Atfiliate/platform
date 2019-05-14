@@ -124,6 +124,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				
 				tools.history.add(angular.copy($scope.page));
 				$scope.page = angular.copy($scope.temp.page)
+				$scope.page.updatedOn = new Date();
 				tools.render($scope.page)
 				if(!keepOpen)
 					$mdDialog.hide()
