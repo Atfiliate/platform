@@ -1,9 +1,9 @@
 {
-	"name": "Boilerplate",
-	"version": "0.0.2",
+	"name": "Platform",
+	"version": "2.0.1",
 	"description": "Main services website.",
 	"engines": {
-		"node": "10.x"
+		"node": "12.x"
 	},
 	"main": "index.js",
 	"scripts": {
@@ -33,14 +33,15 @@
 		"mailparser-mit":		"*",
 		"puppeteer":			"*",
 		"jimp": 				"*",
-		"compression":			"*"
+		"compression":			"*",
+		"google-cloud":			"*"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/apex2060/boilerplate"
+		"url": "https://github.com/Atfiliate/platform"
 	},
 	"keywords": [
-		"boilerplate"
+		"platform"
 	],
 	"license": "GNU AGPLv3"
 }
