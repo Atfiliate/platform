@@ -34,7 +34,7 @@
 		"puppeteer":			"*",
 		"jimp": 				"*",
 		"compression":			"*",
-		"google-cloud":			"*"
+		"@google-cloud/language":			"*"
 	},
 	"repository": {
 		"type": "git",
