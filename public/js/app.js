@@ -134,7 +134,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			return 'component/'+name+'.html'
 		},
 		login: function(method){
-			$firebaseAuth().$signInWithPopup(method || ($rootScope.site && $rootScope.site.login) || 'google');
+			method = method || ($rootScope.site && $rootScope.site.login) || 'google';
+			if(method.indexOf('.com') != -1)
+				method = new firebase.auth.OAuthProvider(method)
+			$firebaseAuth().$signInWithPopup(method);
 			//open dialog to allow user to choose?
 			//use chosen method.
 			//do we allow in admin settings the ability to choose which login methods will be shown?
