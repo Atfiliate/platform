@@ -61,8 +61,10 @@ String.prototype.hashCode = function() {
 
 
 function pathValue(obj, path, val){
-	path = typeof path == 'string' ? path.split('.') : path;
+	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
 	var attr = path.shift();
+	if(attr && attr.indexOf(']') != -1)
+		attr = attr.replace('[', '').replace(']', '');
 	if(val){
 		if(path.length){
 			if(obj[attr]){
@@ -79,13 +81,14 @@ function pathValue(obj, path, val){
 	}else{
 		if(attr)
 			if(obj)
-				return pathValue(obj[attr], path, val);
+				return pathValue(obj[attr], path);
 			else
 				return undefined;
 		else
 			return obj;
 	}
 }
+
 function elementPath(el) {
 	var names = [];
 	while (el.parentNode) {
