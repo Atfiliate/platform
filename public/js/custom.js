@@ -65,7 +65,7 @@ function pathValue(obj, path, val){
 	var attr = path.shift();
 	if(attr && attr.indexOf(']') != -1)
 		attr = attr.replace('[', '').replace(']', '');
-	if(val){
+	if(val != undefined){
 		if(path.length){
 			if(obj[attr]){
 				pathValue(obj[attr], path, val)
