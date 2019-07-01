@@ -40,7 +40,11 @@ Array.prototype.max = function() {
 Array.prototype.min = function() {
 	return Math.min.apply(null, this);
 };
-
+Array.prototype.allKeys = function(){
+	return Object.keys(this.reduce((a,b)=>{
+		return {...a, ...b}
+	}, {}))
+}
 
 String.prototype.toCamelCase = function() {
 	var str = this.replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
@@ -59,6 +63,35 @@ String.prototype.hashCode = function() {
 	return hash;
 };
 
+function jsonToTable(obj){
+	let html = ``;
+	if(typeof obj == 'object'){
+		if(obj.length){ // is array
+			if(typeof obj[0] == 'object'){ //array of objects
+				let keys = obj.allKeys();
+				let rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
+				rows += obj.map(row=>{
+					return `<tr>${keys.map(k=>`<td>${row[k]}</td>`).join('')}</tr>`;
+				}).join('')
+				html = `<table>${rows}</table>`;
+			}else{ // regular array
+				let rows = ``;
+				obj.forEach(row=>{
+					rows += `<tr><td>${format(row)}</td></tr>`;
+				})
+				html = `<table>${rows}</table>`;
+			}
+		}else{ // is object
+			let keys = Object.keys(obj).filter(k=>k.indexOf('$') == -1);
+			let rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
+				rows += `<tr>${keys.map(k=>`<td>${format(obj[k])}`).join('')}</td></tr>`;
+			html = `<table>${rows}</table>`;
+		}
+	}else{ // is other
+		html = `${obj}`;
+	}
+	return html;
+}
 
 function pathValue(obj, path, val){
 	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
