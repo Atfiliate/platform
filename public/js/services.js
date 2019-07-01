@@ -28,7 +28,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					return d.$fire.ref.set(copy);
 				},
 				delete: function(){
-					if(fire.list){
+					if(fire.list && !fire._listen){
 						var idx = fire.list.indexOf(d);
 						fire.list.splice(idx, 1);
 					}
