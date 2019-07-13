@@ -15,10 +15,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			if(localStorage.debug)
 				console.log('clean', obj)
 			obj && Object.keys(obj).forEach(k=>{
-				if(typeof obj[k] == 'object')
-					obj[k] = fire._clean(obj[k])
-				else if(obj[k].toDate)
+				if(obj[k].toDate)
 					obj[k] = obj[k].toDate();
+				else if(typeof obj[k] == 'object')
+					obj[k] = fire._clean(obj[k])
 			})
 			return obj;
 		}
