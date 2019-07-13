@@ -12,7 +12,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
 		fire._clean = (obj)=>{
-			Object.keys(obj).forEach(k=>{
+			obj && Object.keys(obj).forEach(k=>{
 				if(typeof obj[k] == 'object')
 					obj[k] = fire._clean(obj[k])
 				else if(obj[k].toDate)
