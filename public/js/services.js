@@ -12,6 +12,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
 		fire._clean = (obj)=>{
+			if(localStorage.debug)
+				console.log('clean', obj)
 			obj && Object.keys(obj).forEach(k=>{
 				if(typeof obj[k] == 'object')
 					obj[k] = fire._clean(obj[k])
@@ -21,9 +23,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return obj;
 		}
 		fire._become = function(doc){
-			var d = doc.exists ? doc.data() : {};
+			var d = doc.exists ? fire._clean(doc.data()) : {};
 			d.id = doc.id;
-			d = fire._clean(d);
 			d.$fire = {
 				ref: doc.ref,
 				save: function(){
