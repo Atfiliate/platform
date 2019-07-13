@@ -11,9 +11,19 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._cd = !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
+		fire._clean = (obj)=>{
+			Object.keys(obj).forEach(k=>{
+				if(typeof obj[k] == 'object')
+					obj[k] = fire._clean(obj[k])
+				else if(obj[k].toDate)
+					obj[k] = obj[k].toDate();
+			})
+			return obj;
+		}
 		fire._become = function(doc){
 			var d = doc.exists ? doc.data() : {};
 			d.id = doc.id;
+			d = fire._clean(d);
 			d.$fire = {
 				ref: doc.ref,
 				save: function(){
