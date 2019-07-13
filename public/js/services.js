@@ -14,14 +14,19 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._clean = (obj)=>{
 			if(localStorage.debug)
 				console.log('clean', obj)
-			obj && Object.keys(obj).forEach(k=>{
-				if(obj[k]){
-					if(obj[k].toDate)
-						obj[k] = obj[k].toDate();
-					else if(typeof obj[k] == 'object')
-						obj[k] = fire._clean(obj[k])
+			if(obj){
+				var keys = Object.keys(obj);
+				if(keys.indexOf('_firestoreClient') == -1){
+					keys.forEach(k=>{
+						if(obj[k]){
+							if(obj[k].toDate)
+								obj[k] = obj[k].toDate();
+							else if(typeof obj[k] == 'object')
+								obj[k] = fire._clean(obj[k])
+						}
+					})
 				}
-			})
+			}
 			return obj;
 		}
 		fire._become = function(doc){
