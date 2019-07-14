@@ -197,7 +197,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						else if(obj[k].toISOString)
 							obj[k] = obj[k].toISOString();
 						else if(typeof obj[k] == 'object')
-							obj[k] = fire._clean(obj[k])
+							obj[k] = fire._cleanForDb(obj[k])
 					}
 				})
 			}
