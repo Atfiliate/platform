@@ -12,8 +12,6 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
 		fire._clean = (obj)=>{
-			if(localStorage.debug)
-				console.log('clean', obj)
 			if(obj){
 				var keys = Object.keys(obj);
 				if(keys.indexOf('_firestoreClient') == -1){
@@ -189,6 +187,22 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._cd = cd || (!!(fire._parts.length % 2) ? 'collection' : 'doc');
 		fire._ref = firebase.database().ref(fire._path);
 		fire._qref = fire._ref;
+		fire._cleanForDb = (obj)=>{
+			if(obj){
+				var keys = Object.keys(obj);
+				keys.forEach(k=>{
+					if(obj[k]){
+						if(k.indexOf('$') != -1)
+							delete obj[k]
+						else if(obj[k].toISOString)
+							obj[k] = obj[k].toISOString();
+						else if(typeof obj[k] == 'object')
+							obj[k] = fire._clean(obj[k])
+					}
+				})
+			}
+			return obj;
+		}
 		fire._become = function(doc){
 			var d = doc.exists() ? doc.val() : {};
 			d.id = doc.key;
@@ -196,13 +210,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				ref: doc.ref,
 				save: function(){
 					var copy = angular.copy(d);
-					delete copy.$fire;
+						copy = fire._cleanForDb(copy);
 					delete copy.id;
-					Object.keys(copy).forEach(k=>{
-						if(k.indexOf('$') != -1){
-							delete copy[k]
-						}
-					})
 					return d.$fire.ref.set(copy);
 				},
 				delete: function(){
