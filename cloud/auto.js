@@ -1,20 +1,20 @@
-var firebase	= require('firebase-admin');
-var request		= require('request');
-var http		= require('request-promise');
-var cheerio 	= require('cheerio');
-var Plivo		= require('plivo');
-var Phaxio		= require('phaxio');
-var cloudinary	= require('cloudinary');
-var moment		= require('moment');
-var mcache		= require('memory-cache');
-
+let firebase	= require('firebase-admin');
+let request		= require('request');
+let http		= require('request-promise');
+let cheerio 	= require('cheerio');
+let Plivo		= require('plivo');
+let Phaxio		= require('phaxio');
+let cloudinary	= require('cloudinary');
+let moment		= require('moment');
+let mcache		= require('memory-cache');
+let db 			= firebase.firestore();
 
 
 if(process.env.phaxioKey)
-	var phaxio = new Phaxio(process.env.phaxioKey, process.env.phaxioToken)
+	let phaxio = new Phaxio(process.env.phaxioKey, process.env.phaxioToken)
 
 if(process.env.plivoId)
-	var plivo = new Plivo.Client(process.env.plivoId, process.env.plivoToken);
+	let plivo = new Plivo.Client(process.env.plivoId, process.env.plivoToken);
 
 if(process.env.cloudinaryName)
 	cloudinary.config({
