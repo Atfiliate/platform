@@ -95,7 +95,7 @@ function jsonToTable(obj){
 
 function pathValue(obj, path, val){
 	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
-	var attr = path.shift();
+	var attr = path && path.shift();
 	if(attr && attr.indexOf(']') != -1)
 		attr = attr.replace('[', '').replace(']', '');
 	if(val != undefined){
