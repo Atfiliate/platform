@@ -11,10 +11,10 @@ var db 			= firebase.firestore();
 
 
 if(process.env.phaxioKey)
-	let phaxio = new Phaxio(process.env.phaxioKey, process.env.phaxioToken)
+	var phaxio = new Phaxio(process.env.phaxioKey, process.env.phaxioToken)
 
 if(process.env.plivoId)
-	let plivo = new Plivo.Client(process.env.plivoId, process.env.plivoToken);
+	var plivo = new Plivo.Client(process.env.plivoId, process.env.plivoToken);
 
 if(process.env.cloudinaryName)
 	cloudinary.config({
