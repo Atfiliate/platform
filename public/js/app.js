@@ -73,11 +73,17 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	config.color.primary = config.color.primary || 'blue';
 	config.color.secondary = config.color.secondary || 'light-green';
 	config.color.customPrimary = config.color.customPrimary || {};
-	config.color.customAccent = config.color.customAccent || {};
+	config.color.customSecondary = config.color.customSecondary || {};
+
+	var customPrimary = $mdThemingProvider.extendPalette(config.color.primary, config.color.customPrimary);
+	var customSecondary = $mdThemingProvider.extendPalette(config.color.secondary, config.color.customSecondary);
 	
+	$mdThemingProvider.definePalette('customPrimary', customPrimary);
+	$mdThemingProvider.definePalette('customSecondary', customSecondary);
+
 	$mdThemingProvider.theme('default')
-		.primaryPalette(config.color.primary, config.color.customPrimary)
-		.accentPalette(config.color.secondary, config.color.customAccent);
+		.primaryPalette(customPrimary)
+		.accentPalette(customSecondary);
 	$translateProvider.useStaticFilesLoader({
 		prefix: 'language/',
 		suffix: '.json'
