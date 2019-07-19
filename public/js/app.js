@@ -82,8 +82,8 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	$mdThemingProvider.definePalette('customSecondary', customSecondary);
 
 	$mdThemingProvider.theme('default')
-		.primaryPalette(customPrimary)
-		.accentPalette(customSecondary);
+		.primaryPalette('customPrimary')
+		.accentPalette('customSecondary');
 	$translateProvider.useStaticFilesLoader({
 		prefix: 'language/',
 		suffix: '.json'
