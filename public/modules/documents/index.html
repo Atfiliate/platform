@@ -1,0 +1,73 @@
+<section layout="row" flex ng-controller="DocCtrl">
+	<md-sidenav class="md-sidenav-left" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')" md-disable-backdrop md-whiteframe="4" md-swipe-left="rootTools.sidebar('close')">
+		<md-toolbar class="md-accent">
+			<h1 class="md-toolbar-tools">Documents</h1>
+		</md-toolbar>
+		<md-content layout-padding>
+			<a class="md-button md-raised block">Browse</a>
+			<a class="md-button md-raised block">Bookmarked</a>
+			<a class="md-button md-raised block">In Progress</a>
+			<a class="md-button md-raised block" title="An admin tool">Pending Review</a>
+		</md-content>
+	</md-sidenav>
+
+	<div layout="column" flex>
+		<md-toolbar class="md-hue-2">
+			<div class="md-toolbar-tools">
+				<!--<md-button aria-label="Go Back">-->
+				<!--	Go Back-->
+				<!--</md-button>-->
+
+				<md-input-container class="md-block" flex-gt-sm>
+					<label class="white">Search</label>
+					<input ng-model="listSearch">
+				</md-input-container>
+
+				<span flex></span>
+				<!--<md-button class="md-raised" aria-label="Learn More">-->
+				<!--	Learn More-->
+				<!--</md-button>-->
+				<!--<md-button class="md-fab md-mini" aria-label="bookmark">-->
+				<!--	<md-icon md-svg-icon="img/icons/bookmark.svg"></md-icon>-->
+				<!--</md-button>-->
+			</div>
+		</md-toolbar>
+
+		<md-content flex layout-padding>
+			<md-grid-list md-cols="2" md-cols-sm="3" md-cols-gt-sm="4" md-row-height="1:1" md-gutter="8px" md-gutter-gt-sm="4px">
+				<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#EEE;" ng-repeat="d in docs | filter:listSearch">
+					<md-grid-tile-header>
+						<div class="pull-right">
+							<a ng-show="user.email=='apex2060@gmail.com'" ng-click="tools.doc.remove(d)"><i class="fa fa-trash" title="Remove"></i></a>
+							<a href="#/vision/{{d.$id}}"><i class="fa fa-cogs" title="edit"></i></a>
+						</div>
+						<h3>{{d.title}}</h3>
+					</md-grid-tile-header>
+					<a href="#/work/{{d.$id}}">
+					    <img cl-src="{{d.image.secure_url}}" transform_w="400" transform_h="400" style="width:100%;">
+				    </a>
+					<md-grid-tile-footer>
+						<div class="pull-right">
+							<i class="fa fa-bookmark" ng-class="tools.bookmark.is(d) ? 'fa-bookmark' : 'fa-bookmark-o'" title="{{tools.bookmark.is(d)}}" ng-click="tools.bookmark.toggle(d)"></i>
+						</div>
+						<h3>{{d.description}}</h3>
+					</md-grid-tile-footer>
+				</md-grid-tile>
+
+				<md-grid-tile md-colspan="1" md-rowspan="1" style="background:#DDD;">
+					<md-grid-tile-header>
+						<h3 contenteditable ng-model="temp.doc.title" placeholder="New Document"></h3>
+					</md-grid-tile-header>
+					<i class="fa fa-camera" ng-click="tools.doc.images()" ng-hide="temp.doc.image"></i>
+					<img ng-show="temp.doc.image" cl-src="{{temp.doc.image.secure_url}}" transform_w="400" transform_h="400" style="width:100%;" ng-click="tools.doc.images()">
+					<md-grid-tile-footer>
+						<div class="pull-right">
+							<i class="fa fa-save" ng-click="tools.doc.add()"></i>
+						</div>
+						<h3 contenteditable ng-model="temp.doc.description" placeholder="Description"></h3>
+					</md-grid-tile-footer>
+				</md-grid-tile>
+			</md-grid-list>
+		</md-content>
+	</div>
+</section>

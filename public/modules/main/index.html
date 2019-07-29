@@ -1,0 +1,33 @@
+<section flex layout="row" ng-controller="MainCtrl">
+	<md-sidenav class="md-sidenav-left" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')" md-disable-backdrop md-whiteframe="4" md-swipe-left="rootTools.sidebar('close')">
+		<md-toolbar class="md-accent">
+			<h1 class="md-toolbar-tools">Discover</h1>
+		</md-toolbar>
+		<md-content layout-padding>
+			<a class="md-button md-raised block" href="#/store">Store</a>
+			<a class="md-button md-raised block" href="#/group">Groups</a>
+			<a class="md-button md-raised block" href="#/comm">Communication</a>
+		</md-content>
+	</md-sidenav>
+	
+	<md-content flex>
+		<div layout="row" flex layout-align="center center" layout-padding>
+			<div md-whiteframe="6" flex flex-md="80" flex-gt-md="60">
+				<i class="pull-right fa fa-pencil" ng-click="tools.edit()"></i>
+				<md-card>
+					<div>
+						<img zoom="mainImg" zoom-src="{{img}}">
+					</div>
+					<md-card-title>
+						<md-card-title-text>
+							<span class="md-headline">Welcome to boilerplate</span>
+						</md-card-title-text>
+					</md-card-title>
+					<md-card-content>
+						<p>A great start to a great project.</p>
+					</md-card-content>
+				</md-card>
+			</div>
+		</div>
+	</md-content>
+</section>

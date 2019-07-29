@@ -1,0 +1,17 @@
+<md-content flex="50" flex-offset="25">
+	<md-card flex>
+		<md-card-title>
+			<md-card-title-media layout-padding>
+				<div class="md-media-lg"><img ng-src="{{group.image.thumbnail_url}}"></div>
+			</md-card-title-media>
+			<md-card-title-text>
+				<span class="md-headline">{{group.title}}</span>
+				<span class="md-subhead">Membership Pending</span>
+				<p>A member of this group must add you before you can participate.</p>
+			</md-card-title-text>
+		</md-card-title>
+		<md-card-actions layout="row" layout-align="end center">
+			<md-button class="md-raised md-primary" ng-click="tools.group.browse()">Browse Groups</md-button>
+		</md-card-actions>
+	</md-card>
+</md-content>

@@ -1,0 +1,47 @@
+{
+	"name": "Platform",
+	"version": "2.0.1",
+	"description": "Main services website.",
+	"engines": {
+		"node": "12.x"
+	},
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"dependencies": {
+		"ejs":					"*",
+		"express":				"*",
+		"moment":				"*",
+		"client-sessions":		"*",
+		"body-parser":			"*",
+		"promise": 				"*",
+		"request": 				"*",
+		"request-promise": 		"*",
+		"memory-cache": 		"*",
+		"stripe":				"*",
+		"twilio":				"*",
+		"plivo":				"*",
+		"firebase": 			"*",
+		"firebase-admin": 		"*",
+		"cloudinary":			"*",
+		"connect-busboy":		"*",
+		"phaxio":				"*",
+		"cheerio":				"*",
+		"mongodb":				"*",
+		"googleapis":			"*",
+		"mailparser-mit":		"*",
+		"puppeteer":			"*",
+		"jimp": 				"*",
+		"compression":			"*",
+		"@google-cloud/language":			"*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Atfiliate/platform"
+	},
+	"keywords": [
+		"platform"
+	],
+	"license": "GNU AGPLv3"
+}

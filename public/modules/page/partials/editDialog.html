@@ -1,0 +1,181 @@
+<md-dialog flex="{{editSize}}" layout-padding>
+	<style type="text/css">
+		.dynaSize{
+			height:400px;
+		}
+	</style>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 class="flex">Edit Page</h2>
+			<md-icon ng-show="!temp.hideEditor" ng-click="temp.hideEditor = !temp.hideEditor"><i class="fa fa-minus"></i></md-icon>
+			<md-icon ng-show="temp.hideEditor" ng-click="temp.hideEditor = !temp.hideEditor"><i class="fa fa-plus"></i></md-icon>
+			<md-icon ng-show="editSize != 90" ng-click="tools.edit.size(90)"><i class="fa fa-expand"></i></md-icon>
+			<md-icon ng-show="editSize == 90" ng-click="tools.edit.size(60)"><i class="fa fa-compress"></i></md-icon>
+			<md-icon ng-click="tools.edit.save(true)"><i class="fa fa-save"></i></md-icon>
+		</div>
+	</md-toolbar>
+	<md-content>
+		<md-tabs md-dynamic-height md-border-bottom ng-hide="temp.hideEditor">
+			<md-tab label="html" md-on-select="tools.ace.focus('htmlEditor')">
+				<md-content>
+					<div class="editor dynaSize" id="htmlEditor"></div>
+				</md-content>
+			</md-tab>
+			<md-tab label="data">
+				<md-content class="md-padding dynaSize" style="overflow:auto;">
+					<div layout-gt-sm="row" ng-repeat="(key, data) in temp.page.data">
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Path</label>
+							<input ng-model="data.path">
+						</md-input-container>
+	
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Alias</label>
+							<input ng-model="data.alias">
+						</md-input-container>
+						
+						<md-input-container class="md-block" flex-gt-sm>
+							<md-switch ng-model="data.array" aria-label="Data Array"><span ng-hide="data.array">Object</span><span ng-show="data.array">Array</span></md-switch>
+						</md-input-container>
+						
+						<md-button ng-click="tools.edit.data(key)">
+							Remove
+						</md-button>
+					</div>
+					<div layout-gt-sm="row">
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Path</label>
+							<input ng-model="temp.data.path">
+						</md-input-container>
+	
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Alias</label>
+							<input ng-model="temp.data.alias">
+						</md-input-container>
+						
+						<md-input-container class="md-block" flex-gt-sm>
+							<md-switch ng-model="temp.data.array" aria-label="Data Array"><span ng-hide="temp.data.array">Object</span><span ng-show="temp.data.array">Array</span></md-switch>
+						</md-input-container>
+						
+						<md-button ng-click="tools.edit.data()">
+							Add
+						</md-button>
+					</div>
+					<p>Note: you can use {<span>{uid}</span>},  {<span>{email}</span>},  {<span>{id}</span>} as parameters in the data path.</p>
+				</md-content>
+			</md-tab>
+			<md-tab label="js" md-on-select="tools.ace.focus('jsEditor')">
+				<md-content>
+					<div class="editor dynaSize" id="jsEditor"></div>
+				</md-content>
+			</md-tab>
+			<md-tab label="notes">
+				<md-content>
+					<md-input-container class="md-block dynaSize">
+						<label>For This Page</label>
+						<textarea class="dynaSize" ng-model="temp.page.notes"></textarea>
+					</md-input-container>
+				</md-content>
+			</md-tab>
+			<md-tab label="components" md-on-select="tools.component.init()">
+				<md-content layout="row">
+					<div flex="20">
+						<md-list style="height:600px; overflow:auto;">
+							<md-list-item>
+								<form flex layout="column" ng-submit="tools.component.search(componentSearch)">
+									<md-input-container md-no-float class="md-block">
+										<input ng-model="componentSearch" placeholder="search">
+										<md-icon ng-hide="inSearch" ng-click="tools.component.search(componentSearch)" title="Search for existing components"><i class="fa fa-search"></i></md-icon>
+										<md-icon ng-show="inSearch" ng-click="tools.component.search()" title="Close search and view page components"><i class="fa fa-close"></i></md-icon>
+									</md-input-container>
+								</form>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="componentId in temp.page.components" ng-hide="inSearch" ng-click="tools.component.focus(componentId)">
+								<span flex>{{componentId}}</span>
+							</md-list-item>
+							<md-list-item ng-repeat="component in cSearchResults" ng-show="inSearch" ng-click="tools.component.focus(component.$id)">{{component.$id}}</md-list-item>
+						</md-list>
+					</div>
+					<div flex="80">
+						<md-toolbar>
+							<div class="md-toolbar-tools">
+								<h2 class="flex" contenteditable ng-model="temp.componentId" placeholder="untitled"></h2>
+								<md-menu>
+									<md-button aria-label="Open Component History" class="md-icon-button" ng-click="$mdMenu.open($event)">
+										<md-icon><i class="fa fa-history"></i></md-icon>
+									</md-button>
+									<md-menu-content width="4">
+										<md-menu-item ng-repeat="item in componentHistory">
+											<md-button ng-click="tools.component.history(item)">
+												{{moment(item.archivedOn).calendar()}}
+											</md-button>
+										</md-menu-item>
+									</md-menu-content>
+								</md-menu>
+								<md-icon title="Set Component Cache" ng-click="tools.component.cache()"><i class="fa fa-hourglass-1"></i></md-icon>
+								<md-icon title="Remove component from list of components used on page." ng-show="tools.component.associated()" ng-click="tools.component.remove()"><i class="fa fa-link"></i></md-icon>
+								<md-icon title="Add component to list of components for this page." ng-hide="tools.component.associated()" ng-click="tools.component.add()"><i class="fa fa-unlink"></i></md-icon>
+								<md-icon title="Delete Component" ng-click="tools.component.delete()"><i class="fa fa-trash"></i></md-icon>
+								<md-icon title="Save component code" ng-click="tools.component.save()"><i class="fa fa-save"></i></md-icon>
+							</div>
+						</md-toolbar>
+						<div class="editor dynaSize" id="cEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+			<md-tab label="versions">
+				<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
+					<div flex="100" flex-gt-xs="50" class="md-padding">
+						<div class="md-padding" md-whiteframe="3">
+							History
+						</div>
+						<div class="md-padding" md-whiteframe="3" ng-repeat="item in history | orderBy:'-$id'" ng-click="tools.history.focus(item)">
+							{{moment(item.archivedOn).calendar()}}
+						</div>
+					</div>
+					<div flex="100" flex-gt-xs="50" class="md-padding">
+						<div class="md-padding" md-whiteframe="3" ng-click="tools.snapshot.focus(item)">
+							Snapshots
+						</div>
+						<div class="md-padding" md-whiteframe="3" ng-repeat="item in snapshots | orderBy:'-$id'" ng-click="tools.snapshot.focus(item)">
+							{{item.description}}
+						</div>
+						<div class="md-padding" md-whiteframe="3" ng-click="tools.snapshot.add()">
+							Create From Current
+						</div>
+					</div>
+				</md-content>
+			</md-tab>
+			<md-tab label="templates" ng-click="tools.template.init()">
+				<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
+					<div flex="100" flex-gt-sm="25" class="md-padding" ng-show="templates">
+						<div class="md-padding" md-whiteframe="3" ng-click="tools.template.add()">
+							Create From Current
+						</div>
+					</div>
+					<div flex="100" flex-gt-sm="25" class="md-padding" ng-repeat="t in templates">
+						<div class="md-padding" md-whiteframe="3" ng-click="tools.template.set(t)">
+							<span>{{t.title}}</span>
+							<i class="fa fa-trash pull-right" ng-click="tools.template.remove(t)"></i>
+							<i class="fa fa-save pull-right" ng-click="tools.template.save(t)"></i>
+						</div>
+					</div>
+				</md-content>
+			</md-tab>
+		</md-tabs>
+	</md-content>
+	<md-content layout-padding>
+		<md-dialog-actions layout="row">
+			<md-button ng-click="tools.edit.cancel()">
+				Cancel
+			</md-button>
+			<md-button ng-click="tools.edit.remove()">
+				Delete
+			</md-button>
+			<span flex></span>
+			<md-button ng-click="tools.edit.save()">
+				Save
+			</md-button>
+		</md-dialog-actions>
+	</md-content>
+</md-dialog>

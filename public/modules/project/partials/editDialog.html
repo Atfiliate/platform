@@ -1,0 +1,315 @@
+<md-dialog flex="{{editSize}}" layout-padding>
+	<style type="text/css">
+		.dynaSize{
+			height:400px;
+		}
+	</style>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 class="flex">Edit Page</h2>
+			<md-icon ng-show="!temp.hideEditor" ng-click="temp.hideEditor = !temp.hideEditor"><i class="fa fa-minus"></i></md-icon>
+			<md-icon ng-show="temp.hideEditor" ng-click="temp.hideEditor = !temp.hideEditor"><i class="fa fa-plus"></i></md-icon>
+			<md-icon ng-show="editSize != 90" ng-click="tools.edit.size(90)"><i class="fa fa-expand"></i></md-icon>
+			<md-icon ng-show="editSize == 90" ng-click="tools.edit.size(60)"><i class="fa fa-compress"></i></md-icon>
+			<md-icon ng-click="tools.edit.save(true)"><i class="fa fa-save"></i></md-icon>
+		</div>
+	</md-toolbar>
+	<md-content>
+		<md-tabs md-dynamic-height md-border-bottom ng-hide="temp.hideEditor">
+			<md-tab label="html" md-on-select="tools.ace.focus('htmlEditor')">
+				<md-content>
+					<div class="editor dynaSize" id="htmlEditor"></div>
+				</md-content>
+			</md-tab>
+			<md-tab label="data">
+				<md-content class="md-padding dynaSize" style="overflow:auto;">
+					<div layout-gt-sm="row" ng-repeat="(key, data) in temp.page.data">
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Path</label>
+							<input ng-model="data.path">
+						</md-input-container>
+	
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Alias</label>
+							<input ng-model="data.alias">
+						</md-input-container>
+						
+						<md-input-container class="md-block" flex-gt-sm>
+							<md-switch ng-model="data.array" aria-label="Data Array"><span ng-hide="data.array">Object</span><span ng-show="data.array">Array</span></md-switch>
+						</md-input-container>
+						
+						<md-button flex-gt-sm ng-click="tools.edit.data(key)">
+							Remove
+						</md-button>
+					</div>
+					<div layout-gt-sm="row">
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Path</label>
+							<input ng-model="temp.data.path">
+						</md-input-container>
+	
+						<md-input-container class="md-block" flex-gt-sm>
+							<label>Alias</label>
+							<input ng-model="temp.data.alias">
+						</md-input-container>
+						
+						<md-input-container class="md-block" flex-gt-sm>
+							<md-switch ng-model="temp.data.array" aria-label="Data Array"><span ng-hide="temp.data.array">Object</span><span ng-show="temp.data.array">Array</span></md-switch>
+						</md-input-container>
+						
+						<md-button flex-gt-sm ng-click="tools.edit.data()">
+							Add
+						</md-button>
+					</div>
+					<p>Note: you can use {<span>{uid}</span>},  {<span>{email}</span>},  {<span>{view}</span>},  {<span>{id}</span>} and any other $routeParams attr as variables in the data path.</p>
+				</md-content>
+			</md-tab>
+			<md-tab label="js" md-on-select="tools.ace.focus('jsEditor')">
+				<md-content>
+					<div class="editor dynaSize" id="jsEditor"></div>
+				</md-content>
+			</md-tab>
+			<md-tab label="components" md-on-select="tools.component.init()">
+				<md-content layout="row">
+					<div flex="20" style="height:600px; overflow:auto;">
+						<md-list>
+							<md-list-item>
+								<form flex layout="column" ng-submit="tools.component.search(componentSearch)">
+									<md-input-container md-no-float class="md-block">
+										<input ng-model="componentSearch" placeholder="Search Global Components">
+										<md-icon ng-hide="inSearch" ng-click="tools.component.search(componentSearch)" title="Search for existing components"><i class="fa fa-search"></i></md-icon>
+										<md-icon ng-show="inSearch" ng-click="tools.component.search()" title="Close search and view page components"><i class="fa fa-close"></i></md-icon>
+									</md-input-container>
+								</form>
+							</md-list-item>
+						</md-list>
+						<md-list>
+							<md-list-item>
+								<b>Local Components</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="component in localComponents">
+								<span flex ng-click="tools.component.focus(component)">{{component.id}}</span>
+								<md-icon ng-click="tools.component.delete(component)"><i class="fa fa-trash"></i></md-icon>
+							</md-list-item>
+						</md-list>
+						<md-list ng-hide="inSearch">
+							<md-list-item>
+								<b>Global Components</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="componentRef in temp.page.components">
+								<span flex ng-click="tools.component.load(componentRef)">{{componentRef.id}}</span>
+								<md-icon ng-click="tools.component.remove(componentRef)"><i class="fa fa-link"></i></md-icon>
+							</md-list-item>
+						</md-list>
+						<md-list ng-show="inSearch">
+							<md-list-item>
+								<b>Search Results</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="component in cSearchResults">
+								<span flex ng-click="tools.component.focus(component)">{{component.$id}}</span>
+								<md-icon ng-click="tools.component.add(component)" ng-show="!tools.component.associated(component)"><i class="fa fa-unlink"></i></md-icon>
+								<md-icon ng-click="tools.component.remove(component)" ng-show="tools.component.associated(component)"><i class="fa fa-link"></i></md-icon>
+							</md-list-item>
+						</md-list>
+					</div>
+					<div flex="80">
+						<md-toolbar>
+							<div class="md-toolbar-tools">
+								<md-button aria-label="Copy path" class="md-icon-button" ng-click="tools.copy(tools.component.path(temp.component))">
+									<md-icon><i class="fa fa-copy"></i></md-icon>
+								</md-button>
+								<h2 class="flex" contenteditable ng-model="temp.component.id" placeholder="untitled"></h2>
+								<md-switch md-no-ink aria-label="Global Component" ng-model="temp.component.global" title="{{temp.component.global ? 'Global' : 'Local'}}"></md-switch>
+								<md-menu>
+									<md-icon ng-click="$mdMenu.open($event)"><i class="fa fa-history"></i></md-icon>
+									<md-menu-content width="4">
+										<md-menu-item ng-repeat="item in componentHistory">
+											<md-button ng-click="tools.component.history(item)">
+												{{moment(item.archivedOn).calendar()}}
+											</md-button>
+										</md-menu-item>
+									</md-menu-content>
+								</md-menu>
+								<md-icon title="Set Component Cache" ng-click="tools.component.cache()"><i class="fa fa-hourglass-1"></i></md-icon>
+								<md-icon title="Save component code" ng-click="tools.component.save(temp.component)"><i class="fa fa-save"></i></md-icon>
+							</div>
+						</md-toolbar>
+						<div class="editor dynaSize" id="cEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+			<md-tab label="cloud" md-on-select="tools.cloud.init()">
+				<md-content layout="row">
+					<div flex="20" style="height:600px; overflow:auto;">
+						<md-list>
+							<md-list-item>
+								<form flex layout="column" ng-submit="tools.cloud.search(cloudSearch)">
+									<md-input-container md-no-float class="md-block">
+										<input ng-model="cloudSearch" placeholder="Search Global clouds">
+										<md-icon ng-hide="inSearch" ng-click="tools.cloud.search(cloudSearch)" title="Search for existing clouds"><i class="fa fa-search"></i></md-icon>
+										<md-icon ng-show="inSearch" ng-click="tools.cloud.search()" title="Close search and view page clouds"><i class="fa fa-close"></i></md-icon>
+									</md-input-container>
+								</form>
+							</md-list-item>
+						</md-list>
+						<md-list>
+							<md-list-item>
+								<b>Local clouds</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="cloud in localclouds">
+								<span flex ng-click="tools.cloud.focus(cloud)">{{cloud.id}}</span>
+								<md-icon ng-click="tools.cloud.delete(cloud)"><i class="fa fa-trash"></i></md-icon>
+							</md-list-item>
+						</md-list>
+						<md-list ng-hide="inSearch">
+							<md-list-item>
+								<b>Global clouds</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="cloudRef in temp.page.clouds">
+								<span flex ng-click="tools.cloud.load(cloudRef)">{{cloudRef.id}}</span>
+								<md-icon ng-click="tools.cloud.remove(cloudRef)"><i class="fa fa-link"></i></md-icon>
+							</md-list-item>
+						</md-list>
+						<md-list ng-show="inSearch">
+							<md-list-item>
+								<b>Search Results</b>
+							</md-list-item>
+							<md-list-item layout="row" ng-repeat="cloud in cSearchResults">
+								<span flex ng-click="tools.cloud.focus(cloud)">{{cloud.$id}}</span>
+								<md-icon ng-click="tools.cloud.add(cloud)" ng-show="!tools.cloud.associated(cloud)"><i class="fa fa-unlink"></i></md-icon>
+								<md-icon ng-click="tools.cloud.remove(cloud)" ng-show="tools.cloud.associated(cloud)"><i class="fa fa-link"></i></md-icon>
+							</md-list-item>
+						</md-list>
+					</div>
+					<div flex="80">
+						<md-toolbar>
+							<div class="md-toolbar-tools">
+								<md-button aria-label="Copy path" class="md-icon-button" ng-click="tools.copy(tools.cloud.path(temp.cloud))">
+									<md-icon><i class="fa fa-copy"></i></md-icon>
+								</md-button>
+								<h2 class="flex" contenteditable ng-model="temp.cloud.id" placeholder="untitled"></h2>
+								<md-switch md-no-ink aria-label="Global cloud" ng-model="temp.cloud.global" title="{{temp.cloud.global ? 'Global' : 'Local'}}"></md-switch>
+								<md-menu>
+									<md-icon ng-click="$mdMenu.open($event)"><i class="fa fa-history"></i></md-icon>
+									<md-menu-content width="4">
+										<md-menu-item ng-repeat="item in cloudHistory">
+											<md-button ng-click="tools.cloud.history(item)">
+												{{moment(item.archivedOn).calendar()}}
+											</md-button>
+										</md-menu-item>
+									</md-menu-content>
+								</md-menu>
+								<md-icon title="Set cloud Cache" ng-click="tools.cloud.cache()"><i class="fa fa-hourglass-1"></i></md-icon>
+								<md-icon title="Save cloud code" ng-click="tools.cloud.save(temp.cloud)"><i class="fa fa-save"></i></md-icon>
+							</div>
+						</md-toolbar>
+						<div class="editor dynaSize" id="ccEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+			<md-tab label="library">
+				<md-content>
+					<md-tabs md-dynamic-height md-border-bottom>
+						<md-tab label="notes">
+							<md-content>
+								<md-input-container class="md-block dynaSize">
+									<label>For This Page</label>
+									<textarea class="dynaSize" ng-model="temp.page.notes"></textarea>
+								</md-input-container>
+							</md-content>
+						</md-tab>
+						<md-tab label="versions">
+							<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
+								<div flex="100" flex-gt-xs="50" class="md-padding">
+									<div class="md-padding" md-whiteframe="3">
+										History
+									</div>
+									<div class="md-padding" md-whiteframe="3" ng-repeat="item in history | orderBy:'-$id'" ng-click="tools.history.focus(item)">
+										{{moment(item.archivedOn).calendar()}}
+									</div>
+								</div>
+								<div flex="100" flex-gt-xs="50" class="md-padding">
+									<div class="md-padding" md-whiteframe="3" ng-click="tools.snapshot.focus(item)">
+										Snapshots
+									</div>
+									<div class="md-padding" md-whiteframe="3" ng-repeat="item in snapshots | orderBy:'-$id'" ng-click="tools.snapshot.focus(item)">
+										{{item.description}}
+									</div>
+									<div class="md-padding" md-whiteframe="3" ng-click="tools.snapshot.add()">
+										Create From Current
+									</div>
+								</div>
+							</md-content>
+						</md-tab>
+						<md-tab label="templates" ng-click="tools.template.init()">
+							<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
+								<div flex="100" flex-gt-sm="25" class="md-padding" ng-show="templates">
+									<div class="md-padding" md-whiteframe="3" ng-click="tools.template.add()">
+										Create From Current
+									</div>
+								</div>
+								<div flex="100" flex-gt-sm="25" class="md-padding" ng-repeat="t in templates">
+									<div class="md-padding" md-whiteframe="3" ng-click="tools.template.set(t)">
+										<span>{{t.title}}</span>
+										<i class="fa fa-trash pull-right" ng-click="tools.template.remove(t)"></i>
+										<i class="fa fa-save pull-right" ng-click="tools.template.save(t)"></i>
+									</div>
+								</div>
+							</md-content>
+						</md-tab>
+						<md-tab label="packages" ng-click="tools.package.init()">
+							<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
+								<div flex="100" flex-gt-sm="25" class="md-padding" ng-repeat="p in packages">
+									<div class="md-padding" md-whiteframe="3" ng-click="tools.package.load(p)">
+										<span>{{p.meta.title}}</span>
+										<!--<i class="fa fa-trash pull-right" ng-click="tools.template.remove(t)"></i>-->
+										<!--<i class="fa fa-save pull-right" ng-click="tools.template.save(t)"></i>-->
+									</div>
+								</div>
+								<div flex="100">
+									<form ng-submit="tools.package.publish(meta)">
+										<md-input-container class="md-block" flex-gt-sm>
+											<label>Name</label>
+											<input ng-model="meta.title">
+										</md-input-container>
+										<md-input-container class="md-block" flex-gt-sm>
+											<label>Description</label>
+											<textarea ng-model="meta.description"></textarea>
+										</md-input-container>
+										<md-input-container class="md-block" flex-gt-sm>
+											<label>Price</label>
+											<input ng-model="meta.price" type="number">
+										</md-input-container>
+										<md-input-container class="md-block" flex-gt-sm>
+											<label>Unit</label>
+											<md-select ng-model="meta.unit">
+												<md-option ng-repeat="unit in ['install', 'user', 'view']" value="{{unit}}">
+												{{unit}}
+												</md-option>
+											</md-select>
+										</md-input-container>
+										<md-button class="md-raised" type="submit">Publish</md-button>
+									</form>
+								</div>
+							</md-content>
+						</md-tab>
+					</md-tabs>
+				</md-content>
+			</md-tab>
+		</md-tabs>
+	</md-content>
+	<md-content layout-padding>
+		<md-dialog-actions layout="row">
+			<md-button ng-click="tools.edit.cancel()">
+				Cancel
+			</md-button>
+			<md-button ng-click="tools.edit.remove()">
+				Delete
+			</md-button>
+			<span flex></span>
+			<md-button ng-click="tools.edit.save()">
+				Save
+			</md-button>
+		</md-dialog-actions>
+	</md-content>
+</md-dialog>
