@@ -134,26 +134,43 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	});
 	var siteRef = firebase.database().ref().child("site/public/settings");
 	$rootScope.site = $firebaseObject(siteRef);
-	
+	$rootScope.loginMethods = [{
+		title: 	'Google',
+		ico: 	'google',
+		provider: new firebase.auth.GoogleAuthProvider()
+	}, {
+		title: 	'Microsoft',
+		ico: 	'windows',
+		provider: new firebase.auth.OAuthProvider('microsoft.com')
+	}, {
+		title: 	'Github',
+		ico: 	'github',
+		provider: new firebase.auth.GithubAuthProvider()
+	}, {
+		title: 	'Facebook',
+		ico: 	'facebook',
+		provider: new firebase.auth.FacebookAuthProvider()
+	}]
+
 	var tools = $rootScope.rootTools = $rootScope.tools = {
 		init: function(){
 			tools.errors();
+			$rootScope.loginMethods.filter(m=>{
+				return $rootScope.site.login.indexOf(m.title) != -1;
+			})
 		},
 		component: function(name){
 			return 'component/'+name+'.html'
 		},
 		login: function(method){
-			method = method || ($rootScope.site && $rootScope.site.login) || 'google';
-			if(method.indexOf('.com') != -1)
-				method = new firebase.auth.OAuthProvider(method)
-			$firebaseAuth().$signInWithPopup(method);
-			//open dialog to allow user to choose?
-			//use chosen method.
-			//do we allow in admin settings the ability to choose which login methods will be shown?
-			//when a user is logging in with an email link we need to use the current url as redirect-back
-			//send signin link
-			//notify them to check their email
-			//when redirect back we need to handle final auth process.
+			if(method){
+				let provider = method.provider || $rootScope.loginMethods[0].provider;
+				$firebaseAuth().$signInWithPopup(provider);
+			}else if($rootScope.loginMethods.length == 1){
+				tools.login($rootScope.loginMethods[0])
+			}else{
+				tools.dialog('login.html');
+			}
 		},
 		profile: {
 			init: function(user){
@@ -212,6 +229,17 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					})
 				}
 			}
+		},
+
+		dialog: function(dialog){
+			$mdDialog.show({
+				scope: $scope,
+				preserveScope: true,
+				templateUrl: config.origin+'/public/component/'+dialog+'.html',
+				multiple: true,
+				parent: angular.element(document.body),
+				clickOutsideToClose: true
+			})
 		},
 		sidebar: function(action){
 			if(action)

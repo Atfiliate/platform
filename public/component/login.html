@@ -1,0 +1,15 @@
+<md-dialog flex="100" flex-gt-sm="25" layout-padding>
+	<div>
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<h2>Login</h2>
+			</div>
+		</md-toolbar>
+	
+		<div>
+            <md-list>
+                <md-list-item ng-repeat="m in methods" ng-click="rootTools.login(m)">{{m.title}}</md-list-item>
+            </md-list>
+		</div>
+    </div>
+</md-dialog>
