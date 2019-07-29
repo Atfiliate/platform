@@ -155,14 +155,15 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	var tools = $rootScope.rootTools = $rootScope.tools = {
 		init: function(){
 			tools.errors();
-			$rootScope.loginMethods.filter(m=>{
-				return $rootScope.site.login.indexOf(m.title) != -1;
-			})
 		},
 		component: function(name){
 			return 'component/'+name+'.html'
 		},
 		login: function(method){
+			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
+				return $rootScope.site.login.indexOf(m.title) != -1;
+			})
+
 			if(method){
 				let provider = method.provider || $rootScope.loginMethods[0].provider;
 				$firebaseAuth().$signInWithPopup(provider);
