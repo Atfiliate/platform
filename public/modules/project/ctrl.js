@@ -54,6 +54,20 @@ Auth, Cloudinary, Stripe, Fire, config){
 				.hideDelay(5000)
 			);
 		},
+		dialog: function(dialog){
+			if(dialog.indexOf('http') != -1)
+				dialog = $sce.trustAsResourceUrl(dialog);
+			else
+				dialog = tools.component.get(dialog);
+			$mdDialog.show({
+				scope: $scope,
+				preserveScope: true,
+				templateUrl: dialog,
+				multiple: true,
+				parent: angular.element(document.body),
+				clickOutsideToClose: true
+			})
+		},
 		copy: function(txtToCopy){
 			var body = angular.element(document.body);
 			var textarea = angular.element('<textarea/>');

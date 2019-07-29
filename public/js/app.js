@@ -234,7 +234,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 
 		dialog: function(dialog){
 			$mdDialog.show({
-				scope: $scope,
+				scope: $rootScope,
 				preserveScope: true,
 				templateUrl: config.origin+'/public/component/'+dialog+'.html',
 				multiple: true,
