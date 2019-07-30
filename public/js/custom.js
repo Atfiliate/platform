@@ -70,7 +70,7 @@ let jsonToTable = (obj, path)=>{
 	if(typeof obj == 'object'){
 		if(obj.length){ // is array
 			if(typeof obj[0] == 'object'){ //array of objects
-				let keys = allKeys(obj);
+				let keys = obj.allKeys();
 				let rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
 				rows += obj.map((row, i)=>{
 					return `<tr>${keys.map(k=>`<td data-path="${path}[${i}].${k}">${row[k]}</td>`).join('')}</tr>`;
