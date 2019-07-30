@@ -63,28 +63,30 @@ String.prototype.hashCode = function() {
 	return hash;
 };
 
-function jsonToTable(obj){
+
+
+let jsonToTable = (obj, path)=>{
 	let html = ``;
 	if(typeof obj == 'object'){
 		if(obj.length){ // is array
 			if(typeof obj[0] == 'object'){ //array of objects
-				let keys = obj.allKeys();
+				let keys = allKeys(obj);
 				let rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
-				rows += obj.map(row=>{
-					return `<tr>${keys.map(k=>`<td>${row[k]}</td>`).join('')}</tr>`;
+				rows += obj.map((row, i)=>{
+					return `<tr>${keys.map(k=>`<td data-path="${path}[${i}].${k}">${row[k]}</td>`).join('')}</tr>`;
 				}).join('')
 				html = `<table>${rows}</table>`;
 			}else{ // regular array
 				let rows = ``;
-				obj.forEach(row=>{
-					rows += `<tr><td>${format(row)}</td></tr>`;
+				obj.forEach((row, i)=>{
+					rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`)}</td></tr>`;
 				})
 				html = `<table>${rows}</table>`;
 			}
 		}else{ // is object
 			let keys = Object.keys(obj).filter(k=>k.indexOf('$') == -1);
 			let rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
-				rows += `<tr>${keys.map(k=>`<td>${format(obj[k])}`).join('')}</td></tr>`;
+				rows += `<tr>${keys.map(k=>`<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`)}`).join('')}</td></tr>`;
 			html = `<table>${rows}</table>`;
 		}
 	}else{ // is other
