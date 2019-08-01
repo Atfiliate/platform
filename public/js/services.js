@@ -108,7 +108,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			fire._listen = callback;
 			//[] WIP
 			if(fire._cd == 'collection'){
-				fire._qref.onSnapshot(snap=>{
+				fire._ignore = fire._qref.onSnapshot(snap=>{
 					var promises = [];
 					snap.docChanges().forEach(change=>{
 						check = check || Promise.resolve();
@@ -137,7 +137,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					})
 				})
 			}else{
-				fire._qref.onSnapshot(doc=>{
+				fire._ignore = fire._qref.onSnapshot(doc=>{
 					var update = (check & check(doc)) || true;
 					if(update){
 						fire.obj = fire._become(doc);
