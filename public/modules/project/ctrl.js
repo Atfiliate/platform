@@ -45,6 +45,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 		init: function(page){
 			page.$loaded(function(page){
 				tools.render(page)
+				document.title = page.title;
 			})
 		},
 		alert: function(message){

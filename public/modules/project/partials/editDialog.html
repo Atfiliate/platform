@@ -21,8 +21,18 @@
 					<div class="editor dynaSize" id="htmlEditor"></div>
 				</md-content>
 			</md-tab>
-			<md-tab label="data">
+			<md-tab label="settings">
 				<md-content class="md-padding dynaSize" style="overflow:auto;">
+					<md-input-container class="md-block">
+						<label>Title</label>
+						<input type="text" ng-model="temp.page.title">
+					</md-input-container>
+
+					<md-input-container class="md-block dynaSize">
+						<label>Notes</label>
+						<textarea class="dynaSize" ng-model="temp.page.notes"></textarea>
+					</md-input-container>
+					<hr>
 					<div layout-gt-sm="row" ng-repeat="(key, data) in temp.page.data">
 						<md-input-container class="md-block" flex-gt-sm>
 							<label>Path</label>
@@ -210,14 +220,6 @@
 			<md-tab label="library">
 				<md-content>
 					<md-tabs md-dynamic-height md-border-bottom>
-						<md-tab label="notes">
-							<md-content>
-								<md-input-container class="md-block dynaSize">
-									<label>For This Page</label>
-									<textarea class="dynaSize" ng-model="temp.page.notes"></textarea>
-								</md-input-container>
-							</md-content>
-						</md-tab>
 						<md-tab label="versions">
 							<md-content class="md-padding" layout="row" layout-wrap layout-align="space-around" style="overflow:auto;">
 								<div flex="100" flex-gt-xs="50" class="md-padding">
