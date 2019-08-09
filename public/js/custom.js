@@ -67,7 +67,7 @@ String.prototype.hashCode = function() {
 
 let jsonToTable = (obj, path)=>{
 	let html = ``;
-	if(typeof obj == 'object'){
+	if(obj && typeof obj == 'object'){
 		if(obj.length){ // is array
 			if(typeof obj[0] == 'object'){ //array of objects
 				let keys = obj.allKeys();
