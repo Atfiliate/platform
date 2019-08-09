@@ -16,11 +16,6 @@
 	</md-toolbar>
 	<md-content>
 		<md-tabs md-dynamic-height md-border-bottom ng-hide="temp.hideEditor">
-			<md-tab label="html" md-on-select="tools.ace.focus('htmlEditor')">
-				<md-content>
-					<div class="editor dynaSize" id="htmlEditor"></div>
-				</md-content>
-			</md-tab>
 			<md-tab label="settings">
 				<md-content class="md-padding dynaSize" style="overflow:auto;">
 					<md-input-container class="md-block">
@@ -72,6 +67,11 @@
 						</md-button>
 					</div>
 					<p>Note: you can use {<span>{uid}</span>},  {<span>{email}</span>},  {<span>{view}</span>},  {<span>{id}</span>} and any other $routeParams attr as variables in the data path.</p>
+				</md-content>
+			</md-tab>
+			<md-tab label="html" md-on-select="tools.ace.focus('htmlEditor')">
+				<md-content>
+					<div class="editor dynaSize" id="htmlEditor"></div>
 				</md-content>
 			</md-tab>
 			<md-tab label="js" md-on-select="tools.ace.focus('jsEditor')">
