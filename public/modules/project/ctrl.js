@@ -658,22 +658,24 @@ Auth, Cloudinary, Stripe, Fire, config){
 		},
 		ace: {
 			focus: function(editor){
+				let code = "";
+				if($scope[editor])
+					code = $scope[editor].getValue();
+				
+				tools.ace.setup(editor);
 				if(!$scope[editor]){
-					tools.ace.setup(editor);
 					if(editor == 'htmlEditor'){
 						$scope[editor].getSession().setMode("ace/mode/html");
-						$scope[editor].setValue($scope.temp.page.html, -1);
+						$scope[editor].setValue(code || $scope.temp.page.html, -1);
 						tools.edit.state($scope[editor], $scope.temp.page.htmlState);
 					}else if(editor == 'jsEditor'){
 						$scope[editor].getSession().setMode("ace/mode/javascript");
-						$scope[editor].setValue($scope.temp.page.js, -1);
+						$scope[editor].setValue(code || $scope.temp.page.js, -1);
 						tools.edit.state($scope[editor], $scope.temp.page.jsState);
 					}
 				}
 			},
 			setup: function(editor){
-				$scope.inEdit = editor;
-				
 				$scope[editor] = ace.edit(editor);
 				$scope[editor].setTheme("ace/theme/monokai");
 				$scope[editor].setOption('useSoftTabs', false);
