@@ -540,7 +540,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 			focus: function(cloud){
 				var editor = 'ccEditor'
 				cloud = JSON.parse(angular.toJson(cloud) || '{"code":"js={\n\tinit: function(request, response){\n\t\t\n\t}\n}"}');
-				component.code = component.code || '';
+				cloud.code = cloud.code || '';
 				var mode = 'ace/mode/javascript';
 				tools.ace.setup(editor, cloud.code, mode, cloud.state);
 				tools.cloud.loadHistory(cloud);
@@ -641,7 +641,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 					state = $scope.temp.page.jsState;
 				}
 				
-				tools.ace.setup(editor);
+				tools.ace.setup(editor, code, mode, state);
 				
 			},
 			state: (editor, state)=>{
