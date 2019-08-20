@@ -400,6 +400,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var editor = 'cEditor'
 				component = JSON.parse(angular.toJson(component) || '{"code":""}');
 				component.code = component.code || '';
+				$scope.temp.component = component;
+
 				var mime = {js: 'ace/mode/javascript', css: 'ace/mode/css'}
 				var suffix = component.id.split('_')[component.id.split('_').length-1];
 				var mode = mime[suffix] || 'ace/mode/html';
@@ -541,6 +543,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var editor = 'ccEditor'
 				cloud = JSON.parse(angular.toJson(cloud) || '{"code":"js={\n\tinit: function(request, response){\n\t\t\n\t}\n}"}');
 				cloud.code = cloud.code || '';
+				$scope.temp.cloud = cloud;
 				var mode = 'ace/mode/javascript';
 				tools.ace.setup(editor, cloud.code, mode, cloud.state);
 				tools.cloud.loadHistory(cloud);
