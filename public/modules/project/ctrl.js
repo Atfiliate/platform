@@ -351,9 +351,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 				//load list of page-related components
 				$scope.inEdit = 'cEditor';
 				$scope.edits = $scope.edits || 0;
-				tools.ace.setup('cEditor');
+				tools.ace.setup('cEditor', '', 'ace/mode/html');
 				$scope.temp.component = $scope.temp.component || {};
-				$scope['cEditor'].getSession().setMode('ace/mode/html');
 				var lcref = firebase.database().ref('project/'+$routeParams.view+'/component');
 				$scope.localComponents = $firebaseArray(lcref);
 				var gcref = firebase.database().ref('project/private/component');
@@ -399,15 +398,13 @@ Auth, Cloudinary, Stripe, Fire, config){
 			},
 			focus: function(component){
 				var editor = 'cEditor'
-				tools.ace.setup(editor);
 				component = JSON.parse(angular.toJson(component) || '{"code":""}');
-				$scope.temp.component = component;
+				component.code = component.code || '';
 				var mime = {js: 'ace/mode/javascript', css: 'ace/mode/css'}
 				var suffix = component.id.split('_')[component.id.split('_').length-1];
 				var mode = mime[suffix] || 'ace/mode/html';
-				$scope[editor].getSession().setMode(mode);
-				$scope[editor].setValue(component.code || '', -1);
-				tools.ace.state($scope['cEditor'], $scope.temp.component.state);
+
+				tools.ace.setup(editor, component.code, mode, component.state);
 				tools.component.loadHistory(component);
 			},
 			cache: function(){
@@ -495,9 +492,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 				//load list of page-related clouds
 				$scope.inEdit = 'ccEditor';
 				$scope.edits = $scope.edits || 0;
-				tools.ace.setup('ccEditor');
+				tools.ace.setup('ccEditor', '', 'ace/mode/javascript');
 				$scope.temp.cloud = $scope.temp.cloud || {};
-				$scope['ccEditor'].getSession().setMode('ace/mode/html');
 				var lcref = firebase.database().ref('project/'+$routeParams.view+'/cloud');
 				$scope.localclouds = $firebaseArray(lcref);
 				var gcref = firebase.database().ref('project/private/cloud');
@@ -543,13 +539,10 @@ Auth, Cloudinary, Stripe, Fire, config){
 			},
 			focus: function(cloud){
 				var editor = 'ccEditor'
-				tools.ace.setup(editor);
 				cloud = JSON.parse(angular.toJson(cloud) || '{"code":"js={\n\tinit: function(request, response){\n\t\t\n\t}\n}"}');
-				$scope.temp.cloud = cloud;
+				component.code = component.code || '';
 				var mode = 'ace/mode/javascript';
-				$scope[editor].getSession().setMode(mode);
-				$scope[editor].setValue(cloud.code || '', -1);
-				tools.ace.state($scope['ccEditor'], $scope.temp.component.state);
+				tools.ace.setup(editor, cloud.code, mode, cloud.state);
 				tools.cloud.loadHistory(cloud);
 			},
 			cache: function(){
@@ -634,21 +627,22 @@ Auth, Cloudinary, Stripe, Fire, config){
 		},
 		ace: {
 			focus: function(editor){
-				let code = "";
+				let code, mode, state;
 				if($scope[editor])
 					code = $scope[editor].getValue();
 				
+				if(editor == 'htmlEditor'){
+					mode = 'ace/mode/html';
+					code = code || $scope.temp.page.html;
+					state = $scope.temp.page.htmlState;
+				}else if(editor == 'jsEditor'){
+					mode = 'ace/mode/javascript';
+					code = code || $scope.temp.page.js;
+					state = $scope.temp.page.jsState;
+				}
+				
 				tools.ace.setup(editor);
 				
-				if(editor == 'htmlEditor'){
-					$scope[editor].getSession().setMode("ace/mode/html");
-					$scope[editor].setValue((code || $scope.temp.page.html), -1);
-					tools.ace.state($scope[editor], $scope.temp.page.htmlState);
-				}else if(editor == 'jsEditor'){
-					$scope[editor].getSession().setMode("ace/mode/javascript");
-					$scope[editor].setValue((code || $scope.temp.page.js), -1);
-					tools.ace.state($scope[editor], $scope.temp.page.jsState);
-				}
 			},
 			state: (editor, state)=>{
 				var session = editor.session;
@@ -677,11 +671,15 @@ Auth, Cloudinary, Stripe, Fire, config){
 					return JSON.parse(JSON.stringify(state));
 				}
 			},
-			setup: function(editor){
+			setup: function(editor, code, mode, state){
 				$scope[editor] = ace.edit(editor);
 				$scope[editor].setTheme("ace/theme/monokai");
 				$scope[editor].setOption('useSoftTabs', false);
 				
+				$scope[editor].getSession().setMode(mode);
+				$scope[editor].setValue(code, -1);
+				tools.ace.state($scope[editor], state);
+
 				$scope[editor].commands.addCommand({
 					name: 'save',
 					bindKey: {win: 'Ctrl-s', mac: 'Command-s'},
