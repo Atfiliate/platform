@@ -84,7 +84,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 				tools.alert('Coppied To Clipboard');
 			}
 		},
-		//Tab, Save location, extra settings (history)
+		
+
 		edit: {
 			init: function(){
 				tools.history.init();
@@ -98,18 +99,18 @@ Auth, Cloudinary, Stripe, Fire, config){
 				$scope.editors = {
 					jsEditor: (editor)=>{
 						$scope.temp.page.js = $scope.jsEditor.getValue();
-						$scope.temp.page.jsState = tools.edit.state(editor);
+						$scope.temp.page.jsState = tools.ace.state(editor);
 					},
 					htmlEditor: (editor)=>{
 						$scope.temp.page.html = $scope.htmlEditor.getValue();
-						$scope.temp.page.htmlState = tools.edit.state(editor);
+						$scope.temp.page.htmlState = tools.ace.state(editor);
 					},
 					cEditor: (editor)=>{
-						$scope.temp.component.state = tools.edit.state(editor);
+						$scope.temp.component.state = tools.ace.state(editor);
 						tools.component.save($scope.temp.component);
 					},
 					ccEditor: (editor)=>{
-						$scope.temp.cloud.state = tools.edit.state(editor);
+						$scope.temp.cloud.state = tools.ace.state(editor);
 						tools.cloud.save($scope.temp.cloud);
 					}
 				}
@@ -150,33 +151,6 @@ Auth, Cloudinary, Stripe, Fire, config){
 				}
 			},
 			
-			state: (editor, state)=>{
-				var session = editor.session;
-				if(state){
-					session.selection.fromJSON(state.selection)
-					try {
-						state.folds.forEach(function(fold){
-							session.foldAll(fold.start.row, fold.end.row)
-						});
-					} catch(e) {}
-					session.setScrollTop(state.scrollTop)
-					session.setScrollTop(state.scrollLeft)
-				}else{
-					let state = {};
-					state.selection = session.selection.toJSON()
-					state.folds = session.getAllFolds().map(function(fold) {
-						return {
-							start       : fold.start,
-							end         : fold.end,
-							placeholder : fold.placeholder
-						};
-					});
-					state.scrollTop = session.getScrollTop()
-					state.scrollLeft = session.getScrollLeft()
-					
-					return JSON.parse(JSON.stringify(state));
-				}
-			},
 			save: function(keepOpen){
 				//loop through all editors and save their code & state.
 				Object.keys($scope.editors).forEach(editorId=>{
@@ -433,7 +407,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var mode = mime[suffix] || 'ace/mode/html';
 				$scope[editor].getSession().setMode(mode);
 				$scope[editor].setValue(component.code || '', -1);
-				tools.edit.state($scope['cEditor'], $scope.temp.component.state);
+				tools.ace.state($scope['cEditor'], $scope.temp.component.state);
 				tools.component.loadHistory(component);
 			},
 			cache: function(){
@@ -468,7 +442,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 					component.id = component.id || component.$id;
 					tools.component.addHistory(component);
 					component.code = $scope['cEditor'].getValue();
-					
+					component.state = tools.ace.state($scope['cEditor']);
+
 					delete component.$id;
 					delete component.$priority;
 					
@@ -574,7 +549,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var mode = 'ace/mode/javascript';
 				$scope[editor].getSession().setMode(mode);
 				$scope[editor].setValue(cloud.code || '', -1);
-				tools.edit.state($scope['cEditor'], $scope.temp.component.state);
+				tools.ace.state($scope['ccEditor'], $scope.temp.component.state);
 				tools.cloud.loadHistory(cloud);
 			},
 			cache: function(){
@@ -609,7 +584,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 					cloud.id = cloud.id || cloud.$id;
 					tools.cloud.addHistory(cloud);
 					cloud.code = $scope['ccEditor'].getValue();
-					
+					component.state = tools.ace.state($scope['cEditor']);
+
 					delete cloud.$id;
 					delete cloud.$priority;
 					
@@ -663,16 +639,42 @@ Auth, Cloudinary, Stripe, Fire, config){
 					code = $scope[editor].getValue();
 				
 				tools.ace.setup(editor);
-				if(!$scope[editor]){
-					if(editor == 'htmlEditor'){
-						$scope[editor].getSession().setMode("ace/mode/html");
-						$scope[editor].setValue(code || $scope.temp.page.html, -1);
-						tools.edit.state($scope[editor], $scope.temp.page.htmlState);
-					}else if(editor == 'jsEditor'){
-						$scope[editor].getSession().setMode("ace/mode/javascript");
-						$scope[editor].setValue(code || $scope.temp.page.js, -1);
-						tools.edit.state($scope[editor], $scope.temp.page.jsState);
-					}
+				
+				if(editor == 'htmlEditor'){
+					$scope[editor].getSession().setMode("ace/mode/html");
+					$scope[editor].setValue((code || $scope.temp.page.html), -1);
+					tools.ace.state($scope[editor], $scope.temp.page.htmlState);
+				}else if(editor == 'jsEditor'){
+					$scope[editor].getSession().setMode("ace/mode/javascript");
+					$scope[editor].setValue((code || $scope.temp.page.js), -1);
+					tools.ace.state($scope[editor], $scope.temp.page.jsState);
+				}
+			},
+			state: (editor, state)=>{
+				var session = editor.session;
+				if(state){
+					session.selection.fromJSON(state.selection)
+					try {
+						state.folds.forEach(function(fold){
+							session.foldAll(fold.start.row, fold.end.row)
+						});
+					} catch(e) {}
+					session.setScrollTop(state.scrollTop)
+					session.setScrollTop(state.scrollLeft)
+				}else{
+					let state = {};
+					state.selection = session.selection.toJSON()
+					state.folds = session.getAllFolds().map(function(fold) {
+						return {
+							start       : fold.start,
+							end         : fold.end,
+							placeholder : fold.placeholder
+						};
+					});
+					state.scrollTop = session.getScrollTop()
+					state.scrollLeft = session.getScrollLeft()
+					
+					return JSON.parse(JSON.stringify(state));
 				}
 			},
 			setup: function(editor){
