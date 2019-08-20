@@ -84,6 +84,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				tools.alert('Coppied To Clipboard');
 			}
 		},
+		//Tab, Save location, extra settings (history)
 		edit: {
 			init: function(){
 				tools.history.init();
@@ -93,6 +94,25 @@ Auth, Cloudinary, Stripe, Fire, config){
 					$scope.temp.page.js = 'js = {\n\tinit: function(){\n\t\t\n\t}\n}'
 				if(!$scope.temp.page.html)
 					$scope.temp.page.html = '<h1>New Page</h1>'
+
+				$scope.editors = {
+					jsEditor: (editor)=>{
+						$scope.temp.page.js = $scope.jsEditor.getValue();
+						$scope.temp.page.jsState = tools.edit.state(editor);
+					},
+					htmlEditor: (editor)=>{
+						$scope.temp.page.html = $scope.htmlEditor.getValue();
+						$scope.temp.page.htmlState = tools.edit.state(editor);
+					},
+					cEditor: (editor)=>{
+						$scope.temp.component.state = tools.edit.state(editor);
+						tools.component.save($scope.temp.component);
+					},
+					ccEditor: (editor)=>{
+						$scope.temp.cloud.state = tools.edit.state(editor);
+						tools.cloud.save($scope.temp.cloud);
+					}
+				}
 				tools.edit.dialog()
 			},
 			dialog: function(){
@@ -129,14 +149,43 @@ Auth, Cloudinary, Stripe, Fire, config){
 					$scope.temp.data = {};
 				}
 			},
+			
+			state: (editor, state)=>{
+				var session = editor.session;
+				if(state){
+					session.selection.fromJSON(state.selection)
+					try {
+						state.folds.forEach(function(fold){
+							session.foldAll(fold.start.row, fold.end.row)
+						});
+					} catch(e) {}
+					session.setScrollTop(state.scrollTop)
+					session.setScrollTop(state.scrollLeft)
+				}else{
+					let state = {};
+					state.selection = session.selection.toJSON()
+					state.folds = session.getAllFolds().map(function(fold) {
+						return {
+							start       : fold.start,
+							end         : fold.end,
+							placeholder : fold.placeholder
+						};
+					});
+					state.scrollTop = session.getScrollTop()
+					state.scrollLeft = session.getScrollLeft()
+					
+					return JSON.parse(JSON.stringify(state));
+				}
+			},
 			save: function(keepOpen){
-				if($scope.jsEditor)
-					$scope.temp.page.js = $scope.jsEditor.getValue();
-				if($scope.htmlEditor)
-					$scope.temp.page.html = $scope.htmlEditor.getValue();
-				if($scope.inEdit == 'cEditor')
-					tools.component.save($scope.temp.component);
+				//loop through all editors and save their code & state.
+				Object.keys($scope.editors).forEach(editorId=>{
+					if($scope[editorId]){
+						$scope.editors[editorId]($scope[editorId])
+					}
+				})
 				
+
 				tools.history.add(angular.copy($scope.page));
 				$scope.page = angular.copy($scope.temp.page)
 				$scope.page.updatedOn = new Date();
@@ -384,6 +433,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var mode = mime[suffix] || 'ace/mode/html';
 				$scope[editor].getSession().setMode(mode);
 				$scope[editor].setValue(component.code || '', -1);
+				tools.edit.state($scope['cEditor'], $scope.temp.component.state);
 				tools.component.loadHistory(component);
 			},
 			cache: function(){
@@ -524,6 +574,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				var mode = 'ace/mode/javascript';
 				$scope[editor].getSession().setMode(mode);
 				$scope[editor].setValue(cloud.code || '', -1);
+				tools.edit.state($scope['cEditor'], $scope.temp.component.state);
 				tools.cloud.loadHistory(cloud);
 			},
 			cache: function(){
@@ -607,20 +658,17 @@ Auth, Cloudinary, Stripe, Fire, config){
 		},
 		ace: {
 			focus: function(editor){
-				if($scope.inEdit == 'htmlEditor' && $scope.htmlEditor.getValue())
-					$scope.temp.page.html = $scope.htmlEditor.getValue();
-				if($scope.inEdit == 'jsEditor' && $scope.jsEditor.getValue())
-					$scope.temp.page.js = $scope.jsEditor.getValue();
-				
-				tools.ace.setup(editor);
-				
-				
-				if(editor == 'htmlEditor'){
-					$scope[editor].getSession().setMode("ace/mode/html");
-					$scope[editor].setValue($scope.temp.page.html, -1);
-				}else if(editor == 'jsEditor'){
-					$scope[editor].getSession().setMode("ace/mode/javascript");
-					$scope[editor].setValue($scope.temp.page.js, -1);
+				if(!$scope[editor]){
+					tools.ace.setup(editor);
+					if(editor == 'htmlEditor'){
+						$scope[editor].getSession().setMode("ace/mode/html");
+						$scope[editor].setValue($scope.temp.page.html, -1);
+						tools.edit.state($scope[editor], $scope.temp.page.htmlState);
+					}else if(editor == 'jsEditor'){
+						$scope[editor].getSession().setMode("ace/mode/javascript");
+						$scope[editor].setValue($scope.temp.page.js, -1);
+						tools.edit.state($scope[editor], $scope.temp.page.jsState);
+					}
 				}
 			},
 			setup: function(editor){
