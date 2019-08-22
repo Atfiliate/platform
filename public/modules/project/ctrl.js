@@ -580,7 +580,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 					cloud.id = cloud.id || cloud.$id;
 					tools.cloud.addHistory(cloud);
 					cloud.code = $scope['ccEditor'].getValue();
-					cloud.state = tools.ace.state($scope['cEditor']);
+					cloud.state = tools.ace.state($scope['ccEditor']);
 
 					delete cloud.$id;
 					delete cloud.$priority;
