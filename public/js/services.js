@@ -159,6 +159,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				}).catch(e=>{
 					deferred.reject(e);
 				})
+			}).catch(e=>{
+				deferred.reject(e);
 			})
 			return deferred.promise;
 		}
