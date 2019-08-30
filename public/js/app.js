@@ -167,6 +167,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			if(method){
 				let provider = method.provider || $rootScope.loginMethods[0].provider;
 				$firebaseAuth().$signInWithPopup(provider);
+				$mdDialog.hide();
 			}else if($rootScope.loginMethods.length == 1){
 				tools.login($rootScope.loginMethods[0])
 			}else{
