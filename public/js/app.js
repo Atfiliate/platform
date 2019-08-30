@@ -174,6 +174,14 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				tools.dialog('login.html');
 			}
 		},
+		logout: function(){
+			firebase.auth().signOut().then(function() {
+				localStorage.clear();
+				window.location.reload();
+			}, function(error) {
+			// An error happened.
+			});
+		},
 		profile: {
 			init: function(user){
 				it.uid = user.uid || null;
