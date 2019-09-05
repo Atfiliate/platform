@@ -28,13 +28,16 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return obj;
 		}
 		fire._become = function(doc){
-			var d = doc.exists ? fire._clean(doc.data()) : {};
+			var data = doc.data();
+			var d = (doc.exists ? fire._clean(data) : {});
 			d.id = doc.id;
 			d.$fire = {
 				ref: doc.ref,
 				save: function(){
-					var copy = angular.copy(d);
-					delete copy.$fire;
+					let $fire = d.$fire;
+					delete d.$fire;
+					let copy = angular.fromJson(angular.toJson(d));
+					d.$fire = $fire;
 					delete copy.id;
 					Object.keys(copy).forEach(k=>{
 						if(k.indexOf('$') != -1){
