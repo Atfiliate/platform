@@ -653,7 +653,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 					session.selection.fromJSON(state.selection)
 					try {
 						state.folds.forEach(function(fold){
-							session.foldAll(fold.start.row, fold.end.row)
+							let range = ace.Range.fromPoints(fold.start, fold.end);
+							session.addFold(fold.placeholder, range);
 						});
 					} catch(e) {}
 					session.setScrollTop(state.scrollTop)
