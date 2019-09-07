@@ -36,7 +36,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				save: function(){
 					let $fire = d.$fire;
 					delete d.$fire;
-					let copy = angular.fromJson(angular.toJson(d));
+					let copy = angular.copy(d);
 					d.$fire = $fire;
 					delete copy.id;
 					Object.keys(copy).forEach(k=>{
