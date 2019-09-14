@@ -27,6 +27,20 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			}
 			return obj;
 		}
+		fire._prepare = (obj)=>{
+			if(obj){
+				Object.keys(obj).forEach(k=>{
+					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
+						delete obj[k];
+					}else if(Array.isArray(obj[k])){
+						obj[k] = obj[k].map(fire._prepare)
+					}else if(typeof obj[k] == 'object'){
+						obj[k] = fire._prepare(obj[k])
+					}
+				})
+			}
+			return obj;
+		}
 		fire._become = function(doc){
 			var data = doc.data();
 			var d = (doc.exists ? fire._clean(data) : {});
@@ -38,12 +52,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					delete d.$fire;
 					let copy = angular.copy(d);
 					d.$fire = $fire;
-					delete copy.id;
-					Object.keys(copy).forEach(k=>{
-						if(k.indexOf('$') != -1){
-							delete copy[k]
-						}
-					})
+					copy = fire._prepare(copy);
 					return d.$fire.ref.set(copy);
 				},
 				delete: function(){
@@ -153,6 +162,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.add = function(item){
 			var deferred = $q.defer();
 			item.createdOn = new Date();
+			item = fire._prepare(item);
 			fire._ref.add(item).then(r=>{
 				r.get().then(doc=>{
 					var obj = fire._become(doc);
@@ -172,6 +182,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			item.createdOn = new Date();
 			var id = item.id;
 			delete item.id;
+			item = fire._prepare(item);
 			fire._ref.doc(id).set(item).then(r=>{
 				fire._ref.doc(id).get().then(doc=>{
 					var obj = fire._become(doc);

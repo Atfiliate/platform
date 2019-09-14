@@ -107,11 +107,13 @@ Auth, Cloudinary, Stripe, Fire, config){
 					},
 					cEditor: (editor)=>{
 						$scope.temp.component.state = tools.ace.state(editor);
-						tools.component.save($scope.temp.component);
+						if($scope.temp.component && $scope.temp.component.id)
+							tools.component.save($scope.temp.component);
 					},
 					ccEditor: (editor)=>{
 						$scope.temp.cloud.state = tools.ace.state(editor);
-						tools.cloud.save($scope.temp.cloud);
+						if($scope.temp.cloud && $scope.temp.cloud.id)
+							tools.cloud.save($scope.temp.cloud);
 					}
 				}
 				tools.edit.dialog()
