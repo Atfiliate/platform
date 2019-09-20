@@ -22,6 +22,8 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 		'page_path': 'page/'+$routeParams.view,
 		});
 	}
+	if(window.datalayer)
+		dataLayer.push({'event': 'optimize.activate'});
 	
 	document.title = $routeParams.view;
 		

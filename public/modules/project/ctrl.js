@@ -48,6 +48,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 					'page_path': 'project/'+$routeParams.view,
 					});
 				}
+				if(window.datalayer)
+					dataLayer.push({'event': 'optimize.activate'});
 			})
 		},
 		alert: function(message){
