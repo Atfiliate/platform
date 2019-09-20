@@ -499,23 +499,28 @@ app.factory('Cloudinary', function($timeout, $q, config){
 				multiple: true,
 			}, configOverride);
 			// console.log(cconfig);
+			let results = [];
 			cloudinary.openUploadWidget(cconfig,
 			function(error, result) {
-				if(result){
-					result = result.map(function(doc){
-						doc.pdf_url = doc.secure_url.replace('.jpg', '.pdf')
-						doc.pdf_url = doc.pdf_url.replace('.png', '.pdf')
-						doc.pdf_url = doc.pdf_url.replace('.tiff', '.pdf')
-						doc.pdf_url = doc.pdf_url.replace('.bmp', '.pdf')
-						if(doc.secure_url.indexOf('.png') != -1)
-							doc.img_url = doc.secure_url;
-						else
-							doc.img_url = doc.pdf_url.replace('.pdf', '.jpg')
-						return doc;
-					})
-					deferred.resolve(result)
-				}else{
-					deferred.reject('None, Selected');
+				if(result && result.event == 'success'){
+					results.push(result.info);
+				}else if(result && result.event == 'close'){
+					if(results.length){
+						results = results.map(function(doc){
+							doc.pdf_url = doc.secure_url.replace('.jpg', '.pdf')
+							doc.pdf_url = doc.pdf_url.replace('.png', '.pdf')
+							doc.pdf_url = doc.pdf_url.replace('.tiff', '.pdf')
+							doc.pdf_url = doc.pdf_url.replace('.bmp', '.pdf')
+							if(doc.secure_url.indexOf('.png') != -1)
+								doc.img_url = doc.secure_url;
+							else
+								doc.img_url = doc.pdf_url.replace('.pdf', '.jpg')
+							return doc;
+						})
+						deferred.resolve(results)
+					}else{
+						deferred.reject('None, Selected');
+					}
 				}
 			});
 			return deferred.promise;
