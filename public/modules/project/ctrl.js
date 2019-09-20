@@ -42,7 +42,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				tools.render(page)
 				document.title = page.title;
 				
-				if(window.ga && config.gtag){
+				if(window.gtag && config.gtag){
 					gtag('config', config.gtag, {
 					'page_title' : page.title,
 					'page_path': 'project/'+$routeParams.view,
