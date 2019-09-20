@@ -21,11 +21,6 @@ Auth, Cloudinary, Stripe, Fire, config){
 		tools.init(page);
 	})
 	
-	if(window.ga){
-		ga('set', 'page', $routeParams.view);
-		ga('send', 'pageview');
-	}
-	
 	document.title = $routeParams.view;
 		
 	Mousetrap.bind('ctrl+e', function(e){
@@ -46,6 +41,13 @@ Auth, Cloudinary, Stripe, Fire, config){
 			page.$loaded(function(page){
 				tools.render(page)
 				document.title = page.title;
+				
+				if(window.ga && config.gtag){
+					gtag('config', config.gtag, {
+					'page_title' : page.title,
+					'page_path': 'project/'+$routeParams.view,
+					});
+				}
 			})
 		},
 		alert: function(message){

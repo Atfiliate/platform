@@ -16,9 +16,11 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 	var page = $firebaseObject(pageRef);
 		page.$bindTo($scope, "page");
 
-	if(window.ga){
-		ga('set', 'page', $routeParams.view);
-		ga('send', 'pageview');
+	if(window.ga && config.gtag){
+		gtag('config', config.gtag, {
+		'page_title' : $routeParams.view,
+		'page_path': 'page/'+$routeParams.view,
+		});
 	}
 	
 	document.title = $routeParams.view;
