@@ -21,11 +21,11 @@ Auth, Cloudinary, Stripe, Fire, config){
 		tools.init(page);
 	})
 	
-	if(config.mixpanel)
-		mixpanel.track(
-			"page",
-			{view: $routeParams.view, id:$routeParams.id}
-		);
+	if(ga){
+		ga('set', 'page', $routeParams.view);
+		ga('send', 'pageview');
+	}
+	
 	document.title = $routeParams.view;
 		
 	Mousetrap.bind('ctrl+e', function(e){

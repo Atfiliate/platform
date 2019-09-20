@@ -84,44 +84,9 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	$mdThemingProvider.theme('default')
 		.primaryPalette('customPrimary')
 		.accentPalette('customSecondary');
-	$translateProvider.useStaticFilesLoader({
-		prefix: 'language/',
-		suffix: '.json'
-	});
-	$translateProvider.preferredLanguage('en');
-	
-	// if(!config.debug){
-	// 	$provide.decorator("$exceptionHandler", ['$delegate', '$injector',function ($delegate, $injector) {
-	// 		var $http = $injector.get("$http");		
-	// 		return function(exception, cause) {
-	// 			if(typeof exception == 'string')
-	// 				exception = {message: exception}
-	// 			$http.post('cloud/log', {
-	// 				url:		window.location.href,
-	// 				createdOn:	new Date().toISOString(),
-	// 				user:		it.uid || null,
-	// 				name:		'Angular Exception',
-	// 				message:	exception.message, 
-	// 				stack:		exception.stack,
-	// 				file:		exception.fileName,
-	// 				line:		exception.lineNumber,
-	// 				cause:		cause,
-	// 				env:		{
-	// 					browser:	navigator.appName,
-	// 					agent:		navigator.userAgent,
-	// 					version:	navigator.appVersion
-	// 				}
-	// 			})
-	// 		}
-	// 	}]);
-	// }
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $translate, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config){
-	if(config.mixpanel)
-		mixpanel.init(config.mixpanel);
-	// if(window.location.origin != config.origin)
-	// 	window.location = config.origin+'/'+window.location.hash;
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.auth = $firebaseAuth();
@@ -185,8 +150,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		profile: {
 			init: function(user){
 				it.uid = user.uid || null;
-				if(config.mixpanel)
-					mixpanel.identify(user.uid);
+				if(gtag)
+					gtag('set', {user_id: user.uid});
 				var profileRef = firebase.database().ref().child("account/public").child(user.uid);
 				$rootScope.profile = $firebaseObject(profileRef);
 				$rootScope.profile.$loaded(function(profile) {
@@ -215,20 +180,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					//needed to improve people search.
 					if(!$rootScope.user.displayName)
 						$rootScope.user.displayName = 'Unknown User';
-					$rootScope.profile.displayName = $rootScope.user.displayName.toLowerCase();
+					$rootScope.profile.displayName = $rootScope.user.displayName;
 					$rootScope.profile.photoURL = $rootScope.user.photoURL;
 					$rootScope.profile.createdOn = new Date().toISOString();
 					$rootScope.profile.$save()
-					
-					if(config.mixpanel){
-						var names = $rootScope.user.displayName.split(' ')
-						mixpanel.people.set({
-							"$first_name": names[0],
-							"$last_name": names.splice(1).join(' '),
-							"$created": moment().toISOString(),
-							"$email": $rootScope.user.email
-						});
-					}
 					
 					var accountRef = firebase.database().ref().child("account/private").child($rootScope.user.uid);
 					var account = $firebaseObject(accountRef);

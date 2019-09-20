@@ -12,6 +12,7 @@ body,html{
 }
 .md-avatar {
 	width: 48px;
+	height: 48px;
 	margin: 16px;
 	border-radius: 48px;
 	border: 1px solid #ddd;
