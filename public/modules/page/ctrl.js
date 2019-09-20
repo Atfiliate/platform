@@ -15,12 +15,12 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 	var templateRef = firebase.database().ref("site/public/pageTemplates");
 	var page = $firebaseObject(pageRef);
 		page.$bindTo($scope, "page");
+
+	if(window.ga){
+		ga('set', 'page', $routeParams.view);
+		ga('send', 'pageview');
+	}
 	
-	if(config.mixpanel)
-		mixpanel.track(
-			"page",
-			{view: $routeParams.view, id:$routeParams.id}
-		);
 	document.title = $routeParams.view;
 		
 	Mousetrap.bind('ctrl+e', function(e){

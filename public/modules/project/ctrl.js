@@ -21,7 +21,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 		tools.init(page);
 	})
 	
-	if(ga){
+	if(window.ga){
 		ga('set', 'page', $routeParams.view);
 		ga('send', 'pageview');
 	}

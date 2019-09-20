@@ -150,7 +150,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		profile: {
 			init: function(user){
 				it.uid = user.uid || null;
-				if(gtag)
+				if(window.gtag)
 					gtag('set', {user_id: user.uid});
 				var profileRef = firebase.database().ref().child("account/public").child(user.uid);
 				$rootScope.profile = $firebaseObject(profileRef);
