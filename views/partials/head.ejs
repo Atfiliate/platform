@@ -51,6 +51,6 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', '<%= process.env.gtag %>', <% if(process.env.gtagParams){ process.env.gtagParams } %>);
+  gtag('config', '<%= process.env.gtag %>', <%= if(process.env.gtagParams){ process.env.gtagParams } %>);
 </script>
 <% } %>
