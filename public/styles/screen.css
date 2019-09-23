@@ -2,6 +2,18 @@ body,html{
 	height:100%
 }
 
+md-datepicker{
+	display: block;
+}
+.md-datepicker-input-container{
+	flex: 1 1 0%;
+    display: flex;
+}
+.md-datepicker-input-container>input{
+	width: 100%;
+    max-width: 100%;
+}
+
 .chip{
 	display: inline-block;
 	margin: 3px;
