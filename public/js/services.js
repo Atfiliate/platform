@@ -19,6 +19,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						if(obj[k]){
 							if(obj[k].toDate)
 								obj[k] = obj[k].toDate();
+							else if(obj[k].nanoseconds)
+								obj[k] = new Date(obj[k]*1000);
 							else if(typeof obj[k] == 'object')
 								obj[k] = fire._clean(obj[k])
 						}
