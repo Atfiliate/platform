@@ -4,6 +4,11 @@
 
 app.factory('Fire', function($q, Auth, $routeParams){
 	var db = firebase.firestore();
+	function isIsoDate(str) {
+		if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
+		var d = new Date(str); 
+		return d.toISOString()===str;
+	}
 	var Fire = function(path){
 		var fire = this;
 		fire._path = path;
@@ -21,6 +26,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 								obj[k] = obj[k].toDate();
 							else if(obj[k].nanoseconds)
 								obj[k] = new Date(obj[k]*1000);
+							else if(typeof obj[k] == 'string' && isIsoDate(obj[k]))
+								obj[k] = new Date(obj[k])
 							else if(typeof obj[k] == 'object')
 								obj[k] = fire._clean(obj[k])
 						}
