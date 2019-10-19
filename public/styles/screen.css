@@ -290,3 +290,17 @@ img.stretch, img.fill{
 		padding-left: 40px;
 	}
 }
+
+.site-edit{
+	display: none;
+}
+@media(max-width:500px){
+	.site-edit{
+		display: block;
+		position: fixed;
+		bottom: 0px;
+		left: 0px;
+		padding: 5px;
+		box-sizing: border-box;
+	}
+}

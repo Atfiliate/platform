@@ -1,6 +1,6 @@
 <section layout="column" flex ng-controller="PageCtrl">
 	<div layout="column" flex="100" compile="{{page.html}}"></div>
-	<div style="position:fixed; bottom:0px; padding:5px; box-sizing:border-box; width:100%;" ng-hide="$mdMedia('gt-sm')">
-		<md-button class="md-raised" aria-label="Edit Page" ng-click="tools.edit.init()" ng-show="user.is('admin')"><i class="fa fa-pencil"></i></md-button>
+	<div class="site-edit" ng-show="user.is('admin')">
+		<md-button class="md-raised" aria-label="Edit Page" ng-click="tools.edit.init()"><i class="fa fa-pencil"></i></md-button>
 	</div>
 </section>
