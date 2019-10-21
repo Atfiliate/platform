@@ -314,10 +314,15 @@ Auth, Cloudinary, Stripe, Fire, config){
 			}
 		},
 		package: {
-			init: function(){
-				var view = $scope.params.view;
+			init: function(view){
+				view = view || $scope.params.view;
 				var packageRef = whois.database().ref('whois/packages').child(view);
 				$scope.packages = $firebaseArray(packageRef);
+			},
+			path: function(){
+				let newPath = prompt('Enter alternate project pull path.');
+				tools.package.init(newPath);
+				tools.alert(`Loading packages from new path: ${newPath}`)
 			},
 			load: function(pkg){
 				var view = $scope.params.view;
