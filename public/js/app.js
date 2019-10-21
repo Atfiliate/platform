@@ -126,7 +126,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 		login: function(method){
 			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
-				return $rootScope.site.login.indexOf(m.title) != -1;
+				if($rootScope.site.login)
+					return $rootScope.site.login.indexOf(m.title) != -1;
+				else
+					return true;
 			})
 
 			if(method){
