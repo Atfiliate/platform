@@ -86,11 +86,11 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, config, Fire){
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.auth = $firebaseAuth();
-	
+
 	if(config.fire)
 		Fire.config(config.fire);
 	$firebaseAuth().$onAuthStateChanged(function(user) {
