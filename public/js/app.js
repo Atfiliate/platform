@@ -17,8 +17,8 @@ if(window.location.protocol == 'http:')
 	window.location = window.location.href.replace('http:', 'https:')
 
 
-var app = angular.module('app', ['ngMaterial','firebase','ngRoute','chart.js','pascalprecht.translate']);
-app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider, $translateProvider) {
+var app = angular.module('app', ['ngMaterial','firebase','ngRoute','chart.js']);
+app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider) {
 	$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|file|data|sms|tel):/);
 	$locationProvider.hashPrefix('');
 	app.lazy = {
@@ -86,10 +86,13 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $translate, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdToast, $mdDialog, $mdMedia, $mdSidenav, config, Fire){
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.auth = $firebaseAuth();
+	
+	if(config.fire)
+		Fire.config(config.fire);
 	$firebaseAuth().$onAuthStateChanged(function(user) {
 		if(user){
 			$rootScope.user = user;

@@ -1,17 +1,26 @@
 /*
 	global app, angular, Stripe, firebase, cloudinary, gapi
 */
+app.factory('config', function(){
+	//whois from app.js loads config data and stores it in localStorage.
+	//config gets infomration and distributes it when necessary.
+	var config = localStorage.getItem('whois');
+	config = JSON.parse(config);
+	firebase.initializeApp(config.firebase);
+	return config;
+})
 
 app.factory('Fire', function($q, Auth, $routeParams){
-	var db = firebase.firestore();
+	let db = firebase.firestore();
+	let _config = {prefix: ''}
 	function isIsoDate(str) {
 		if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
-		var d = new Date(str); 
+		var d = new Date(str);
 		return d.toISOString()===str;
 	}
 	var Fire = function(path){
 		var fire = this;
-		fire._path = path;
+		fire._path = _config.prefix+path;
 		fire._parts = path.split('/');
 		fire._cd = !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
@@ -204,6 +213,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			})
 			return deferred.promise;
 		}
+	}
+	Fire.config = function(config){
+		if(config)
+			_config = config;
+		return _config;
 	}
 	Fire.legacy = function(path, cd){
 		var fire = this;
