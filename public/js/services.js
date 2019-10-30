@@ -169,7 +169,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			}else{
 				fire._ignore = fire._qref.onSnapshot(doc=>{
 					check = check ? check(doc) : true;
-					if(check){}
+					if(check){
 						fire.obj = fire._become(doc);
 						fire._listen && fire._listen(fire.obj)
 					}
