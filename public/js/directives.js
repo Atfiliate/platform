@@ -18,7 +18,7 @@ app.directive("contenteditable", function() {
 					return element.text(val);
 			};
 			element.bind('blur', function() {
-				if (ngModel.$viewValue !== $.trim(element.text())) {
+				if (ngModel.$viewValue !== $.trim(element.innerText)) {
 					return scope.$apply(read);
 				}
 			});
@@ -26,7 +26,7 @@ app.directive("contenteditable", function() {
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else
-					var newVal = $.trim(element.text())
+					var newVal = $.trim(element.innerText)
 				if(!newVal && attrs.placeholder){
 					newVal = attrs.placeholder;
 					if(attrs.type == 'html')
