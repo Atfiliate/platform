@@ -18,7 +18,7 @@ if(window.location.protocol == 'http:')
 
 
 var app = angular.module('app', ['ngMaterial','firebase','ngRoute','chart.js']);
-app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider) {
+app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider, $injector) {
 	$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|file|data|sms|tel):/);
 	$locationProvider.hashPrefix('');
 	app.lazy = {
@@ -26,7 +26,8 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		factory: 	$provide.factory,
 		service: 	$provide.service,
 		theme:		$mdThemingProvider,
-		compile:	$compileProvider
+		compile:	$compileProvider,
+		injector:	$injector
 	};
 	var dep = {
 		deps: function($q, $rootScope, $routeParams, Auth){
