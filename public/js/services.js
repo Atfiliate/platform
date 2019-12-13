@@ -7,10 +7,10 @@ app.factory('config', function(){
 	let config = localStorage.getItem('whois');
 	config = JSON.parse(config);
 	firebase.initializeApp(config.firebase);
-	if(config.fire.messagingKey){
-		let messaging = firebase.messaging();
-		messaging.usePublicVapidKey(config.fire.messagingKey);
-	}
+	// if(config.fire.messagingKey){
+	// 	let messaging = firebase.messaging();
+	// 	messaging.usePublicVapidKey(config.fire.messagingKey);
+	// }
 	return config;
 })
 
