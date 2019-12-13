@@ -154,8 +154,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 									if(!odoc)
 										fire.list.push(fire._become(doc));
 								}else if(change.type === 'modified'){
-									var data = change.doc.data();
-										data = fire._become(data);
+									var data = fire._become(change.doc);
 									var doc = fire.list.find(d=>d.id==change.doc.id);
 									Object.keys(data).forEach(k=>{
 										doc[k] = data[k];
