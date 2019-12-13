@@ -4,9 +4,13 @@
 app.factory('config', function(){
 	//whois from app.js loads config data and stores it in localStorage.
 	//config gets infomration and distributes it when necessary.
-	var config = localStorage.getItem('whois');
+	let config = localStorage.getItem('whois');
 	config = JSON.parse(config);
 	firebase.initializeApp(config.firebase);
+	if(config.fire.messagingKey){
+		let messaging = firebase.messaging();
+		messaging.usePublicVapidKey(config.fire.messagingKey);
+	}
 	return config;
 })
 
