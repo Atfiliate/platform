@@ -42,7 +42,6 @@
 <% } %>
 <!-- End Facebook Pixel Code -->
 
-
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <% if(process.env.gtag){ %>
 <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.gtag %>"></script>
@@ -51,6 +50,6 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
-  gtag('config', '<%= process.env.gtag %>', <%- process.env.gtagParams %>);
+  gtag('config', '<%= process.env.gtag %>', <%= process.env.gtagParams %>);
 </script>
 <% } %>
