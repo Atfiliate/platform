@@ -18,37 +18,25 @@ app.directive("contenteditable", function() {
 					return element.text(val);
 			};
 			element.bind('focus', function(){
-				if(attrs.placeholder == $.trim(element[0].innerText))
-				return scope.$apply(()=>{
+				if(attrs.placeholder == $.trim(element[0].innerText) && !ngModel.$viewValue)
 					element.html('');
-				})
 			});
 			element.bind('keyup', function(){
 				if (ngModel.$viewValue !== $.trim(element[0].innerText)){
-					return scope.$apply(()=>{
-						read();
-					});
+					return scope.$apply(read);
 				}
 			});
-			element.bind('blur', function() {
-				if (ngModel.$viewValue !== $.trim(element[0].innerText)) {
-					return scope.$apply(()=>{
-						read(true);
-					});
+			element.bind('blur', function(){
+				var newVal = $.trim(element[0].innerText)
+				if(!newVal.length && attrs.placeholder){
+					element.text(attrs.placeholder);
 				}
 			});
-			return read = blur=>{
+			return read = ()=>{
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else
 					var newVal = $.trim(element[0].innerText)
-				if(!newVal && attrs.placeholder && blur){
-					newVal = attrs.placeholder;
-					if(attrs.type == 'html')
-						element.html(newVal);
-					else
-						element.text(newVal);
-				}
 				return ngModel.$setViewValue(newVal);
 			};
 		}
