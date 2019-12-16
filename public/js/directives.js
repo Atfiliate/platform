@@ -25,7 +25,9 @@ app.directive("contenteditable", function() {
 			});
 			element.bind('keyup', function(){
 				if (ngModel.$viewValue !== $.trim(element[0].innerText)){
-					return scope.$apply(read);
+					return scope.$apply(()=>{
+						read();
+					});
 				}
 			});
 			element.bind('blur', function() {
