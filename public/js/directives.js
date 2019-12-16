@@ -17,22 +17,30 @@ app.directive("contenteditable", function() {
 				else
 					return element.text(val);
 			};
-			element.bind('keyup', function() {
+			element.bind('focus', function(){
+				if(attrs.placeholder == $.trim(element[0].innerText))
+				return scope.$apply(()=>{
+					element.html('');
+				})
+			});
+			element.bind('keyup', function(){
 				if (ngModel.$viewValue !== $.trim(element[0].innerText)){
 					return scope.$apply(read);
 				}
 			});
 			element.bind('blur', function() {
 				if (ngModel.$viewValue !== $.trim(element[0].innerText)) {
-					return scope.$apply(read);
+					return scope.$apply(()=>{
+						read(true);
+					});
 				}
 			});
-			return read = function() {
+			return read = blur=>{
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else
 					var newVal = $.trim(element[0].innerText)
-				if(!newVal && attrs.placeholder){
+				if(!newVal && attrs.placeholder && blur){
 					newVal = attrs.placeholder;
 					if(attrs.type == 'html')
 						element.html(newVal);
