@@ -8,40 +8,37 @@ Auth, Cloudinary, Stripe, Fire, config){
 	$scope.temp = {};
 	// $scope.data = {};
 	var projectId = $routeParams.view || 'default';
+	document.title = $routeParams.view;
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
-
-	
-	db				= firebase.firestore();
-	db.settings({timestampsInSnapshots: true});
-	pageRef 		= firebase.database().ref('project/'+projectId).child('page');
-	templateRef 	= firebase.database().ref("site/public/pageTemplates");
-	historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
-	snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
-	page = $firebaseObject(pageRef);
-	page.$bindTo($scope, "page");
-	tools.init(page);
 
 	Auth().then(function(user){
 		$scope.user = user;
 	})
-	
-	document.title = $routeParams.view;
-		
-	Mousetrap.bind('ctrl+e', function(e){
-		e.preventDefault();
-		tools.edit.init();
-	})
-	Mousetrap.bind('ctrl+s', function(e){
-		e.preventDefault();
-		tools.edit.save();
-	})
-	Mousetrap.bind('ctrl+i', function(e){
-		e.preventDefault();
-		tools.ace.snip();
-	})
 		
 	var tools = $scope.tools = {
 		init: function(page){
+			db				= firebase.firestore();
+			db.settings({timestampsInSnapshots: true});
+			pageRef 		= firebase.database().ref('project/'+projectId).child('page');
+			templateRef 	= firebase.database().ref("site/public/pageTemplates");
+			historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
+			snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
+			page 			= $firebaseObject(pageRef);
+			
+			Mousetrap.bind('ctrl+e', function(e){
+				e.preventDefault();
+				tools.edit.init();
+			})
+			Mousetrap.bind('ctrl+s', function(e){
+				e.preventDefault();
+				tools.edit.save();
+			})
+			Mousetrap.bind('ctrl+i', function(e){
+				e.preventDefault();
+				tools.ace.snip();
+			})
+
+			page.$bindTo($scope, "page");
 			page.$loaded(function(page){
 				tools.render(page)
 				document.title = page.title;
@@ -843,6 +840,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 			$mdSidenav(id).toggle()
 		},
 	}
-	
+
+	tools.init();
 	it.ProjCtrl = $scope;
 });
