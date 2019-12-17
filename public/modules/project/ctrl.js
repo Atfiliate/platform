@@ -13,8 +13,11 @@ Auth, Cloudinary, Stripe, Fire, config){
 
 	Auth().then(function(user){
 		$scope.user = user;
+		tools.init();
+	}).catch(e=>{
+		tools.init();
 	})
-		
+	
 	var tools = $scope.tools = {
 		init: function(){
 			db				= firebase.firestore();
@@ -841,6 +844,5 @@ Auth, Cloudinary, Stripe, Fire, config){
 		},
 	}
 
-	tools.init();
 	it.ProjCtrl = $scope;
 });
