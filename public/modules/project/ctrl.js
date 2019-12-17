@@ -9,7 +9,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 	$scope.data = {};
 	var projectId = $routeParams.view || 'default';
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
-	Auth().then(function(user){
+	let load = ()=>{
 		db				= firebase.firestore();
 		db.settings({timestampsInSnapshots: true});
 		pageRef 		= firebase.database().ref('project/'+projectId).child('page');
@@ -19,6 +19,11 @@ Auth, Cloudinary, Stripe, Fire, config){
 		page = $firebaseObject(pageRef);
 		page.$bindTo($scope, "page");
 		tools.init(page);
+	}
+	Auth().then(function(user){
+		load(user);
+	}).catch(e=>{
+		load();
 	})
 	
 	document.title = $routeParams.view;
@@ -48,8 +53,6 @@ Auth, Cloudinary, Stripe, Fire, config){
 					'page_path': 'project/'+$routeParams.view,
 					});
 				}
-				if(window.datalayer)
-					dataLayer.push({'event': 'optimize.activate'});
 			})
 		},
 		alert: function(message){
@@ -59,34 +62,39 @@ Auth, Cloudinary, Stripe, Fire, config){
 				.hideDelay(5000)
 			);
 		},
-		dialog: function(dialog){
+		dialog: function(dialog, params){
 			if(dialog.indexOf('http') != -1)
 				dialog = $sce.trustAsResourceUrl(dialog);
 			else
 				dialog = tools.component.get(dialog);
-			$mdDialog.show({
+			params = params || {};
+			params = Object.assign({
 				scope: $scope,
 				preserveScope: true,
 				templateUrl: dialog,
 				multiple: true,
 				parent: angular.element(document.body),
 				clickOutsideToClose: true
-			})
+			}, params)
+			$mdDialog.show(params)
 		},
-		copy: function(txtToCopy){
-			var body = angular.element(document.body);
-			var textarea = angular.element('<textarea/>');
-			textarea.css({
-				position: 'fixed',
-				opacity: '0'
-			});
-			textarea.val(txtToCopy);
-			body.append(textarea);
-			textarea[0].select();
-			var successful = document.execCommand('copy');
-			if(successful){
-				tools.alert('Coppied To Clipboard');
-			}
+		copy: function(txtToCopy, notice){
+			return new Promise((res,rej)=>{
+				var body = angular.element(document.body);
+				var textarea = angular.element('<textarea/>');
+				textarea.css({
+					position: 'fixed',
+					opacity: '0'
+				});
+				textarea.val(txtToCopy);
+				body.append(textarea);
+				textarea[0].select();
+				var successful = document.execCommand('copy');
+				if(successful)
+					res()
+				else
+					rej()
+			})
 		},
 		
 
