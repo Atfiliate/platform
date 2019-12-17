@@ -424,8 +424,6 @@ app.factory('Auth', function($q, $firebaseAuth, $firebaseObject){
 				}
 				signin.resolve(user)
 			});
-		}else{
-			signin.reject()
 		}
 	})
 	

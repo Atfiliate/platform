@@ -6,24 +6,23 @@ Auth, Cloudinary, Stripe, Fire, config){
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
 	$scope.temp = {};
-	$scope.data = {};
+	// $scope.data = {};
 	var projectId = $routeParams.view || 'default';
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
-	let load = ()=>{
-		db				= firebase.firestore();
-		db.settings({timestampsInSnapshots: true});
-		pageRef 		= firebase.database().ref('project/'+projectId).child('page');
-		templateRef 	= firebase.database().ref("site/public/pageTemplates");
-		historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
-		snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
-		page = $firebaseObject(pageRef);
-		page.$bindTo($scope, "page");
-		tools.init(page);
-	}
+
+	
+	db				= firebase.firestore();
+	db.settings({timestampsInSnapshots: true});
+	pageRef 		= firebase.database().ref('project/'+projectId).child('page');
+	templateRef 	= firebase.database().ref("site/public/pageTemplates");
+	historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
+	snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
+	page = $firebaseObject(pageRef);
+	page.$bindTo($scope, "page");
+	tools.init(page);
+
 	Auth().then(function(user){
-		load(user);
-	}).catch(e=>{
-		load();
+		$scope.user = user;
 	})
 	
 	document.title = $routeParams.view;
@@ -194,38 +193,39 @@ Auth, Cloudinary, Stripe, Fire, config){
 		},
 		render: function(page){
 			var promises = [];
-			if(page.data)
-				promises = Object.keys(page.data).map(function(key){
-					var ref = page.data[key];
-					var deferred = $q.defer();
-					var refPath = ref.path
-					if($scope.user){
-						refPath = refPath.replace('{{uid}}', $scope.user.uid);
-						refPath = refPath.replace('{{email}}', $scope.user.email);
-					}
-					Object.keys($scope.params).forEach(key=>{
-						refPath = refPath.replace('{{'+key+'}}', $scope.params[key]);
-					})
+			// if(page.data)
+			// 	promises = Object.keys(page.data).map(function(key){
+			// 		var ref = page.data[key];
+			// 		var deferred = $q.defer();
+			// 		var refPath = ref.path
+			// 		if($scope.user){
+			// 			refPath = refPath.replace('{{uid}}', $scope.user.uid);
+			// 			refPath = refPath.replace('{{email}}', $scope.user.email);
+			// 		}
+			// 		Object.keys($scope.params).forEach(key=>{
+			// 			refPath = refPath.replace('{{'+key+'}}', $scope.params[key]);
+			// 		})
 
-					var dataRef = firebase.database().ref().child(refPath);
-					if(ref.array)
-						$scope.data[ref.alias] = $firebaseArray(dataRef);
-					else
-						$scope.data[ref.alias] = $firebaseObject(dataRef);
-					$scope.data[ref.alias].$loaded(function(obj){
-						deferred.resolve(obj)
-					}, function(e){
-						deferred.resolve(e)
-					})
-					return deferred.promise;
-				})
+			// 		var dataRef = firebase.database().ref().child(refPath);
+			// 		if(ref.array)
+			// 			$scope.data[ref.alias] = $firebaseArray(dataRef);
+			// 		else
+			// 			$scope.data[ref.alias] = $firebaseObject(dataRef);
+			// 		$scope.data[ref.alias].$loaded(function(obj){
+			// 			deferred.resolve(obj)
+			// 		}, function(e){
+			// 			deferred.resolve(e)
+			// 		})
+			// 		return deferred.promise;
+			// 	})
 			if(page.js)
 				$q.all(promises).then(function(r){
 					try{
 						var js;
 						eval('js = $scope.js = '+page.js)
 						if(js.init)
-							$scope.data = js.init($scope.data) || $scope.data;
+							js.init();
+							// $scope.data = js.init($scope.data) || $scope.data;
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
