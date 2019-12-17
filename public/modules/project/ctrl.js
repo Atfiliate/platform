@@ -16,7 +16,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 	})
 		
 	var tools = $scope.tools = {
-		init: function(page){
+		init: function(){
 			db				= firebase.firestore();
 			db.settings({timestampsInSnapshots: true});
 			pageRef 		= firebase.database().ref('project/'+projectId).child('page');
@@ -24,7 +24,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 			historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
 			snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
 			page 			= $firebaseObject(pageRef);
-			
+
 			Mousetrap.bind('ctrl+e', function(e){
 				e.preventDefault();
 				tools.edit.init();
