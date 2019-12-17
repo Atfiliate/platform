@@ -312,6 +312,8 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 				// 	else //If there is no record for this user....
 				// 		$scope.view = 'manage';
 				// })
+			}).catch(e=>{
+				console.log('User not logged in.')
 			})
 		},
 		checkout: {
