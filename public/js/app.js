@@ -240,7 +240,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					name:		'Window Error',
 					message:	message,
 					source: 	source,
-					stack:		error.stack,
+					stack:		error && error.stack || '',
 					line:		lineno,
 					col:		colno,
 					env:		{

@@ -89,6 +89,16 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						d[k] = attrObj[k];
 					})
 					return d.$fire.ref.update(attrObj);
+				},
+				listen: function(check, callback){
+					//returns ignore function.
+					return d.$fire.ref.onSnapshot(doc=>{
+						let notify = (typeof check == 'function' ? check(doc) : true);
+						if(notify){
+							fire.obj = fire._become(doc);
+							callback && callback(fire.obj)
+						}
+					})
 				}
 			}
 			return d;
