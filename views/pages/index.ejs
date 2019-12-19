@@ -5,5 +5,6 @@
 	<body layout="column" ng-controller="SiteCtrl" ng-cloak>
 		<div ng-include="tools.component('header')"></div>
 		<md-content flex layout="row" ng-view></md-content>
+		<%- include ("../partials/scripts.ejs") %>
 	</body>
 </html>
