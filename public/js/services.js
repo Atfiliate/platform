@@ -414,6 +414,7 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 })
 app.factory('Auth', function($q, $firebaseAuth, $firebaseObject){
 	var signin = $q.defer();
+	var authState = $q.defer();
 	$firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
 			var ref = firebase.database().ref().child('site/public/roles').child(user.uid);
@@ -433,14 +434,18 @@ app.factory('Auth', function($q, $firebaseAuth, $firebaseObject){
 					return firebase.auth().currentUser.getToken(true)
 				}
 				signin.resolve(user)
+				authState.resolve(user)
 			});
 		}else{
-			signin.reject()
+			authState.reject()
 		}
 	})
 	
-	return function(){
-		return signin.promise;
+	return function(resolveOnLogin){
+		if(resolveOnLogin)
+			return signin.promise;
+		else
+			return authState.promise;
 	}
 })
 app.factory('Google', function($q, $http, config){
