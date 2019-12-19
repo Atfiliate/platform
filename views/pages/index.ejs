@@ -4,7 +4,6 @@
 		<% include ../partials/head.ejs %>
 	</head>
 	<body layout="column" ng-controller="SiteCtrl" ng-cloak>
-<!--<body layout="column" ng-controller="SiteCtrl" md-swipe-right="tools.sidebar('open')" md-swipe-left="tools.sidebar('close')">-->
 		<div ng-include="tools.component('header')"></div>
 		<md-content flex layout="row" ng-view></md-content>
 		<% include ../partials/scripts.ejs %>
