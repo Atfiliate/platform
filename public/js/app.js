@@ -215,7 +215,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				.then(registration=>{
 					messaging.useServiceWorker(registration);
 					$rootScope.device = tools.device.get();
-					// tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
+					tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
 				})
 			},
 			get: ()=>{
