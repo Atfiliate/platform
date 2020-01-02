@@ -30,6 +30,12 @@ md-datepicker{
 	border: 1px solid #ddd;
 	vertical-align: center;
 }
+.md-menu .md-button{
+	display: flex;
+}
+.md-button .md-avatar{
+	margin: 0px 8px 0px 0px;
+}
 md-icon{
     text-align: center;
     line-height: 24px;
