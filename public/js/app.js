@@ -154,6 +154,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// An error happened.
 			});
 		},
+		alert: function(message){
+			$mdToast.show(
+			$mdToast.simple()
+				.textContent(message)
+				.hideDelay(5000)
+			);
+		},
 		profile: {
 			init: function(user){
 				if(window.gtag)
