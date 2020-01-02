@@ -183,7 +183,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				let save = profile=>{
 					profile.version 	= version;
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
+					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
+					profile.lastName 	= profile.lastName || profile.displayName.split(' ')[1];
 					profile.img 		= profile.img || defaultImg;
+					profile.authEmail 	= $rootScope.user.email;
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
@@ -201,25 +204,104 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						save(profile)
 					}
 				}
+			}
+		},
 
-
-				// if($rootScope.user){
-				// 	//needed to improve people search.
-				// 	if(!$rootScope.user.displayName)
-				// 		$rootScope.user.displayName = 'Unknown User';
-				// 	$rootScope.profile.displayName = $rootScope.user.displayName;
-				// 	$rootScope.profile.photoURL = $rootScope.user.photoURL;
-				// 	$rootScope.profile.createdOn = new Date().toISOString();
-				// 	$rootScope.profile.$save()
-					
-				// 	var accountRef = firebase.database().ref().child("account/private").child($rootScope.user.uid);
-				// 	var account = $firebaseObject(accountRef);
-				// 	account.$loaded(function(){
-				// 		account.displayName = $rootScope.user.displayName;
-				// 		account.email = $rootScope.user.email;
-				// 		account.$save();
-				// 	})
-				// }
+		device: {
+			init: ()=>{
+				const messaging = $rootScope.messaging = firebase.messaging();
+				let origin = window.location.origin;
+				navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
+				.then(registration=>{
+					messaging.useServiceWorker(registration);
+					$rootScope.device = tools.device.get();
+					// tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
+				})
+			},
+			get: ()=>{
+				var deviceId = localStorage.getItem('deviceId');
+				if(!deviceId){
+					deviceId = chance.md5();
+					localStorage.setItem('deviceId', deviceId);
+				}
+				$rootScope.profile.devices = $rootScope.profile.devices || [];
+				let device = $rootScope.profile.devices.find(d=>d.id==deviceId);
+				if(!device){
+					device = {
+						id: deviceId,
+						createdOn: new Date()
+					}
+					$rootScope.profile.devices.push(device);
+					$rootScope.profile.$fire.save();
+				}
+				return device;
+			},
+			type: ()=>{
+				if(navigator.userAgent.match(/Android/i))
+					return 'Android'
+				else if(navigator.userAgent.match(/BlackBerry/i))
+					return 'BlackBerry'
+				else if(navigator.userAgent.match(/iPhone|iPad|iPod/i))
+					return 'iOS'
+				else if(navigator.userAgent.match(/Opera Mini/i))
+					return 'Opera'
+				else if(navigator.userAgent.match(/IEMobile/i))
+					return 'Windows'
+				else if(navigator.userAgent.match(/Windows/i))
+					return 'Windows'
+				else
+					return 'Unknown'
+			},
+			register: ()=>{
+				console.log('register')
+				$rootScope.device.type = tools.device.type();
+				$rootScope.device.title = $rootScope.device.title || prompt('Would you like to name this device?') || `My ${$rootScope.device.type} Device`;
+				$rootScope.device.subscribe = true;
+				
+				$rootScope.messaging.requestPermission()
+				.then(()=>{
+					tools.device.syncToken(true);
+				})
+				.catch(function(err){
+					$rootScope.device.status = 'No Permission';
+					$rootScope.profile.$fire.save()
+					tools.alert('You may need to check site settings to enable push notifications.')
+				});	
+			},
+			messaging: ()=>{
+				console.log('messaging')
+				tools.device.syncToken();
+				$rootScope.messaging.onMessage((payload)=>{
+					console.log('messaging',payload)
+					tools.alert(payload.notification.title + ' - ' + payload.notification.body)
+				});
+				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
+			},
+			syncToken: (feedback)=>{
+				console.log('syncToken')
+				$rootScope.messaging.getToken().then(token=>{
+					if(token){
+						if(token != $rootScope.device.token){
+							delete $rootScope.device.error;
+							$rootScope.device.token = token;
+							$rootScope.device.status = 'Registered';
+							$rootScope.profile.$fire.save()
+							if(feedback)
+								tools.alert('Device Registered');
+						}
+					}else{
+						$rootScope.device.status = 'Unregistered';
+						$rootScope.profile.$fire.save()
+					}
+				})
+				.catch(function(err){
+					let newStatus = 'Token Error';
+					if($rootScope.device.status != newStatus){
+						$rootScope.device.status = newStatus;
+						$rootScope.device.error = err.message;
+						$rootScope.profile.$fire.save()
+					}
+				});
 			}
 		},
 
