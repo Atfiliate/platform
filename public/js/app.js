@@ -181,30 +181,30 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			setup: profile=>{
 				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 				let version = 1.03;
-				let save = profile=>{
-					profile.version 	= version;
+				if(!profile.version || profile.version < version){
+					profile.version = version;
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
 					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
 					profile.lastName 	= profile.lastName || profile.displayName.split(' ')[1];
-					profile.img 		= profile.img || defaultImg;
 					profile.authEmail 	= $rootScope.user.email;
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
-					profile.updatedOn	= new Date();
-					profile.$fire.save();
-					new Fire.legacy(`profile`).set(profile);
-				}
-				if(!profile.version || profile.version < version){
+
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						let imgUrl = $rootScope.user.photoURL;
 						$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-							profile.img = result.data.secure_url;
-							save(profile);
+							profile.img = result.data.secure_url || defaultImg;
+							tools.profile.save(profile);
 						})
 					}else{
-						save(profile)
+						tools.profile.save(profile)
 					}
 				}
+			},
+			save: (profile)=>{
+				profile.updatedOn	= new Date();
+				profile.$fire.save();
+				new Fire.legacy(`profile`).set(profile);
 			}
 		},
 
