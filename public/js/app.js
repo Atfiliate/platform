@@ -177,14 +177,12 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 		})
 			// 	});
 			// },
-			setup: function(profile){
+			setup: profile=>{
 				if(!profile.displayName){
-					profile = Object.assign({
-						displayName: 	$rootScope.user.displayName || 'Unknown User',
-						photoUrl: 		$rootScope.user.photoURL,
-						email: 			$rootScope.user.email,
-						createdOn: 		new Date()
-					}, profile)
+					profile.displayName = 	$rootScope.user.displayName || 'Unknown User';
+					profile.photoUrl = 		$rootScope.user.photoURL;
+					profile.email = 		$rootScope.user.email;
+					profile.createdOn = 	new Date();
 					profile.$fire.save();
 					new Fire.legacy(`account/private/${profile.id}`).set(profile);
 				}
