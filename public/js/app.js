@@ -182,7 +182,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				let save = profile=>{
 					profile = angular.copy(profile);
 					profile.version = version;
-					delete profile.$fire;
 					let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
 					profile.img 		= profile.img || defaultImg;
