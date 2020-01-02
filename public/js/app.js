@@ -179,12 +179,17 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// },
 			setup: profile=>{
 				if(!profile.displayName){
-					profile.displayName = 	$rootScope.user.displayName || 'Unknown User';
-					profile.photoUrl = 		$rootScope.user.photoURL;
-					profile.email = 		$rootScope.user.email;
-					profile.createdOn = 	new Date();
-					profile.$fire.save();
-					new Fire.legacy(`account/private/${profile.id}`).set(profile);
+					let copy = angular.copy(profile);
+					delete copy.$fire;
+					$http.post('/cloud/profile', copy).then(result=>{
+						it.profileResult = result;
+						profile.displayName = 	$rootScope.user.displayName || 'Unknown User';
+						profile.photoUrl = 		result.data.secure_url;
+						profile.email = 		$rootScope.user.email;
+						profile.createdOn = 	new Date();
+						profile.$fire.save();
+						new Fire.legacy(`account/private/${profile.id}`).set(profile);
+					})
 				}
 
 
