@@ -179,18 +179,27 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// },
 			setup: profile=>{
 				let version = 1.02;
+				let save = profile=>{
+					let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
+					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
+					profile.photoUrl 	= profile.photoUrl || defaultImg;
+					profile.email 		= profile.email || $rootScope.user.email;
+					profile.createdOn 	= profile.createdOn || new Date();
+					profile.updatedOn	= new Date();
+					profile.$fire.save();
+					new Fire.legacy(`account/private`).set(profile);
+				}
 				if(!profile.version || profile.version < version){
 					let copy = angular.copy(profile);
 					delete copy.$fire;
-					$http.post('/cloud/profile', copy).then(result=>{
-						let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
-						profile.displayName = $rootScope.user.displayName || 'Unknown User';
-						profile.photoUrl 	= result.data.secure_url || defaultImg;
-						profile.email 		= $rootScope.user.email;
-						profile.createdOn 	= new Date();
-						profile.$fire.save();
-						new Fire.legacy(`account/private`).set(profile);
-					})
+					if(!copy.photoUrl || copy.photoUrl.indexOf('cloudinary') == -1){
+						$http.post('/cloud/profile', copy).then(result=>{
+							profile.photoUrl = result.data.secure_url;
+							save(profile);
+						})
+					}else{
+						save(profile)
+					}
 				}
 
 
