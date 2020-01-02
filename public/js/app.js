@@ -178,7 +178,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 	});
 			// },
 			setup: profile=>{
-				if(!profile.displayName){
+				let version = 1.01;
+				if(!profile.version || profile.version < version){
 					let copy = angular.copy(profile);
 					delete copy.$fire;
 					$http.post('/cloud/profile', copy).then(result=>{
