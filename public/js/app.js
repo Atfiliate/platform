@@ -194,13 +194,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					copy.version = version;
 					delete copy.$fire;
 					if(!copy.img || copy.img.indexOf('cloudinary') == -1){
-						let imgUrl = $rootScope.user.photoURL
+						let imgUrl = $rootScope.user.photoURL;
 						$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-							profile.img = result.data.secure_url;
-							save(profile);
+							copy.img = result.data.secure_url;
+							save(copy);
 						})
 					}else{
-						save(profile)
+						save(copy)
 					}
 				}
 
