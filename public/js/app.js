@@ -88,6 +88,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, config, Fire){
+	$rootScope.mailboxes = [];
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.auth = $firebaseAuth();
@@ -153,13 +154,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}, function(error) {
 			// An error happened.
 			});
-		},
-		alert: function(message){
-			$mdToast.show(
-			$mdToast.simple()
-				.textContent(message)
-				.hideDelay(5000)
-			);
 		},
 		profile: {
 			init: function(user){
@@ -261,28 +255,31 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					return 'Unknown'
 			},
 			register: ()=>{
-				$rootScope.device.type = tools.device.type();
-				$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${$rootScope.device.type} Device`;
-				$rootScope.device.subscribe = true;
-				
-				$rootScope.messaging.requestPermission()
-				.then(()=>{
-					tools.device.syncToken(true);
+				return new Promise((resolve)=>{
+					$rootScope.device.type = tools.device.type();
+					$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${$rootScope.device.type} Device`;
+					$rootScope.device.subscribe = true;
+					
+					$rootScope.messaging.requestPermission()
+					.then(()=>{
+						tools.device.syncToken(resolve);
+					})
+					.catch(function(err){
+						$rootScope.device.status = 'No Permission';
+						$rootScope.profile.$fire.save()
+					});
 				})
-				.catch(function(err){
-					$rootScope.device.status = 'No Permission';
-					$rootScope.profile.$fire.save()
-					tools.alert('You may need to check site settings to enable push notifications.')
-				});	
 			},
 			messaging: ()=>{
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
-					tools.alert(payload.notification.title + ' - ' + payload.notification.body)
+					$rootScope.mailboxes.forEach(fn=>{
+						fn(payload)
+					})
 				});
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
-			syncToken: (feedback)=>{
+			syncToken: (resolve)=>{
 				$rootScope.messaging.getToken().then(token=>{
 					if(token){
 						if(token != $rootScope.device.token){
@@ -290,8 +287,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							$rootScope.device.token = token;
 							$rootScope.device.status = 'Registered';
 							$rootScope.profile.$fire.save()
-							if(feedback)
-								tools.alert('Device Registered');
+							if(resolve)
+								resolve('Device Registered');
 						}
 					}else{
 						$rootScope.device.status = 'Unregistered';
@@ -308,7 +305,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				});
 			}
 		},
-
+		message: {
+			register: (fn)=>{
+				$rootScope.mailboxes.push(fn);
+			}
+		},
 		
 		dialog: function(dialog, settings){
 			$mdDialog.show({
