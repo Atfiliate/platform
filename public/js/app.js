@@ -161,6 +161,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				new Fire(`profile/${user.uid}`).get().then(profile=>{
 					$rootScope.profile = profile;
 					tools.profile.setup(profile);
+					tools.device.init();
 				})
 			},
 			// gapi: function(user){
