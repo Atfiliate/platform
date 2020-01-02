@@ -254,9 +254,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					return 'Unknown'
 			},
 			register: ()=>{
-				console.log('register')
 				$rootScope.device.type = tools.device.type();
-				$rootScope.device.title = $rootScope.device.title || prompt('Would you like to name this device?') || `My ${$rootScope.device.type} Device`;
+				$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${$rootScope.device.type} Device`;
 				$rootScope.device.subscribe = true;
 				
 				$rootScope.messaging.requestPermission()
@@ -270,16 +269,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				});	
 			},
 			messaging: ()=>{
-				console.log('messaging')
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
-					console.log('messaging',payload)
 					tools.alert(payload.notification.title + ' - ' + payload.notification.body)
 				});
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
 			syncToken: (feedback)=>{
-				console.log('syncToken')
 				$rootScope.messaging.getToken().then(token=>{
 					if(token){
 						if(token != $rootScope.device.token){
