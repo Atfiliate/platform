@@ -16,6 +16,8 @@ app.factory('config', function(){
 
 app.factory('Fire', function($q, Auth, $routeParams){
 	let db = firebase.firestore();
+	db.settings({timestampsInSnapshots: true});
+
 	let _config = {prefix: ''}
 	function isIsoDate(str) {
 		if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;

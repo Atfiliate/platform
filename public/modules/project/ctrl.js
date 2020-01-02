@@ -20,8 +20,6 @@ Auth, Cloudinary, Stripe, Fire, config){
 	
 	var tools = $scope.tools = {
 		init: function(){
-			db				= firebase.firestore();
-			db.settings({timestampsInSnapshots: true});
 			pageRef 		= firebase.database().ref('project/'+projectId).child('page');
 			templateRef 	= firebase.database().ref("site/public/pageTemplates");
 			historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
@@ -66,7 +64,6 @@ Auth, Cloudinary, Stripe, Fire, config){
 				dialog = $sce.trustAsResourceUrl(dialog);
 			else
 				dialog = tools.component.get(dialog);
-			params = params || {};
 			params = Object.assign({
 				scope: $scope,
 				preserveScope: true,
