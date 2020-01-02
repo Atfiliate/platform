@@ -98,7 +98,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		if(user){
 			$rootScope.user = user;
 			tools.profile.init(user);
-			tools.profile.gapi(user);
+			// tools.profile.gapi(user);
 		}
 	});
 	var siteRef = firebase.database().ref().child("site/public/settings");
@@ -156,61 +156,69 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 		profile: {
 			init: function(user){
-				it.uid = user.uid || null;
 				if(window.gtag)
 					gtag('set', {user_id: user.uid});
-				var profileRef = firebase.database().ref().child("account/public").child(user.uid);
-				$rootScope.profile = $firebaseObject(profileRef);
-				$rootScope.profile.$loaded(function(profile) {
-					if(!profile.displayName)
-						tools.profile.setup();
-				}, function(e){
-					console.log('no profile')
+				new Fire(`profile/${user.uid}`).get().then(profile=>{
+					$rootScope.profile = profile;
+					tools.profile.setup(profile);
 				})
 			},
-			gapi: function(user){
-				gapi.load('client', function(){
-					gapi.client.init({
-						apiKey: 	config.firebase.apiKey,
-						clientId:	config.clientId
-					}).then(function(r){
-						gapi.auth.authorize({
-							'client_id': config.clientId,
-							'scope': ['profile'],
-							'immediate': true
-						});
-					})
-				});
-			},
-			setup: function(){
-				if($rootScope.user){
-					//needed to improve people search.
-					if(!$rootScope.user.displayName)
-						$rootScope.user.displayName = 'Unknown User';
-					$rootScope.profile.displayName = $rootScope.user.displayName;
-					$rootScope.profile.photoURL = $rootScope.user.photoURL;
-					$rootScope.profile.createdOn = new Date().toISOString();
-					$rootScope.profile.$save()
-					
-					var accountRef = firebase.database().ref().child("account/private").child($rootScope.user.uid);
-					var account = $firebaseObject(accountRef);
-					account.$loaded(function(){
-						account.displayName = $rootScope.user.displayName;
-						account.email = $rootScope.user.email;
-						account.$save();
-					})
+			// gapi: function(user){
+			// 	gapi.load('client', function(){
+			// 		gapi.client.init({
+			// 			apiKey: 	config.firebase.apiKey,
+			// 			clientId:	config.clientId
+			// 		}).then(function(r){
+			// 			gapi.auth.authorize({
+			// 				'client_id': config.clientId,
+			// 				'scope': ['profile'],
+			// 				'immediate': true
+			// 			});
+			// 		})
+			// 	});
+			// },
+			setup: function(profile){
+				if(!profile.displayName){
+					profile = Object.assign({
+						displayName: 	$rootScope.user.displayName || 'Unknown User',
+						photoUrl: 		$rootScope.user.photoURL,
+						email: 			$rootScope.user.email,
+						createdOn: 		new Date()
+					}, profile)
+					profile.$fire.save();
+					new Fire.legacy(`account/private/${profile.id}`).set(profile);
 				}
+
+
+				// if($rootScope.user){
+				// 	//needed to improve people search.
+				// 	if(!$rootScope.user.displayName)
+				// 		$rootScope.user.displayName = 'Unknown User';
+				// 	$rootScope.profile.displayName = $rootScope.user.displayName;
+				// 	$rootScope.profile.photoURL = $rootScope.user.photoURL;
+				// 	$rootScope.profile.createdOn = new Date().toISOString();
+				// 	$rootScope.profile.$save()
+					
+				// 	var accountRef = firebase.database().ref().child("account/private").child($rootScope.user.uid);
+				// 	var account = $firebaseObject(accountRef);
+				// 	account.$loaded(function(){
+				// 		account.displayName = $rootScope.user.displayName;
+				// 		account.email = $rootScope.user.email;
+				// 		account.$save();
+				// 	})
+				// }
 			}
 		},
 
-		dialog: function(dialog){
+		
+		dialog: function(dialog, settings){
 			$mdDialog.show({
-				scope: $rootScope,
-				preserveScope: true,
-				templateUrl: config.origin+'/component/'+dialog,
-				multiple: true,
-				parent: angular.element(document.body),
-				clickOutsideToClose: true
+				scope: 					$rootScope,
+				preserveScope: 			true,
+				templateUrl: 			config.origin+'/component/'+dialog,
+				multiple: 				true,
+				parent: 				angular.element(document.body),
+				clickOutsideToClose: 	true
 			})
 		},
 		sidebar: function(action){
