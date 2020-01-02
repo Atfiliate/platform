@@ -334,8 +334,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.add = function(item){
 			var deferred = $q.defer();
 			item.createdOn = new Date();
+			let copy = angular.copy(item);
+			copy = fire._cleanForDb(copy);
 			var newItemRef = fire._ref.push();
-			newItemRef.set(item);
+			newItemRef.set(copy);
 			newItemRef.once('value', function(snap) {
 				var obj = fire._become(snap);
 				if(fire.list)
@@ -348,8 +350,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			var deferred = $q.defer();
 			item.createdOn = new Date();
 			var id = item.id;
-			delete item.id;
-			fire._ref.child(id).set(item).then(r=>{
+			let copy = angular.copy(item);
+			copy = fire._cleanForDb(copy);
+			delete copy.id;
+			fire._ref.child(id).set(copy).then(r=>{
 				fire._ref.child(id).once('value').then(doc=>{
 					var obj = fire._become(doc);
 					if(fire.list)
