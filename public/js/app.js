@@ -180,6 +180,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			setup: profile=>{
 				let version = 1.02;
 				let save = profile=>{
+					let copy = angular.copy(profile);
+					copy.version = version;
+					delete copy.$fire;
 					let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
 					profile.img 		= profile.img || defaultImg;
@@ -190,17 +193,14 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					new Fire.legacy(`account/private`).set(profile);
 				}
 				if(!profile.version || profile.version < version){
-					let copy = angular.copy(profile);
-					copy.version = version;
-					delete copy.$fire;
-					if(!copy.img || copy.img.indexOf('cloudinary') == -1){
+					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						let imgUrl = $rootScope.user.photoURL;
 						$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-							copy.img = result.data.secure_url;
-							save(copy);
+							profile.img = result.data.secure_url;
+							save(profile);
 						})
 					}else{
-						save(copy)
+						save(profile)
 					}
 				}
 
