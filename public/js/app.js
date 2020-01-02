@@ -182,7 +182,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				let save = profile=>{
 					let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
-					profile.photoUrl 	= profile.photoUrl || defaultImg;
+					profile.img 		= profile.img || defaultImg;
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
@@ -191,10 +191,12 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				}
 				if(!profile.version || profile.version < version){
 					let copy = angular.copy(profile);
+					copy.version = version;
 					delete copy.$fire;
-					if(!copy.photoUrl || copy.photoUrl.indexOf('cloudinary') == -1){
-						$http.post('/cloud/profile', copy).then(result=>{
-							profile.photoUrl = result.data.secure_url;
+					if(!copy.img || copy.img.indexOf('cloudinary') == -1){
+						let imgUrl = $scope.user.photoURL
+						$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
+							profile.img = result.data.secure_url;
 							save(profile);
 						})
 					}else{
