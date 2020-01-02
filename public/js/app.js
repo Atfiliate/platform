@@ -178,7 +178,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 	});
 			// },
 			setup: profile=>{
-				let version = 1.02;
+				let version = 1.03;
 				let save = profile=>{
 					profile = angular.copy(profile);
 					profile.version = version;
@@ -189,7 +189,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
 					profile.$fire.save();
-					new Fire.legacy(`account/private`).set(profile);
+					new Fire.legacy(`profile`).set(profile);
 				}
 				if(!profile.version || profile.version < version){
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
