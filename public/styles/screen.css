@@ -36,6 +36,9 @@ md-datepicker{
 .md-button .md-avatar{
 	margin: 0px 8px 0px 0px;
 }
+table .md-avatar{
+	margin: 0px;
+}
 md-icon{
     text-align: center;
     line-height: 24px;
