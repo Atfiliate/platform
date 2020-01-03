@@ -28,7 +28,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 
 			Mousetrap.bind('ctrl+e', function(e){
 				e.preventDefault();
-				tools.edit.init();
+				if($scope.user.is('developer'))
+					tools.edit.init();
 			})
 			Mousetrap.bind('ctrl+s', function(e){
 				e.preventDefault();

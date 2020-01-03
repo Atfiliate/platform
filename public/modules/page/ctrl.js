@@ -29,7 +29,8 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 		
 	Mousetrap.bind('ctrl+e', function(e){
 		e.preventDefault();
-		tools.edit.init();
+		if($scope.user.is('admin'))
+			tools.edit.init();
 	})
 	Mousetrap.bind('ctrl+s', function(e){
 		e.preventDefault();
