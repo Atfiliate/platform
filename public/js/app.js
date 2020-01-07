@@ -276,9 +276,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				})
 			},
 			messaging: ()=>{
-				console.log(payload);
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
+					console.log(payload);
 					$mdToast.show({
 						template: `
 							<md-toast>
