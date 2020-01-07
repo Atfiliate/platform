@@ -91,6 +91,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	$rootScope.mailboxes = [];
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
+	$rootScope.$mdToast = $mdToast;
 	$rootScope.auth = $firebaseAuth();
 
 	if(config.fire)
