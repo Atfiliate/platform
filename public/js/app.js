@@ -87,7 +87,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, config, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
 	$rootScope.mailboxes = [];
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
@@ -213,9 +213,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 
 		device: {
-			initPromise: new Promise(res=>{
-				tools.device.initRes = res;
-			}),
+			initDefer: $q.defer(),
 			init: ()=>{
 				const messaging = $rootScope.messaging = firebase.messaging();
 				let origin = window.location.origin;
@@ -224,7 +222,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					messaging.useServiceWorker(registration);
 					$rootScope.device = tools.device.get();
 					tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
-					tools.device.initRes();
+					tools.device.initDefer.resolve();
 				})
 			},
 			get: ()=>{
@@ -300,7 +298,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
 			syncToken: (resolve)=>{
-				tools.device.initPromise.then(r=>{
+				tools.device.initDefer.promise.then(r=>{
 					$rootScope.messaging.getToken().then(token=>{
 						if(token){
 							if(token != $rootScope.device.token){
