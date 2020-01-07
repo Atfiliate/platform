@@ -159,11 +159,14 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			init: function(user){
 				if(window.gtag)
 					gtag('set', {user_id: user.uid});
-				new Fire(`profile/${user.uid}`).get().then(profile=>{
-					$rootScope.profile = profile;
-					tools.profile.setup(profile);
-					tools.device.init();
-				})
+				if(!$scope.profile){
+					$scope.profile = {status:'pending'}
+					new Fire(`profile/${user.uid}`).get().then(profile=>{
+						$rootScope.profile = profile;
+						tools.profile.setup(profile);
+						tools.device.init();
+					})
+				}
 			},
 			// gapi: function(user){
 			// 	gapi.load('client', function(){
