@@ -87,7 +87,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, config, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, config, Fire){
 	$rootScope.mailboxes = [];
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
@@ -210,6 +210,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 
 		device: {
+			initPromise = new Promise(res=>{
+				tools.device.initRes = res;
+			}),
 			init: ()=>{
 				const messaging = $rootScope.messaging = firebase.messaging();
 				let origin = window.location.origin;
@@ -218,6 +221,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					messaging.useServiceWorker(registration);
 					$rootScope.device = tools.device.get();
 					tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
+					tools.device.initRes();
 				})
 			},
 			get: ()=>{
@@ -271,45 +275,60 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				})
 			},
 			messaging: ()=>{
+				console.log(payload);
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
-					$rootScope.mailboxes.forEach(fn=>{
-						fn(payload)
+					$mdToast.show({
+						template: `
+							<md-toast>
+								<md-button class="md-icon-button" ng-click="$mdToast.hide()">
+									<i class="fa fa-close"></i>
+								</md-button>
+								<a ng-href="#" flex>New Message</a>
+							</md-toast>
+						`,
+						position: 'bottom left',
+						hideDelay: 0
 					})
+					// $rootScope.mailboxes.forEach(fn=>{
+					// 	fn(payload)
+					// })
 				});
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
 			syncToken: (resolve)=>{
-				$rootScope.messaging.getToken().then(token=>{
-					if(token){
-						if(token != $rootScope.device.token){
-							delete $rootScope.device.error;
-							$rootScope.device.token = token;
-							$rootScope.device.status = 'Registered';
+				tools.device.initPromise.then(r=>{
+					$rootScope.messaging.getToken().then(token=>{
+						if(token){
+							if(token != $rootScope.device.token){
+								delete $rootScope.device.error;
+								$rootScope.device.token = token;
+								$rootScope.device.status = 'Registered';
+								$rootScope.profile.$fire.save()
+								if(resolve)
+									resolve('Device Registered');
+							}
+						}else{
+							$rootScope.device.status = 'Unregistered';
 							$rootScope.profile.$fire.save()
-							if(resolve)
-								resolve('Device Registered');
 						}
-					}else{
-						$rootScope.device.status = 'Unregistered';
-						$rootScope.profile.$fire.save()
-					}
+					})
+					.catch(function(err){
+						let newStatus = 'Token Error';
+						if($rootScope.device.status != newStatus){
+							$rootScope.device.status = newStatus;
+							$rootScope.device.error = err.message;
+							$rootScope.profile.$fire.save()
+						}
+					});
 				})
-				.catch(function(err){
-					let newStatus = 'Token Error';
-					if($rootScope.device.status != newStatus){
-						$rootScope.device.status = newStatus;
-						$rootScope.device.error = err.message;
-						$rootScope.profile.$fire.save()
-					}
-				});
 			}
 		},
-		message: {
-			register: (fn)=>{
-				$rootScope.mailboxes.push(fn);
-			}
-		},
+		// message: {
+		// 	register: (fn)=>{
+		// 		$rootScope.mailboxes.push(fn);
+		// 	}
+		// },
 		
 		dialog: function(dialog, settings){
 			$mdDialog.show({
