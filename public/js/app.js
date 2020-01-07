@@ -292,7 +292,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 								<a ng-href="${payload.notification.click_action}" flex>${payload.notification.body}</a>
 							</md-toast>
 						`,
-						controller: 'ToastCtrl',
+						controller: ToastCtrl,
 						controllerAs: 'ctrl',
 						bindToController: true,
 						position: 'bottom left',
