@@ -213,7 +213,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 
 		device: {
-			initPromise = new Promise(res=>{
+			initPromise: new Promise(res=>{
 				tools.device.initRes = res;
 			}),
 			init: ()=>{
