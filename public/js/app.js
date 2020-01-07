@@ -278,16 +278,23 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			messaging: ()=>{
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
-					console.log(payload);
+					$rootScope.lastMessage = payload;
+					let ToastCtrl = ($mdToast)=>{
+						var ctrl = this;
+						ctrl.close = $mdDialog.hide;
+					}
 					$mdToast.show({
 						template: `
 							<md-toast>
-								<md-button class="md-icon-button" ng-click="$mdToast.hide()">
+								<md-button class="md-icon-button" ng-click="close()">
 									<i class="fa fa-close"></i>
 								</md-button>
-								<a ng-href="#" flex>New Message</a>
+								<a ng-href="${payload.notification.click_action}" flex>${payload.notification.body}</a>
 							</md-toast>
 						`,
+						controller: 'ToastCtrl',
+						controllerAs: 'ctrl',
+						bindToController: true,
 						position: 'bottom left',
 						hideDelay: 0
 					})
