@@ -282,10 +282,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					$mdToast.show({
 						template: `
 							<md-toast>
-								<md-button class="md-icon-button" ng-click="$mdDialog.hide()">
+								<md-button class="md-icon-button" ng-click="$mdToast.hide()">
 									<i class="fa fa-close"></i>
 								</md-button>
-								<a ng-href="${payload.notification.click_action}" flex>${payload.notification.body}</a>
+								<a ng-href="${payload.notification.click_action}" ng-click="$mdToast.hide()" flex>${payload.notification.body}</a>
 							</md-toast>
 						`,
 						scope: $rootScope,
