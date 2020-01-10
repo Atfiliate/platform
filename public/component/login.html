@@ -8,7 +8,9 @@
 	
 		<div ng-hide="loginMethod">
             <md-list>
-                <md-list-item ng-repeat="m in loginMethods" ng-click="rootTools.login(m)">{{m.title}}</md-list-item>
+                <md-list-item ng-repeat="m in loginMethods" ng-click="rootTools.login(m)">
+					<i class="fa fa-{{m.icon}}"> {{m.title}}</i>
+				</md-list-item>
             </md-list>
 		</div>
 		<div ng-show="loginMethod.type == 'email'">

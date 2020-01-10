@@ -107,23 +107,23 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	$rootScope.site = $firebaseObject(siteRef);
 	$rootScope.loginMethods = [{
 		title: 	'Google',
-		ico: 	'google',
+		icon: 	'google',
 		provider: new firebase.auth.GoogleAuthProvider()
 	}, {
 		title: 	'Microsoft',
-		ico: 	'windows',
+		icon: 	'windows',
 		provider: new firebase.auth.OAuthProvider('microsoft.com')
 	}, {
 		title: 	'Github',
-		ico: 	'github',
+		icon: 	'github',
 		provider: new firebase.auth.GithubAuthProvider()
 	}, {
 		title: 	'Facebook',
-		ico: 	'facebook',
+		icon: 	'facebook',
 		provider: new firebase.auth.FacebookAuthProvider()
 	}, {
 		title: 	'Email',
-		ico: 	'envelope',
+		icon: 	'envelope',
 		type: 	'email',
 		fn: 	()=>{
 			let login = $rootScope.loginMethod;
