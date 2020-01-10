@@ -261,11 +261,23 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				let origin = window.location.origin;
 				navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
 				.then(registration=>{
-					messaging.useServiceWorker(registration);
+					if(window.Notification.permission == "granted"){
+						messaging.useServiceWorker(registration);
+						$rootScope.device = tools.device.get();
+						tools.device.messaging();
+						tools.device.initDefer.resolve();
+					}else{
+						$rootScope.device = tools.device.get();
+					}
+				}).catch(e=>{
 					$rootScope.device = tools.device.get();
-					tools.device.messaging(); //this may be depricated and called at time of - to register messaging.
-					tools.device.initDefer.resolve();
 				})
+
+				if(window.Notification.permission == "granted"){
+					tools.device.messaging();
+				}else{
+					$rootScope.device = tools.device.get();
+				}
 			},
 			get: ()=>{
 				var deviceId = localStorage.getItem('deviceId');
@@ -335,9 +347,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						position: 'bottom left',
 						hideDelay: 0
 					})
-					// $rootScope.mailboxes.forEach(fn=>{
-					// 	fn(payload)
-					// })
 				});
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
@@ -369,11 +378,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				})
 			}
 		},
-		// message: {
-		// 	register: (fn)=>{
-		// 		$rootScope.mailboxes.push(fn);
-		// 	}
-		// },
 		
 		alert: function(message){
 			$mdToast.show(
