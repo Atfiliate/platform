@@ -16,7 +16,6 @@ app.factory('config', function(){
 
 app.factory('Fire', function($q, Auth, $routeParams){
 	let db = firebase.firestore();
-	db.settings({timestampsInSnapshots: true});
 
 	let _config = {prefix: ''}
 	function isIsoDate(str) {
@@ -66,12 +65,14 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return obj;
 		}
 		fire._become = function(doc){
+			Fire.ct.read++;
 			var data = doc.data();
 			var d = (doc.exists ? fire._clean(data) : {});
 			d.id = doc.id;
 			d.$fire = {
 				ref: doc.ref,
 				save: function(){
+					Fire.ct.write++;
 					let $fire = d.$fire;
 					delete d.$fire;
 					let copy = angular.copy(d);
@@ -80,6 +81,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					return d.$fire.ref.set(copy);
 				},
 				delete: function(){
+					Fire.ct.write++;
 					if(fire.list && !fire._listen){
 						var idx = fire.list.indexOf(d);
 						fire.list.splice(idx, 1);
@@ -87,6 +89,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					return d.$fire.ref.delete();
 				},
 				update: function(attrObj){
+					Fire.ct.write++;
 					Object.keys(attrObj).forEach(k=>{
 						d[k] = attrObj[k];
 					})
@@ -95,6 +98,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				listen: function(check, callback){
 					//returns ignore function.
 					return d.$fire.ref.onSnapshot(doc=>{
+						Fire.ct.read++;
 						let notify = (typeof check == 'function' ? check(doc) : true);
 						if(notify){
 							fire.obj = fire._become(doc);
@@ -230,6 +234,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return deferred.promise;
 		}
 	}
+	Fire.ct = {
+		read: 0,
+		write: 0
+	};
 	Fire.config = function(config){
 		if(config)
 			_config = Object.assign(_config, config);
