@@ -535,12 +535,13 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 
 
 var whoisConfig = {
-	apiKey: "AIzaSyD_3nGYh1GA2Ucds20nm8ad8HsuHFXRxbg",
-	authDomain: "atfiliate.firebaseapp.com",
-	databaseURL: "https://atfiliate.firebaseio.com",
-	projectId: "atfiliate",
-	storageBucket: "atfiliate.appspot.com",
-	messagingSenderId: "126442541687"
+    apiKey: "AIzaSyD_3nGYh1GA2Ucds20nm8ad8HsuHFXRxbg",
+    authDomain: "atfiliate.firebaseapp.com",
+    databaseURL: "https://atfiliate.firebaseio.com",
+    projectId: "atfiliate",
+    storageBucket: "atfiliate.appspot.com",
+    messagingSenderId: "126442541687",
+    appId: "1:126442541687:web:1819721adcc2b9fe24ec72"
 }
 var whois = firebase.initializeApp(whoisConfig, "whois");
 var site = window.location.origin.replace('https://', '').replace('http://', '').split('.').join('*');
