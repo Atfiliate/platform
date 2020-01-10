@@ -6,10 +6,25 @@
 			</div>
 		</md-toolbar>
 	
-		<div>
+		<div ng-hide="loginMethod">
             <md-list>
                 <md-list-item ng-repeat="m in loginMethods" ng-click="rootTools.login(m)">{{m.title}}</md-list-item>
             </md-list>
+		</div>
+		<div ng-show="loginMethod.type == 'email'">
+			<div ng-hide="loginMethod.status == 'sent'">
+				<md-input-container class="md-block">
+					<label>Email</label>
+					<input type="text" ng-model="logignMethod.email">
+				</md-input-container>
+				<div layout="row">
+					<span flex></span>
+					<md-button flex-gt-sm ng-click="loginMethod.fn(logignMethod)">Send Auth Email</md-button>
+				</div>
+			</div>
+			<div ng-show="loginMethod.status == 'sent'">
+				<p>An email has been sent to: {{loginMethod.email}}  Check your email and follow the link to finish logging in.</p>
+			</div>
 		</div>
     </div>
 </md-dialog>

@@ -121,14 +121,48 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		title: 	'Facebook',
 		ico: 	'facebook',
 		provider: new firebase.auth.FacebookAuthProvider()
+	}, {
+		title: 	'Email',
+		ico: 	'envelope',
+		type: 	'email',
+		fn: 	()=>{
+			let login = $rootScope.loginMethod;
+			firebase.auth().sendSignInLinkToEmail(login.email, {
+				url: window.location.href,
+				handleCodeInApp: true
+			}).then(()=>{
+				login.status == 'sent';
+				window.localStorage.setItem('emailForSignIn', login.email);
+				tools.alert('Email Sent');
+			}).catch((error)=>{
+				console.error(error);
+				tools.alert('Error logging in.');
+				delete $rootScope.login;
+			});
+		}
 	}]
 
 	var tools = $rootScope.rootTools = $rootScope.tools = {
 		init: function(){
 			tools.errors();
+			tools.loginCheck();
 		},
 		component: function(name){
 			return 'component/'+name+'.html'
+		},
+		loginCheck: ()=>{
+			if(firebase.auth().isSignInWithEmailLink(window.location.href)){
+				var email = window.localStorage.getItem('emailForSignIn');
+				if(!email)
+					email = window.prompt('Please provide your email for confirmation');
+
+				firebase.auth().signInWithEmailLink(email, window.location.href)
+				.then(function(result){
+					window.localStorage.removeItem('emailForSignIn');
+				}).catch(function(error){
+					
+				});
+			}
 		},
 		login: function(method){
 			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
@@ -139,9 +173,16 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			})
 
 			if(method){
-				let provider = method.provider || $rootScope.loginMethods[0].provider;
-				$firebaseAuth().$signInWithPopup(provider);
-				$mdDialog.hide();
+				if(method.provider){
+					let provider = method.provider || $rootScope.loginMethods[0].provider;
+					$firebaseAuth().$signInWithPopup(provider);
+					$mdDialog.hide();
+				}else{
+					$rootScope.loginMethod = method;
+					$rootScope.loginMethod.clear = ()=>{
+						delete $rootScope.loginMethod;
+					}
+				}
 			}else if($rootScope.loginMethods.length == 1){
 				tools.login($rootScope.loginMethods[0])
 			}else{
@@ -334,6 +375,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		// 	}
 		// },
 		
+		alert: function(message){
+			$mdToast.show(
+			$mdToast.simple()
+				.textContent(message)
+				.hideDelay(5000)
+			);
+		},
 		dialog: function(dialog, settings){
 			$mdDialog.show({
 				scope: 					$rootScope,
