@@ -15,14 +15,16 @@
 		</div>
 		<div ng-show="loginMethod.type == 'email'">
 			<div ng-hide="loginMethod.status == 'sent'">
-				<md-input-container class="md-block">
-					<label>Email</label>
-					<input type="text" ng-model="loginMethod.email">
-				</md-input-container>
-				<div layout="row">
-					<span flex></span>
-					<md-button flex-gt-sm ng-click="loginMethod.fn(logignMethod)">Send Auth Email</md-button>
-				</div>
+				<form ng-submit="loginMethod.fn(logignMethod)">
+					<md-input-container class="md-block">
+						<label>Email</label>
+						<input type="text" ng-model="loginMethod.email">
+					</md-input-container>
+					<div layout="row">
+						<span flex></span>
+						<md-button flex-gt-sm type="submit">Send Auth Email</md-button>
+					</div>
+				</form>
 			</div>
 			<div ng-show="loginMethod.status == 'sent'">
 				<p>An email has been sent to: {{loginMethod.email}}  Check your email and follow the link to finish logging in.</p>

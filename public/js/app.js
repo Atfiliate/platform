@@ -261,14 +261,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				let origin = window.location.origin;
 				navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
 				.then(registration=>{
-					if(window.Notification.permission == "granted"){
-						messaging.useServiceWorker(registration);
-						$rootScope.device = tools.device.get();
+					messaging.useServiceWorker(registration);
+					if(window.Notification.permission == "granted")
 						tools.device.messaging();
-						tools.device.initDefer.resolve();
-					}else{
-						$rootScope.device = tools.device.get();
-					}
+					$rootScope.device = tools.device.get();
+					tools.device.initDefer.resolve();
 				}).catch(e=>{
 					$rootScope.device = tools.device.get();
 				})
