@@ -321,7 +321,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					
 					$rootScope.messaging.requestPermission()
 					.then(()=>{
-						tools.device.syncToken(resolve);
+						tools.device.messaging(resolve);
 					})
 					.catch(function(err){
 						$rootScope.device.status = 'No Permission';
