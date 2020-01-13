@@ -68,7 +68,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			redirectTo: '/page/main'
 		});
 	
-	var config = localStorage.getItem('whois');
+	var config = localStorage.getItem('whois') || {};
 	config = JSON.parse(config);
 	config.color = config.color || {};
 	config.color.primary = config.color.primary || 'blue';
@@ -236,15 +236,27 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 
+					//TODO: we need to prompt for information if it doesn't exist.
+
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
-						let imgUrl = $rootScope.user.photoURL;
-						$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-							profile.img = result.data.secure_url || defaultImg;
-							tools.profile.save(profile);
-						})
+						if($rootScope.user.photoURL){
+							let imgUrl = $rootScope.user.photoURL;
+							$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
+								profile.img = result.data.secure_url;
+								tools.profile.save(profile);
+							})
+						}else{
+							profile.img = defaultImg;
+						}
 					}else{
 						tools.profile.save(profile)
 					}
+				}else{
+					profile.current = {
+						date: new Date(),
+						page: window.location.hash
+					}
+					new Fire.legacy(`profile`).set(profile);
 				}
 			},
 			save: (profile)=>{
@@ -329,6 +341,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			messaging: ()=>{
 				tools.device.syncToken();
 				$rootScope.messaging.onMessage((payload)=>{
+					it.lastMessage = payload;
 					$rootScope.lastMessage = payload;
 					$mdToast.show({
 						template: `
