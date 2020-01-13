@@ -251,12 +251,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					}else{
 						tools.profile.save(profile)
 					}
-				}else{
-					profile.current = {
-						date: new Date(),
-						page: window.location.hash
-					}
-					new Fire.legacy(`profile`).set(profile);
 				}
 			},
 			save: (profile)=>{
