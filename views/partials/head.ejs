@@ -34,4 +34,10 @@
 
   gtag('config', '<%= process.env.gtag %>');
 </script>
+<% }else{ %>
+<script>
+  window.gtag = (a,b,c)=>{
+    console.log('You need to configure analytics: process.env.gtag')
+  }
+</script>
 <% } %>
