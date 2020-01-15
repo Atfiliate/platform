@@ -21,6 +21,8 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
     it.DashboardCtrl = $scope;
     it.Fire = Fire;
     $scope.params = $routeParams;
+    $scope.view = $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
+
     let tools = $scope.tools = {
         init: ()=>{
             tools.render();
@@ -35,9 +37,6 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
             //     console.log(e);
             //     tools.alert('Data could not be loaded.')
             // })
-        },
-        view: ()=>{
-            return `https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`;
         },
         render: ()=>{
             $http.get(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.js`)
