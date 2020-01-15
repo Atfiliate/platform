@@ -21,10 +21,11 @@
 			{{error.checkout}}
 		</div>
 		
-		<div>
+		<div layout="row">
 			<md-button ng-click="tools.manage.add()">Add Method</md-button>
+			<span flex></span>
 			<md-button class="md-raised" ng-disabled ng-show="status != 'Ready'">{{status}}</md-button>
-			<md-button class="md-raised pull-right" ng-click="tools.checkout.pay(cart.method)" ng-show="status == 'Ready'">Pay {{cart.amount}}</md-button>
+			<md-button class="md-raised" ng-click="tools.checkout.pay(cart.method)" ng-show="status == 'Ready'">Pay {{cart.amount}}</md-button>
 		</div>
 	</div>
 	
