@@ -101,7 +101,8 @@ var whoisConfig = {
     messagingSenderId: "126442541687",
     appId: "1:126442541687:web:1819721adcc2b9fe24ec72"
 }
-var whois = firebase.initializeApp(whoisConfig, "whois");
+// var whois = firebase.initializeApp(whoisConfig, "whois");
+var whois = firebase.initializeApp(whoisConfig);
 angular.element(function() {
     angular.bootstrap(document, ['app']);
 });
