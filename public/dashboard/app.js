@@ -1,5 +1,5 @@
 let it = {};
-let app = angular.module('app', ['ngMaterial'])
+let app = angular.module('app', ['ngMaterial','ngRoute'])
 .config(function($routeProvider, $locationProvider, $controllerProvider, $compileProvider, $mdThemingProvider) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|sms|tel):/);
     $locationProvider.html5Mode(true);
