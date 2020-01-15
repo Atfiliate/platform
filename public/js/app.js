@@ -484,6 +484,7 @@ app.controller('FeedbackCtrl', function FeedbackCtrl($rootScope, $scope, $mdDial
 	}
 })
 app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $firebaseObject, $http, cart, view){
+	$scope.status = 'Ready';
 	$scope.cart = cart;
 	$scope.view = view;
 	$scope.error = {};
@@ -507,6 +508,7 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 		},
 		checkout: {
 			pay: function(card){
+				$scope.status = 'Processing';
 				var postUrl = cart.url || '/stripe/checkout';
 				firebase.auth().currentUser.getIdToken(true).then(function(jwt){
 					$http.post(postUrl, {jwt:jwt, params:{
