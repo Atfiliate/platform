@@ -42,7 +42,7 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
         render: ()=>{
             $http.get(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.js`)
             .then(r=>{
-                let js = r.data();
+                let js = r.data;
                 eval('js = $scope.js = '+js)
                 if(js.init)
                     js.init();
