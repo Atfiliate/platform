@@ -22,8 +22,9 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
     it.Fire = Fire;
     $scope.params = $routeParams;
     $scope.$watch('params', ()=>{
-        $scope.view = $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
-    })
+        if($routeParams.view)
+            $scope.view = $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
+    }, true)
 
     let tools = $scope.tools = {
         init: ()=>{
