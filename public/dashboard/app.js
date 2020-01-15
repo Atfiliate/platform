@@ -21,7 +21,9 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
     it.DashboardCtrl = $scope;
     it.Fire = Fire;
     $scope.params = $routeParams;
-    $scope.view = $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
+    $scope.$watch('params', ()=>{
+        $scope.view = $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
+    })
 
     let tools = $scope.tools = {
         init: ()=>{
