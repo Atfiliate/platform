@@ -2,7 +2,7 @@ let it = {};
 let app = angular.module('app', ['ngMaterial','ngRoute'])
 .config(function($routeProvider, $locationProvider, $controllerProvider, $compileProvider, $mdThemingProvider) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|sms|tel):/);
-    $locationProvider.html5Mode(true);
+	$locationProvider.hashPrefix('');
     
     $routeProvider
         .when('/:view', {
@@ -37,7 +37,7 @@ let app = angular.module('app', ['ngMaterial','ngRoute'])
             // })
         },
         view: ()=>{
-            return $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`);
+            return `https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.html`;
         },
         render: ()=>{
             $http.get(`https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=LIJGdBKzktXHntCWjoln&cid=${$routeParams.view}.js`)
