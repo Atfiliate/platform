@@ -1,5 +1,8 @@
 /*
 	global app, angular, firebase, gapi, $script, localStorage, navigator
+
+	Load even w/out whois.
+
 */
 
 var it = {};
@@ -88,7 +91,6 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
-	$rootScope.mailboxes = [];
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.$mdToast = $mdToast;
@@ -506,7 +508,7 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 		checkout: {
 			pay: function(card){
 				var postUrl = cart.url || '/stripe/checkout';
-				firebase.auth().currentUser.getToken(true).then(function(jwt) {
+				firebase.auth().currentUser.getIdToken(true).then(function(jwt){
 					$http.post(postUrl, {jwt:jwt, params:{
 						amount: 		cart.amount * 100,
 						currency:		'usd',
@@ -553,7 +555,7 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 					card.metadata.user = $scope.user.uid;
 					Stripe.card.createToken(card, function(status, obj){
 						$scope.newCard = obj;
-						firebase.auth().currentUser.getToken(true).then(function(jwt) {
+						firebase.auth().currentUser.getIdToken(true).then(function(jwt){
 							$http.post('/stripe/customer', {jwt:jwt, params:{
 								action: 		'add',
 								customer:		$scope.customer.id,
@@ -582,11 +584,6 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 	$scope.tools.init();
 	it.StripeCtrl = $scope;
 })
-
-
-
-
-
 
 
 
