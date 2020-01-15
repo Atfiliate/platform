@@ -7,7 +7,8 @@ var Phaxio		= require('phaxio');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment');
 var mcache		= require('memory-cache');
-var db 			= firebase.firestore();
+if(firebase.apps.length)
+	var db 		= firebase.firestore();
 
 
 if(process.env.phaxioKey)
