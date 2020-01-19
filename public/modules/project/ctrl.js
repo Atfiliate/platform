@@ -87,10 +87,13 @@ Auth, Cloudinary, Stripe, Fire, config){
 				body.append(textarea);
 				textarea[0].select();
 				var successful = document.execCommand('copy');
-				if(successful)
+				if(successful){
 					res()
-				else
+					if(notice)
+						tools.alert(notice)
+				}else{
 					rej()
+				}
 			})
 		},
 		
