@@ -73,12 +73,17 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				ref: doc.ref,
 				save: function(){
 					Fire.ct.write++;
+					d.$status = 'saving';
 					let $fire = d.$fire;
 					delete d.$fire;
 					let copy = angular.copy(d);
 					d.$fire = $fire;
 					copy = fire._prepare(copy);
-					return d.$fire.ref.set(copy);
+					return d.$fire.ref.set(copy).then(r=>{
+						d.$status = 'saved';
+					}).catch(e=>{
+						d.$status = 'error';
+					})
 				},
 				delete: function(){
 					Fire.ct.write++;
@@ -199,11 +204,13 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		}
 		fire.add = function(item){
 			var deferred = $q.defer();
+			item.$status = 'saving';
 			item.createdOn = new Date();
 			item = fire._prepare(item);
 			fire._ref.add(item).then(r=>{
 				r.get().then(doc=>{
 					var obj = fire._become(doc);
+					obj.$status = 'saved';
 					if(fire.list && !fire._listen)
 						fire.list.push(obj);
 					deferred.resolve(obj);
@@ -211,6 +218,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					deferred.reject(e);
 				})
 			}).catch(e=>{
+				item.$status = 'error';
 				deferred.reject(e);
 			})
 			return deferred.promise;
@@ -218,12 +226,14 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.set = function(item){
 			var deferred = $q.defer();
 			item.createdOn = new Date();
+			item.$status = 'saving';
 			var id = item.id;
 			delete item.id;
 			item = fire._prepare(item);
 			fire._ref.doc(id).set(item).then(r=>{
 				fire._ref.doc(id).get().then(doc=>{
 					var obj = fire._become(doc);
+						obj.$status = 'saved';
 					if(fire.list)
 						fire.list.push(obj);
 					deferred.resolve(obj);
