@@ -111,6 +111,9 @@ app.factory('Fire', function($q, Auth, $routeParams){
 							callback && callback(fire.obj)
 						}
 					})
+				},
+				whoami: ()=>{
+					return d;
 				}
 			}
 			return d;
