@@ -101,16 +101,13 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					return d.$fire.ref.update(attrObj);
 				},
 				listen: function(check, callback){
-					return d.$fire.ref.onSnapshot(doc=>{ //returns ignore function.
+					//returns ignore function.
+					return d.$fire.ref.onSnapshot(doc=>{
 						Fire.ct.read++;
 						let notify = (typeof check == 'function' ? check(doc) : true);
 						if(notify){
-							let newDoc = fire._become(doc);
-							console.log(doc,newDoc,d)
-							Object.keys(newDoc).forEach(k=>{
-								d[k] = attrObj[k];
-							})
-							callback && callback(d)
+							fire.obj = fire._become(doc);
+							callback && callback(fire.obj)
 						}
 					})
 				}
@@ -167,6 +164,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			//[] WIP
 			if(fire._cd == 'collection'){
 				fire._ignore = fire._qref.onSnapshot(snap=>{
+					console.log('------collection change------', snap)
 					var promises = [];
 					snap.docChanges().forEach(change=>{
 						check = check || Promise.resolve();
