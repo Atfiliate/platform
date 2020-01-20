@@ -414,7 +414,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			else
 				dialog = tools.component.get(dialog);
 			params = Object.assign({
-				scope: $$rootScope,
+				scope: $rootScope,
 				preserveScope: true,
 				templateUrl: dialog,
 				multiple: true,
