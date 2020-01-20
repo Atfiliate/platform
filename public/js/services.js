@@ -77,6 +77,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					let $fire = d.$fire;
 					delete d.$fire;
 					let copy = angular.copy(d);
+					console.log('----fire saving----', $fire, d, copy)
 					d.$fire = $fire;
 					copy = fire._prepare(copy);
 					return d.$fire.ref.set(copy).then(r=>{
