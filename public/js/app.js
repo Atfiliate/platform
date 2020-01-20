@@ -247,6 +247,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
+					return profile;
 				}
 
 				if(!profile.version || profile.version < version){
