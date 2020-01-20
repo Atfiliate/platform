@@ -90,7 +90,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.$mdToast = $mdToast;
