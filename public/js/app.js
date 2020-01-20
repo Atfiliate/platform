@@ -252,12 +252,12 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				if(!profile.version || profile.version < version){
 					profile = organize(profile);
 
-					$rootScope.temp.profileNeeds = [];
+					$rootScope.profileNeeds = [];
 					if(profile.displayName == 'Unknown User')
-						$rootScope.temp.profileNeeds.push('displayName');
+						$rootScope.profileNeeds.push('displayName');
 					if(!profile.email)
-						$rootScope.temp.profileNeeds.push('email');
-					if($rootScope.temp.profileNeeds.length)
+						$rootScope.profileNeeds.push('email');
+					if($rootScope.profileNeeds.length)
 						tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
 
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
