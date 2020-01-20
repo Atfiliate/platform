@@ -237,6 +237,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					if(closeDialog)
 						$mdDialog.hide();
 				}
+				profile.$dialog = (reqAttrs = [])=>{
+					$rootScope.profileNeeds = reqAttrs;
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
+				}
 				
 				let organize = profile=>{
 					profile.version = version;
@@ -253,13 +257,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				if(!profile.version || profile.version < version){
 					profile = organize(profile);
 
-					$rootScope.profileNeeds = [];
+					let reqAttrs = [];
 					if(profile.displayName == ' ')
-						$rootScope.profileNeeds.push('displayName');
+						reqAttrs.push('displayName');
 					if(!profile.email)
-						$rootScope.profileNeeds.push('email');
-					if($rootScope.profileNeeds.length)
-						tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
+						reqAttrs.push('email');
+					if(reqAttrs.length)
+						profile.$dialog(reqAttrs)
 
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						if($rootScope.user.photoURL){
