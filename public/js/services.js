@@ -106,6 +106,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						let notify = (typeof check == 'function' ? check(doc) : true);
 						if(notify){
 							let newDoc = fire._become(doc);
+							console.log(doc,newDoc,d)
 							Object.keys(newDoc).forEach(k=>{
 								d[k] = attrObj[k];
 							})
