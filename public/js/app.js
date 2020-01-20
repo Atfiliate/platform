@@ -229,7 +229,16 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			setup: profile=>{
 				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 				let version = 1.03;
-				if(!profile.version || profile.version < version){
+				
+				profile.$save = (closeDialog)=>{
+					profile = organize(profile);
+					profile.$fire.save();
+					new Fire.legacy(`profile`).set(profile);
+					if(closeDialog)
+						$mdDialog.hide();
+				}
+				
+				let organize = profile=>{
 					profile.version = version;
 					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
 					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
@@ -237,14 +246,25 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.authEmail 	= $rootScope.user.email;
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
+					profile.updatedOn	= new Date();
+				}
 
-					//TODO: we need to prompt for information if it doesn't exist.
+				if(!profile.version || profile.version < version){
+					profile = organize(profile);
+
+					$rootScope.temp.profileNeeds = [];
+					if(profile.displayName == 'Unknown User')
+						$rootScope.temp.profileNeeds.push('displayName');
+					if(!profile.email)
+						$rootScope.temp.profileNeeds.push('email');
+					if($rootScope.temp.profileNeeds.length)
+						tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
 
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						if($rootScope.user.photoURL){
 							let imgUrl = $rootScope.user.photoURL;
 							$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-								profile.img = result.data.secure_url;
+								profile.img = result.data.secure_url || defaultImg;
 								tools.profile.save(profile);
 							})
 						}else{
@@ -254,11 +274,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						tools.profile.save(profile)
 					}
 				}
-			},
-			save: (profile)=>{
-				profile.updatedOn	= new Date();
-				profile.$fire.save();
-				new Fire.legacy(`profile`).set(profile);
 			}
 		},
 
@@ -392,15 +407,20 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				.hideDelay(5000)
 			);
 		},
-		dialog: function(dialog, settings){
-			$mdDialog.show({
-				scope: 					$rootScope,
-				preserveScope: 			true,
-				templateUrl: 			config.origin+'/component/'+dialog,
-				multiple: 				true,
-				parent: 				angular.element(document.body),
-				clickOutsideToClose: 	true
-			})
+		dialog: function(dialog, params){
+			if(dialog.indexOf('http') != -1)
+				dialog = $sce.trustAsResourceUrl(dialog);
+			else
+				dialog = tools.component.get(dialog);
+			params = Object.assign({
+				scope: $scope,
+				preserveScope: true,
+				templateUrl: dialog,
+				multiple: true,
+				parent: angular.element(document.body),
+				clickOutsideToClose: true
+			}, params)
+			return $mdDialog.show(params)
 		},
 		sidebar: function(action){
 			if(action)

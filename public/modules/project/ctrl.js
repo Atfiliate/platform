@@ -73,7 +73,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 				parent: angular.element(document.body),
 				clickOutsideToClose: true
 			}, params)
-			$mdDialog.show(params)
+			return $mdDialog.show(params)
 		},
 		copy: function(txtToCopy, notice){
 			return new Promise((res,rej)=>{
