@@ -266,13 +266,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							let imgUrl = $rootScope.user.photoURL;
 							$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
 								profile.img = result.data.secure_url || defaultImg;
-								tools.profile.save(profile);
+								profile.$save();
 							})
 						}else{
 							profile.img = defaultImg;
 						}
 					}else{
-						tools.profile.save(profile)
+						profile.$save()
 					}
 				}
 			}
