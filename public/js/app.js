@@ -240,7 +240,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				
 				let organize = profile=>{
 					profile.version = version;
-					profile.displayName = profile.displayName || $rootScope.user.displayName || 'Unknown User';
+					profile.displayName = profile.displayName || $rootScope.user.displayName || ' ';
 					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
 					profile.lastName 	= profile.lastName || profile.displayName.split(' ')[1];
 					profile.authEmail 	= $rootScope.user.email;
@@ -254,7 +254,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile = organize(profile);
 
 					$rootScope.profileNeeds = [];
-					if(profile.displayName == 'Unknown User')
+					if(profile.displayName == ' ')
 						$rootScope.profileNeeds.push('displayName');
 					if(!profile.email)
 						$rootScope.profileNeeds.push('email');
