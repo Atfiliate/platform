@@ -112,9 +112,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						}
 					})
 				},
-				whoami: ()=>{
-					return d;
-				}
+				doc: d
 			}
 			return d;
 		}
@@ -180,10 +178,12 @@ app.factory('Fire', function($q, Auth, $routeParams){
 									if(!odoc)
 										fire.list.push(fire._become(doc));
 								}else if(change.type === 'modified'){
-									var data = fire._become(change.doc);
-									var doc = fire.list.find(d=>d.id==change.doc.id);
-									Object.keys(data).forEach(k=>{
-										doc[k] = data[k];
+									Fire.ct.read++;
+									var data = change.doc.data();
+									var obj = fire._clean(data);
+									var odoc = fire.list.find(d=>d.id==change.doc.id);
+									Object.keys(obj).forEach(k=>{
+										odoc[k] = obj[k];
 									})
 								}else if(change.type === 'removed'){
 									var idx = fire.list.findIndex(d=>d.id==change.doc.id);
