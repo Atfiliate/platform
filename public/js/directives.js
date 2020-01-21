@@ -36,7 +36,7 @@ app.directive("contenteditable", function() {
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else
-					var newVal = $.trim(element[0].innerText)
+					var newVal = element[0].innerText;
 				return ngModel.$setViewValue(newVal);
 			};
 		}
