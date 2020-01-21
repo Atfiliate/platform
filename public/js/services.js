@@ -212,7 +212,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			item = fire._prepare(item);
 			fire._ref.add(item).then(r=>{
 				r.get().then(doc=>{
-					var obj = fire._become(doc);s
+					var obj = fire._become(doc);
 					obj.$status = 'saved';
 					if(fire.list && !fire._listen)
 						fire.list.push(obj);
