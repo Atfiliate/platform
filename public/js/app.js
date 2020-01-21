@@ -416,7 +416,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			if(dialog.indexOf('http') != -1)
 				dialog = $sce.trustAsResourceUrl(dialog);
 			else
-				dialog = tools.component.get(dialog);
+				dialog = tools.component(dialog);
 			params = Object.assign({
 				scope: $rootScope,
 				preserveScope: true,
