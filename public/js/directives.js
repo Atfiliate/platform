@@ -18,16 +18,16 @@ app.directive("contenteditable", function() {
 					return element.text(val);
 			};
 			element.bind('focus', function(){
-				if(attrs.placeholder == $.trim(element[0].innerText) && !ngModel.$viewValue)
+				if(attrs.placeholder == (element[0].innerText) && !ngModel.$viewValue)
 					element.html('');
 			});
 			element.bind('keyup', function(){
-				if (ngModel.$viewValue !== $.trim(element[0].innerText)){
+				if (ngModel.$viewValue !== (element[0].innerText)){
 					return scope.$apply(read);
 				}
 			});
 			element.bind('blur', function(){
-				var newVal = $.trim(element[0].innerText)
+				var newVal = (element[0].innerText)
 				if(!newVal.length && attrs.placeholder){
 					element.text(attrs.placeholder);
 				}
@@ -36,7 +36,7 @@ app.directive("contenteditable", function() {
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else
-					var newVal = element[0].innerText;
+					var newVal = (element[0].innerText)
 				return ngModel.$setViewValue(newVal);
 			};
 		}
