@@ -188,7 +188,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}else if($rootScope.loginMethods.length == 1){
 				tools.login($rootScope.loginMethods[0])
 			}else{
-				tools.dialog('login.html');
+				tools.dialog('login');
 			}
 		},
 		logout: function(){
