@@ -42,9 +42,9 @@ Array.prototype.min = function() {
 };
 Array.prototype.allKeys = function(){
 	var keys = [];
-	this.forEach(obj=>{
+	this.forEach(function(obj){
 		if(typeof obj == 'object')
-			Object.keys(obj).forEach(k=>{
+			Object.keys(obj).forEach(function(k){
 				keys.push(k)
 			})
 	})
@@ -70,28 +70,28 @@ String.prototype.hashCode = function() {
 
 
 
-var jsonToTable = (obj, path)=>{
+var jsonToTable = function(obj, path){
 	var html = ``;
 	if(obj && typeof obj == 'object'){
 		if(obj.length){ // is array
 			if(typeof obj[0] == 'object'){ //array of objects
 				var keys = obj.allKeys();
-				var rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
-				rows += obj.map((row, i)=>{
-					return `<tr>${keys.map(k=>`<td data-path="${path}[${i}].${k}">${row[k]}</td>`).join('')}</tr>`;
+				var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
+				rows += obj.map(function(row, i){
+					return `<tr>${keys.map(function(k){return `<td data-path="${path}[${i}].${k}">${row[k]}</td>`}).join('')}</tr>`;
 				}).join('')
 				html = `<table>${rows}</table>`;
 			}else{ // regular array
 				var rows = ``;
-				obj.forEach((row, i)=>{
+				obj.forEach(function(row, i){
 					rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`)}</td></tr>`;
 				})
 				html = `<table>${rows}</table>`;
 			}
 		}else{ // is object
-			var keys = Object.keys(obj).filter(k=>k.indexOf('$') == -1);
-			var rows = `<tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>`;
-				rows += `<tr>${keys.map(k=>`<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`)}`).join('')}</td></tr>`;
+			var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
+			var rows = `<tr>${keys.map(function(k){ return `<th>${k}</th>` }).join('')}</tr>`;
+				rows += `<tr>${keys.map(function(k){ return `<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`)}`}).join('')}</td></tr>`;
 			html = `<table>${rows}</table>`;
 		}
 	}else{ // is other
