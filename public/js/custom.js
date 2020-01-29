@@ -41,9 +41,14 @@ Array.prototype.min = function() {
 	return Math.min.apply(null, this);
 };
 Array.prototype.allKeys = function(){
-	return Object.keys(this.reduce(function(a,b){
-		return {...a, ...b}
-	}, {}))
+	let keys = [];
+	this.forEach(obj=>{
+		if(typeof obj == 'object')
+			Object.keys(obj).forEach(k=>{
+				keys.push(k)
+			})
+	})
+	return keys.unique();
 }
 
 String.prototype.toCamelCase = function() {
