@@ -8,8 +8,8 @@ app.factory('config', function(){
 	config = JSON.parse(config);
 	firebase.initializeApp(config.firebase);
 	if(config.fire && config.fire.messagingKey){
-		let messaging = firebase.messaging();
-		messaging.usePublicVapidKey(config.fire.messagingKey);
+		// let messaging = firebase.messaging();
+		// messaging.usePublicVapidKey(config.fire.messagingKey);
 	}
 	return config;
 })
@@ -30,11 +30,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire._cd = !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
-		fire._clean = (obj)=>{
+		fire._clean = function(obj){
 			if(obj){
 				var keys = Object.keys(obj);
 				if(keys.indexOf('_firestoreClient') == -1){
-					keys.forEach(k=>{
+					keys.forEach(function(k){
 						if(obj[k]){
 							if(obj[k].toDate)
 								obj[k] = obj[k].toDate();
@@ -52,9 +52,9 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			}
 			return obj;
 		}
-		fire._prepare = (obj)=>{
+		fire._prepare = function(obj){
 			if(obj){
-				Object.keys(obj).forEach(k=>{
+				Object.keys(obj).forEach(function(k){
 					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
 						delete obj[k];
 					}else if(Array.isArray(obj[k])){
@@ -81,9 +81,9 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					let copy = angular.copy(d);
 					d.$fire = $fire;
 					copy = fire._prepare(copy);
-					return d.$fire.ref.set(copy).then(r=>{
+					return d.$fire.ref.set(copy).then(function(r){
 						d.$status = 'saved';
-					}).catch(e=>{
+					}).catch(function(e){
 						d.$status = 'error';
 					})
 				},
@@ -97,7 +97,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				},
 				update: function(attrObj){
 					Fire.ct.write++;
-					Object.keys(attrObj).forEach(k=>{
+					Object.keys(attrObj).forEach(function(k){
 						d[k] = attrObj[k];
 					})
 					return d.$fire.ref.update(attrObj);

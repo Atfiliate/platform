@@ -597,11 +597,6 @@ app.directive('zoom', function($interval, $timeout, $q){
 })
 
 
-
-
-
-
-
 app.filter('capitalize', function() {
 	return function(input, all) {
 		var reg = (all) ? /([^\W_]+[^\s-]*) */g : /([^\W_]+[^\s-]*)/;
