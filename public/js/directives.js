@@ -23,7 +23,7 @@ app.directive("contenteditable", function() {
 			});
 			element.bind('keyup', function(ev){
 				if (ngModel.$viewValue !== $.trim(element[0].innerText)){
-					return scope.$apply(()=>{
+					return scope.$apply(function(){
 						read(ev.code)
 					});
 				}
@@ -34,7 +34,7 @@ app.directive("contenteditable", function() {
 					element.text(attrs.placeholder);
 				}
 			});
-			return read = (evCode)=>{
+			return read = function(evCode){
 				if(attrs.type == 'html')
 					var newVal = element.html();
 				else if(evCode == 'Space'){
