@@ -41,7 +41,7 @@ Array.prototype.min = function() {
 	return Math.min.apply(null, this);
 };
 Array.prototype.allKeys = function(){
-	return Object.keys(this.reduce((a,b)=>{
+	return Object.keys(this.reduce(function(a,b){
 		return {...a, ...b}
 	}, {}))
 }
@@ -53,15 +53,14 @@ String.prototype.toCamelCase = function() {
 	return str.replace(/\W/g, '')
 }
 String.prototype.hashCode = function() {
-	return '_test_'
-	// var hash = 0, i, chr;
-	// if (this.length === 0) return hash;
-	// for (i = 0; i < this.length; i++) {
-	// 	chr   = this.charCodeAt(i);
-	// 	hash  = ((hash << 5) - hash) + chr;
-	// 	hash |= 0; // Convert to 32bit integer
-	// }
-	// return hash;
+	var hash = 0, i, chr;
+	if (this.length === 0) return hash;
+	for (i = 0; i < this.length; i++) {
+		chr   = this.charCodeAt(i);
+		hash  = ((hash << 5) - hash) + chr;
+		hash |= 0; // Convert to 32bit integer
+	}
+	return hash;
 };
 
 
