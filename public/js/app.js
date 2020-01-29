@@ -71,7 +71,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			redirectTo: '/page/main'
 		});
 	
-	var config = localStorage.getItem('whois') || {};
+	var config = localStorage.getItem('whois') || '{}';
 	config = JSON.parse(config);
 	config.color = config.color || {};
 	config.color.primary = config.color.primary || 'blue';
