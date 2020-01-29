@@ -8,8 +8,12 @@ app.factory('config', function(){
 	config = JSON.parse(config);
 	firebase.initializeApp(config.firebase);
 	if(config.fire && config.fire.messagingKey){
-		let messaging = firebase.messaging();
-		messaging.usePublicVapidKey(config.fire.messagingKey);
+		try{
+			let messaging = firebase.messaging();
+			messaging.usePublicVapidKey(config.fire.messagingKey);
+		}catch(e){
+			console.info(e)
+		}
 	}
 	return config;
 })
