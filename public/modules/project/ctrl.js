@@ -342,8 +342,23 @@ Auth, Cloudinary, Stripe, Fire, config){
 				})
 				var packageRef = firebase.database().ref('project').child(view);
 				pkg.origId = origId;
-				packageRef.set(pkg).then(function(){
-					window.location.reload();
+				packageRef.once('value', doc=>{
+					let proj = doc.val();
+					//at this point we could run a diff and have the user approve all updates
+					pkg.cloud = pkg.cloud || {}; //keep any custom existing cloud functions
+					Object.keys(proj && proj.cloud || {}).forEach(k=>{
+						if(!pkg.cloud[k])
+							pkg.cloud[k] = proj.cloud[k]
+					})
+					pkg.component = pkg.component || {}; //keep any custom existing components
+					Object.keys(proj && proj.component || {}).forEach(k=>{
+						if(!pkg.component[k])
+							pkg.component[k] = proj.component[k]
+					})
+
+					packageRef.set(pkg).then(function(){
+						window.location.reload();
+					})
 				})
 			},
 			publish: function(meta){
