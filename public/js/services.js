@@ -28,6 +28,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		return d.toISOString()===str;
 	}
 	var Fire = function(path){
+		Fire.instances.push(this);
 		var fire = this;
 		fire._path = _config.prefix+path;
 		fire._parts = path.split('/');
@@ -253,6 +254,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return deferred.promise;
 		}
 	}
+	Fire.instances = [];
 	Fire.ct = {
 		read: 0,
 		write: 0
