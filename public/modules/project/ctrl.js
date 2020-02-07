@@ -346,7 +346,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 					let proj = doc.val();
 					//at this point we could run a diff and have the user approve all updates
 
-					pkg.page.local = proj.page.local;
+					pkg.page.local = proj.page.local || pkg.page.local;
 					pkg.cloud = pkg.cloud || {}; //keep any custom existing cloud functions
 					Object.keys(proj && proj.cloud || {}).forEach(k=>{
 						if(!pkg.cloud[k])
