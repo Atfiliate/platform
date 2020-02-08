@@ -403,11 +403,49 @@ app.factory('Fire', function($q, Auth, $routeParams){
 // 	ref.where('','','')
 // 	return ref;
 // })
-app.factory('Stripe', function(config){
-	let stripe;
-	if(window.Stripe && config.stripe)
-		stripe = Stripe(config.stripe);
-	return stripe;
+app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
+	if(window.Stripe)
+		Stripe(config.stripe);
+	return {
+		checkout: function(cart, event){
+			//cart: {title:'', description:'', amount:''}
+			var deferred = $q.defer();
+			var options = {
+				controller: 'StripeCtrl',
+				templateUrl: '/component/stripe.html',
+				clickOutsideToClose: true,
+				locals: {
+					view: 'checkout',
+					cart: cart
+				}
+			}
+			if(event)
+				options.targetEvent = event;
+				
+			$mdDialog.show(options).then(function(r){
+				deferred.resolve(r);
+			})
+			return deferred.promise;
+		},
+		manage: function(event){
+			var deferred = $q.defer();
+			var options = {
+				controller: 'StripeCtrl',
+				templateUrl: '/component/stripe.html',
+				clickOutsideToClose: true,
+				locals: {
+					view: 'manage'
+				}
+			}
+			if(event)
+				options.targetEvent = event;
+				
+			$mdDialog.show(options).then(function(r){
+				deferred.resolve(r);
+			})
+			return deferred.promise;
+		}
+	}
 })
 app.factory('Auth', function($q, $firebaseAuth, $firebaseObject){
 	var signin = $q.defer();

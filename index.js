@@ -1,5 +1,6 @@
 var fire = require("./cloud/fire.js");
 var auto = require("./cloud/auto.js");
+var stripe = require('./cloud/stripe.js');
 // var google = require('./cloud/google.js');
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -27,6 +28,8 @@ app.get('/', function(request, response) {
 
 
 app.get('/:root', auto.project)
+app.post('/stripe/customer', stripe.customer)
+app.post('/stripe/checkout', stripe.checkout)
 
 // app.post('/google/auth', google.auth)
 // app.get('/google/auth', google.auth)
