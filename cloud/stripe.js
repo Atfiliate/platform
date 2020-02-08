@@ -55,6 +55,9 @@ module.exports = {
 							}else{
 								var plan = {
 									id: 				hash,
+									product: {
+										name: 			params.description
+									},
 									nickname:			params.description,
 									amount: 			params.amount,
 									interval:			params.interval,
