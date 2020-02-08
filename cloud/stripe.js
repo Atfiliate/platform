@@ -19,9 +19,9 @@ module.exports = {
 				});
 			}else{
 				stripe.customers.create({
-					description: request.body.params.name,
-					email: request.body.params.email,
-					source: request.body.params.source,
+					description: 	request.body.params.name,
+					email: 			request.body.params.email,
+					source: 		request.body.params.source,
 					metadata: {
 						uid: uid
 					}
@@ -77,7 +77,7 @@ module.exports = {
 						})
 					}
 					getPlan(params, function(plan){
-						var planAttrs = ['customer', 'coupon', 'metadata', 'prorate', 'quantity', 'source', 'tax_percent', 'trial_end', 'trial_eriod_days'];
+						var planAttrs = ['customer', 'coupon', 'metadata', 'prorate', 'quantity', 'tax_percent', 'trial_end', 'trial_eriod_days'];
 						var params = {};
 						planAttrs.forEach(function(a){
 							if(request.body.params[a])
