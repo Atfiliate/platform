@@ -77,6 +77,7 @@ module.exports = {
 						})
 					}
 					getPlan(params, function(plan){
+						console.log(plan);
 						var planAttrs = ['customer', 'coupon', 'metadata', 'prorate', 'quantity', 'tax_percent', 'trial_end', 'trial_eriod_days'];
 						var params = {};
 						planAttrs.forEach(function(a){
