@@ -40,64 +40,82 @@ module.exports = {
 		});
 	}, 
 	checkout: function(request, response){
-		firebase.auth().verifyIdToken(request.body.jwt).then(function(r){
-			var uid = r.uid;
-			if(request.body.params){
-				if(request.body.params.interval){
-					var params = request.body.params
+		firebase.auth().verifyIdToken(request.body.jwt).then(function(authUser){
+			let params = request.body.params;
+			if(params){
+				if(params.interval){
 					function getHash(s){ return Math.abs(s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)) }
-					function getPlan(params, callback){
-						var hash = getHash(params.amount + params.interval + params.description);
-						var ref = firebase.database().ref('stripe/plans/'+hash)
-						ref.once('value', function(data){
-							if(data.val()){
-								callback(data.val())
-							}else{
-								var plan = {
-									id: 				hash,
-									product: {
-										name: 			params.description
-									},
-									nickname:			params.description,
-									amount: 			params.amount,
-									interval:			params.interval,
-									interval_count:		params.interval_count || 1,
-									currency:			params.currency
-								}
-								stripe.plans.create(plan, function(e, plan) {
-									if(e){
-										response.send(e);
-									}else{
-										ref.set(plan).then(function(){
-											callback(plan)
+					function getProduct(params){
+						return new Promise((res,rej)=>{
+							var hash = getHash(params.amount + params.interval + params.description);
+							var ref = firebase.database().ref('stripe/plans/'+hash)
+							ref.once('value', function(data){
+								if(data.val()){
+									res(data.val())
+								}else{
+									stripe.products.create({
+										name: 		params.description,
+										type: 		'service',
+									}).then(product=>{
+										ref.set(product).then(()=>{
+											res(product)
 										})
-									}
-								});
-							}
+									}).catch(e=>{
+										rej(e);
+									})
+								}
+							})
 						})
 					}
-					getPlan(params, function(plan){
-						console.log({plan});
-						var planAttrs = ['customer', 'coupon', 'metadata', 'prorate', 'quantity', 'tax_percent', 'trial_end', 'trial_eriod_days'];
-						var params = {};
-						planAttrs.forEach(function(a){
-							if(request.body.params[a])
-								params[a] = request.body.params[a]
+					function getPlan(params){
+						return new Promise((res,rej)=>{
+							var hash = getHash(params.amount + params.interval + params.description);
+							var ref = firebase.database().ref('stripe/plans/'+hash)
+							ref.once('value', function(data){
+								if(data.val()){
+									res(data.val())
+								}else{
+									getProduct(params).then(product=>{
+										var plan = {
+											id: 				hash,
+											product: 			product,
+											nickname:			params.description,
+											amount: 			params.amount,
+											interval:			params.interval,
+											interval_count:		params.interval_count || 1,
+											currency:			params.currency
+										}
+										stripe.plans.create(plan).then(plan=>{
+											ref.set(plan).then(()=>{
+												res(plan)
+											})
+										}).catch(e=>{
+											rej(e)
+										});
+									})
+								}
+							})
 						})
-						params.plan = plan.id;
-						params.metadata = {
-							uid: uid
-						}
-						stripe.subscriptions.create(params, function(e, subscription) {
-							if(e)
-								response.send(e)
-							else{
-								var ref = firebase.database().ref('stripe/subscriptions/'+subscription.id)
-								ref.set(subscription).then(function(){
-									response.send(subscription)
-								})
+					}
+					getPlan(params).then(plan=>{
+						let {customer, coupon, metadata, prorate, quantity, tax_percent, trial_end, trial_eriod_days} = params;
+						var subsc = {
+							customer, coupon, metadata, prorate, quantity, tax_percent, trial_end, trial_eriod_days,
+							plan: plan.id,
+							metadata: {
+								uid: authUser.uid
 							}
+						}
+						stripe.subscriptions.create(subsc).then(subscription=>{
+							var ref = firebase.database().ref('stripe/subscriptions/'+subscription.id)
+							ref.set(subscription).then(()=>{
+								response.send(subscription)
+							})
+						}).catch(e=>{
+							response.send(e)
 						})
+					}).catch(e=>{
+						response.send(e)
 					})
 				}else{
 					stripe.charges.create(request.body.params, function(e, charge) {
@@ -106,7 +124,7 @@ module.exports = {
 						else{
 							var ref = firebase.database().ref('stripe/charges/'+charge.id)
 							charge.metadata = {
-								uid: uid
+								uid: authUser.uid
 							}
 							ref.set(charge).then(function(){
 								response.send(charge)
