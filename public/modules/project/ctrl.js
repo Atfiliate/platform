@@ -6,6 +6,7 @@ Auth, Cloudinary, Stripe, Fire, config){
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
 	$scope.temp = {};
+	
 	// $scope.data = {};
 	var projectId = $routeParams.view || 'default';
 	document.title = $routeParams.view;
