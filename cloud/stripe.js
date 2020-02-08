@@ -55,7 +55,7 @@ module.exports = {
 							}else{
 								var plan = {
 									id: 				hash,
-									name:				params.description,
+									nickname:			params.description,
 									amount: 			params.amount,
 									interval:			params.interval,
 									interval_count:		params.interval_count || 1,
