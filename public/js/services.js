@@ -405,7 +405,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 // })
 app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 	if(window.Stripe)
-		Stripe(config.stripe);
+		Stripe.setPublishableKey(config.stripe);
 	return {
 		checkout: function(cart, event){
 			//cart: {title:'', description:'', amount:''}
