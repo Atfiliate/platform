@@ -55,8 +55,7 @@ module.exports = {
 								}else{
 									stripe.products.create({
 										name: 		params.description,
-										type: 		'service',
-										statement_descriptor: params.description
+										type: 		'service'	
 									}).then(product=>{
 										ref.set(product).then(()=>{
 											res(product)

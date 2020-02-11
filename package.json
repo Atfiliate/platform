@@ -19,7 +19,7 @@
 		"request": 				"*",
 		"request-promise": 		"*",
 		"memory-cache": 		"*",
-		"stripe":				"*",
+		"stripe":				"^7.4.0",
 		"twilio":				"*",
 		"plivo":				"*",
 		"firebase": 			"*",
