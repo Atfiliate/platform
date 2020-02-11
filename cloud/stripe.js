@@ -56,8 +56,8 @@ module.exports = {
 									stripe.products.create({
 										name: 		params.description,
 										type: 		'service',
-										statement_descriptor: params.description,
-										unit_label: 'ul'
+										// statement_descriptor: params.description,
+										// unit_label: 'ul'
 									}).then(product=>{
 										ref.set(product).then(()=>{
 											res(product)
@@ -80,7 +80,7 @@ module.exports = {
 									getProduct(params).then(product=>{
 										var plan = {
 											id: 				hash,
-											product: 			product,
+											product: 			product.id,
 											nickname:			params.description,
 											amount: 			params.amount,
 											interval:			params.interval,
