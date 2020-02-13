@@ -1,7 +1,12 @@
+Array.prototype._flat = Array.prototype.flat;
+//fix because someone added a 'flat' to arrays in standards :S
 Array.prototype.flat = function(col, placeholder){
-	return this.map(function(i){
-		return i[col] === undefined ? placeholder : i[col];
-	})
+	if(col)
+		return this.map(function(i){
+			return i[col] === undefined ? placeholder : i[col];
+		})
+	else
+		return this._flat();
 }
 Array.prototype.getUnique = function() {
 	var u = {undefined:1},
