@@ -3,7 +3,7 @@ Array.prototype._flat = Array.prototype.flat;
 Array.prototype.flat = function(col, placeholder){
 	if(col)
 		return this.map(function(i){
-			return i[col] === undefined ? placeholder : i[col];
+			return i[col] && i[col] === undefined ? placeholder : i[col];
 		})
 	else
 		return this._flat();
@@ -75,7 +75,7 @@ String.prototype.hashCode = function() {
 
 
 
-var jsonToTable = function(obj, path){
+function jsonToTable(obj, path){
 	var html = ``;
 	if(obj && typeof obj == 'object'){
 		if(obj.length){ // is array
@@ -83,7 +83,10 @@ var jsonToTable = function(obj, path){
 				var keys = obj.allKeys();
 				var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
 				rows += obj.map(function(row, i){
-					return `<tr>${keys.map(function(k){return `<td data-path="${path}[${i}].${k}">${row[k]}</td>`}).join('')}</tr>`;
+					return `<tr>${keys.map(function(k){
+						var p2 = `${path}[${i}].${k}`
+						return `<td data-path="${p2}">${jsonToTable(row[k], p2)}</td>`}).join('')
+					}</tr>`;
 				}).join('')
 				html = `<table>${rows}</table>`;
 			}else{ // regular array
