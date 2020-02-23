@@ -109,7 +109,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				},
 				listen: function(check, callback){
 					//returns ignore function.
-					return d.$fire.ref.onSnapshot(doc=>{
+					return d.$fire.ref.onSnapshot({includeMetadataChanges:false}, doc=>{
 						Fire.ct.read++;
 						let notify = (typeof check == 'function' ? check(doc) : true);
 						if(notify){
@@ -171,7 +171,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			fire._listen = callback;
 			//[] WIP
 			if(fire._cd == 'collection'){
-				fire._ignore = fire._qref.onSnapshot(snap=>{
+				fire._ignore = fire._qref.onSnapshot({includeMetadataChanges:false}, snap=>{
 					var promises = [];
 					snap.docChanges().forEach(change=>{
 						check = check || Promise.resolve();
