@@ -27,8 +27,9 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		var d = new Date(str);
 		return d.toISOString()===str;
 	}
-	var Fire = function(path){
-		Fire.instances.push(this);
+	var Fire = window.Fire = function(path){
+		if(localStorage.debug)
+			Fire.instances.push(this);
 		var fire = this;
 		fire._path = _config.prefix+path;
 		fire._parts = path.split('/');
@@ -173,7 +174,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			if(fire._cd == 'collection'){
 				fire._ignore = fire._qref.onSnapshot({includeMetadataChanges:false}, snap=>{
 					var promises = [];
-					snap.docChanges().forEach(change=>{
+					snap.docChanges().forEach(change=>{g
 						check = check || Promise.resolve();
 						promises.push(check(change).then(r=>{
 							if(fire.list){
