@@ -136,7 +136,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}).then(()=>{
 				login.status == 'sent';
 				window.localStorage.setItem('emailForSignIn', login.email);
-				tools.alert('Email Sent');
+				tools.alert('Email Sent - Check your email for a link.  It may take a few minutes to arrive.');
 			}).catch((error)=>{
 				console.error(error);
 				tools.alert('Error logging in.');
