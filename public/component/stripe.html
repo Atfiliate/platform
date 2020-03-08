@@ -39,26 +39,26 @@
 		<div>
 			<md-input-container class="md-block">
 				<label>Name on card</label>
-				<input ng-model="card.name">
+				<input ng-model="card.name" autocomplete="cc-name">
 				<div class="red" ng-show="error.name">{{error.name}}</div>
 			</md-input-container>
 			
 			<md-input-container class="md-block">
 				<label>Number</label>
-				<input ng-model="card.number">
+				<input ng-model="card.number" autocomplete="cc-number">
 				<div class="red" ng-show="error.number">{{error.number}}</div>
 			</md-input-container>
 			
 			<div layout-gt-sm="row">
 				<md-input-container class="md-block" flex-gt-sm>
 					<label>Expiration (mm/yyyy)</label>
-					<input ng-model="card.exp">
+					<input ng-model="card.exp" autocomplete="cc-exp">
 					<div class="red" ng-show="error.exp">{{error.exp}}</div>
 				</md-input-container>
 			
 				<md-input-container class="md-block" flex-gt-sm>
 					<label>CVC</label>
-					<input ng-model="card.cvc">
+					<input ng-model="card.cvc" autocomplete="cc-csc">
 					<div class="red" ng-show="error.cvc">{{error.cvc}}</div>
 				</md-input-container>
 			</div>
