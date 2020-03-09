@@ -27,13 +27,13 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		var d = new Date(str);
 		return d.toISOString()===str;
 	}
-	var Fire = window.Fire = function(path){
+	var Fire = window.Fire = function(path, cdg){
 		if(localStorage.debug)
 			Fire.instances.push(this);
 		var fire = this;
 		fire._path = _config.prefix+path;
 		fire._parts = path.split('/');
-		fire._cd = !!(fire._parts.length % 2) ? 'collection' : 'doc';
+		fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
 		fire._clean = function(obj){
