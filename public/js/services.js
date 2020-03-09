@@ -133,7 +133,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.get = function(ref, force){
 			ref = ref || fire._qref;
 			var deferred = $q.defer();
-			if(fire._cd == 'collection'){
+			if(fire._cd == 'collection' || fire._cd == 'collectionGroup'){
 				if(fire.list && !force){
 					deferred.resolve(fire.list);
 				}else{
