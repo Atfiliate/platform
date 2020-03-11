@@ -171,11 +171,19 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.listen = function(check, callback){
 			fire._listen = callback;
 			//[] WIP
+			let checkFn = (change)=>{
+				return new Promise((res,rej)=>{
+					if(change.doc.metadata.hasPendingWrites || change.doc.metadata.fromCache)
+						rej();
+					else
+						res();
+				})
+			};
 			if(fire._cd == 'collection'){
 				fire._ignore = fire._qref.onSnapshot({includeMetadataChanges:false}, snap=>{
 					var promises = [];
 					snap.docChanges().forEach(change=>{
-						check = check || function(){return Promise.resolve()};
+						check = check || checkFn;
 						promises.push(check(change).then(r=>{
 							if(fire.list){
 								if(change.type === 'added'){
@@ -204,7 +212,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				})
 			}else{
 				fire._ignore = fire._qref.onSnapshot(doc=>{
-					check = check || function(){return Promise.resolve()};
+					check = check || checkFn;
 					check(doc).then(r=>{
 						fire.obj = fire._become(doc);
 						fire._listen && fire._listen(fire.obj)
