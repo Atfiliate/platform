@@ -170,7 +170,6 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		}
 		fire.listen = function(check, callback){
 			fire._listen = callback;
-			//[] WIP
 			let checkFn = (change)=>{
 				return new Promise((res,rej)=>{
 					if(change.doc.metadata.hasPendingWrites || change.doc.metadata.fromCache)
@@ -223,7 +222,6 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					})
 				})
 			}
-			//setup listener and trigger callback on data-change.
 		}
 		fire.add = function(item){
 			var deferred = $q.defer();
