@@ -205,10 +205,10 @@ app.factory('Fire', function($q, Auth, $routeParams){
 							}
 						}))
 					})
-					Promise.all(promises).then(()=>{ //collections always perform callback, checks are done on individual documents
+					Promise.all(promises).then(()=>{ //Checks are done on individual documents.  If any fail, don't callback
 						fire._listen && fire._listen(fire.list);
 					}).catch(e=>{
-						fire._listen && fire._listen(fire.list);
+						//do nothing
 					})
 				})
 			}else{
