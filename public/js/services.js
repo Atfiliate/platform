@@ -175,7 +175,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				fire._ignore = fire._qref.onSnapshot({includeMetadataChanges:false}, snap=>{
 					var promises = [];
 					snap.docChanges().forEach(change=>{
-						check = check || Promise.resolve();
+						check = check || function(){return Promise.resolve()};
 						promises.push(check(change).then(r=>{
 							if(fire.list){
 								if(change.type === 'added'){
