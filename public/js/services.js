@@ -174,7 +174,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			if(fire._cd == 'collection'){
 				fire._ignore = fire._qref.onSnapshot({includeMetadataChanges:false}, snap=>{
 					var promises = [];
-					snap.docChanges().forEach(change=>{g
+					snap.docChanges().forEach(change=>{
 						check = check || Promise.resolve();
 						promises.push(check(change).then(r=>{
 							if(fire.list){
