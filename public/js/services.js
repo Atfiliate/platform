@@ -204,11 +204,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 				})
 			}else{
 				fire._ignore = fire._qref.onSnapshot(doc=>{
-					let notify = (typeof check == 'function' ? check(doc) : true);
-					if(notify){
+					check = check || function(){return Promise.resolve()};
+					check(doc).then(r=>{
 						fire.obj = fire._become(doc);
 						fire._listen && fire._listen(fire.obj)
-					}
+					})
 				})
 			}
 			//setup listener and trigger callback on data-change.
