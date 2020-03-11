@@ -206,16 +206,20 @@ app.factory('Fire', function($q, Auth, $routeParams){
 							}
 						}))
 					})
-					Promise.all(promises).then(()=>{
+					Promise.all(promises).then(()=>{ //collections always perform callback, checks are done on individual documents
+						fire._listen && fire._listen(fire.list);
+					}).catch(e=>{
 						fire._listen && fire._listen(fire.list);
 					})
 				})
 			}else{
 				fire._ignore = fire._qref.onSnapshot(doc=>{
 					check = check || checkFn;
-					check(doc).then(r=>{
+					check(doc).then(r=>{ //documents only perform callback if check passes
 						fire.obj = fire._become(doc);
 						fire._listen && fire._listen(fire.obj)
+					}).catch(e=>{
+						//do nothing
 					})
 				})
 			}
