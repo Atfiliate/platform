@@ -26,7 +26,7 @@ app.get('/', function(request, response) {
 	response.render('pages/index');
 });
 
-app.options('/home/:path', auto.options)
+app.get('/home', auto.home)
 app.get('/home/:path', auto.home)
 
 app.get('/:root', auto.project)
