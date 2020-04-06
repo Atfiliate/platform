@@ -26,11 +26,14 @@ if(process.env.cloudinaryName)
 
 module.exports = {
 	options: function(request, response){
+		var headers = {};
 		if(request.headers.origin){
-			var headers = {};
 			headers['Access-Control-Allow-Origin'] = request.headers.origin;
 			headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS';
 			headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+			response.writeHead(200, headers);
+			response.end();
+		}else{
 			response.writeHead(200, headers);
 			response.end();
 		}
