@@ -22,7 +22,7 @@ app.use(compression());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
-app.get('/', function(request, response) {
+app.get('/app', function(request, response) {
 	response.render('pages/index');
 });
 

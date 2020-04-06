@@ -106,8 +106,10 @@ module.exports = {
 		var hashPath = 'temp/component'+hashIt(path);
 		mkdir('temp');
 		
+		console.log('update key', request.query.update)
+
 		var record = mcache.get(path);
-		if(record && !request.body.update){
+		if(record && request.query.update != process.env.a_key){
 			fs.readFile(hashPath, 'utf8', (e,d)=>{
 				if(e){
 					console.log(e)
