@@ -91,7 +91,7 @@ module.exports = {
 		function send(code){
 			if(request.body.update){
 				response.send('Cache Updated')
-			}else if(process.env.secure){ 
+			}else if(process.env.isHost){ 
 				response.setHeader("Content-Type", 'text/plain')
 				response.send(code)
 			}else{
