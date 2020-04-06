@@ -25,7 +25,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 	function isIsoDate(str) {
 		if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
 		var d = new Date(str);
-		return d.toISOString()===str;
+		try{
+			return d.toISOString()===str;
+		}catch(e){
+			return false;
+		}
 	}
 	var Fire = window.Fire = function(path, cdg){
 		if(localStorage.debug)
