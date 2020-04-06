@@ -99,6 +99,8 @@ module.exports = {
 					response.setHeader("Content-Type", 'application/javascript');
 				else if(cid.indexOf('.htm') != -1)
 					response.setHeader("Content-Type", 'text/html');
+				else if(cid.indexOf('.css') != -1)
+					response.setHeader("Content-Type", 'text/css');
 				response.send(code)
 			}
 		}
