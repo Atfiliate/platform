@@ -26,14 +26,11 @@ if(process.env.cloudinaryName)
 
 module.exports = {
 	options: function(request, response){
-		var headers = {};
 		if(request.headers.origin){
+			var headers = {};
 			headers['Access-Control-Allow-Origin'] = request.headers.origin;
 			headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS';
 			headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
-			response.writeHead(200, headers);
-			response.end();
-		}else{
 			response.writeHead(200, headers);
 			response.end();
 		}
@@ -81,6 +78,9 @@ module.exports = {
 			});
 		}
 	},
+	homeUpdate: (request, response)=>{
+		module.exports.home(request, response);
+	},
 	home: (request, response)=>{
 		var mkdir = require('mkdirp');
 		var fs = require('fs');
@@ -109,8 +109,6 @@ module.exports = {
 		var hashPath = 'temp/component'+hashIt(path);
 		mkdir('temp');
 		
-		console.log('update key', request.query.update)
-
 		var record = mcache.get(path);
 		if(record && request.query.update != process.env.a_key){
 			fs.readFile(hashPath, 'utf8', (e,d)=>{

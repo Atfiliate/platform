@@ -26,9 +26,11 @@ app.get('/app', function(request, response) {
 	response.render('pages/index');
 });
 
-app.get('/home/:path', auto.options)
 app.get('/home', auto.home)
 app.get('/home/:path', auto.home)
+
+app.options('/home/:path/update', auto.options)
+app.get('/home/:path/update', auto.homeUpdate)
 
 app.get('/:root', auto.project)
 app.post('/stripe/customer', stripe.customer)
