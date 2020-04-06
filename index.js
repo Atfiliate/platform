@@ -26,6 +26,8 @@ app.get('/', function(request, response) {
 	response.render('pages/index');
 });
 
+app.options('/home/:path', auto.home)
+app.get('/home/:path', auto.home)
 
 app.get('/:root', auto.project)
 app.post('/stripe/customer', stripe.customer)
@@ -51,6 +53,7 @@ app.post('/project/:projId/cloud/:cloud', auto.project)
 app.options('/project/cloud/:cloud', auto.options)
 app.get('/project/cloud/:cloud', auto.project)
 app.post('/project/cloud/:cloud', auto.project)
+
 
 app.listen(app.get('port'), function() {
 	console.log('Node app is running on port', app.get('port'));
