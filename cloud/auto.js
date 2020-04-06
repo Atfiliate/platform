@@ -83,7 +83,7 @@ module.exports = {
 		var fs = require('fs');
 		var gid = process.env.a_gid || 'iZTQIVnPzPW7b2CzNUmO';
 		var pid = process.env.a_pid || 'LIJGdBKzktXHntCWjoln';
-		var cid = request.params.path;
+		var cid = request.params.path || 'index.html';
 			
 		function hashIt(s){
 			return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
@@ -91,15 +91,14 @@ module.exports = {
 		function send(code){
 			if(request.body.update){
 				response.send('Cache Updated')
-			}else if(request.headers.origin && request.headers.origin.indexOf('a.alphabetize.us') == -1){ 
-				//the code for projects is hosted on alphabetize, this is important for the host project.
+			}else if(process.env.secure){ 
+				response.setHeader("Content-Type", 'text/plain')
+				response.send(code)
+			}else{
 				if(cid.indexOf('.js') != -1)
 					response.setHeader("Content-Type", 'application/javascript');
 				else if(cid.indexOf('.htm') != -1)
 					response.setHeader("Content-Type", 'text/html');
-				response.send(code)
-			}else{
-				response.setHeader("Content-Type", 'text/plain')
 				response.send(code)
 			}
 		}
