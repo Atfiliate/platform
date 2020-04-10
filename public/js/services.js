@@ -76,13 +76,13 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			}
 			return obj;
 		}
-		fire._become = function(doc){
+		fire._become = function(ds){
 			Fire.ct.read++;
-			var data = doc.data();
-			var d = (doc.exists ? fire._clean(data) : {});
-			d.id = doc.id;
+			var data = ds.data();
+			var d = (ds.exists ? fire._clean(data) : {});
+			d.id = ds.id;
 			d.$fire = {
-				ref: doc.ref,
+				ref: ds.ref,
 				save: function(){
 					Fire.ct.write++;
 					d.$status = 'saving';
@@ -123,7 +123,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						}
 					})
 				},
-				doc: d
+				doc: d,
+				ds: ds
 			}
 			return d;
 		}
