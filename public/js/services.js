@@ -94,6 +94,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 					return d.$fire.ref.set(copy).then(function(r){
 						d.$status = 'saved';
 					}).catch(function(e){
+						console.error(e);
 						e.$error = e;
 						d.$status = 'error';
 					})
