@@ -328,7 +328,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 						d[k] = attrObj[k];
 					})
 					return d.$fire.ref.update(attrObj);
-				}
+				},
+				listen: fire.listen
 			}
 			return d;
 		}
@@ -379,7 +380,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		}
 		fire.listen = function(callback){
 			//setup listener and trigger callback on data-change.
-			fire.ref.on('value', snap=>{
+			fire._ref.on('value', snap=>{
 				let data = snap.val();
 				console.log({fire, data})
 				callback(data);
