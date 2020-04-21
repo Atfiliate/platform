@@ -379,6 +379,11 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		}
 		fire.listen = function(callback){
 			//setup listener and trigger callback on data-change.
+			fire.ref.on('value', snap=>{
+				let data = snap.val();
+				console.log({fire, data})
+				callback(data);
+			})
 		}
 		fire.add = function(item){
 			var deferred = $q.defer();
