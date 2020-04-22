@@ -382,7 +382,7 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			//setup listener and trigger callback on data-change.
 			let sync = data=>{
 				Object.keys(data).forEach(k=>{
-					fire._obj[k] = data[k]
+					fire.obj[k] = data[k]
 				})
 				callback && callback(fire._obj);
 			}
