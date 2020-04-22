@@ -378,12 +378,22 @@ app.factory('Fire', function($q, Auth, $routeParams){
 		fire.refresh = function(){
 			return fire.get(null, true);
 		}
-		fire.listen = function(callback){
+		fire.listen = function(check){
 			//setup listener and trigger callback on data-change.
+			let sync = data=>{
+				Object.keys(data).forEach(k=>{
+					fire._obj[k] = data[k]
+				})
+			}
 			fire._ref.on('value', snap=>{
 				let data = snap.val();
-				console.log({fire, data})
-				callback(data);
+				if(check){
+					check.then(r=>{
+						sync(data);
+					})
+				}else{
+					sync(data)
+				}
 			})
 		}
 		fire.add = function(item){
