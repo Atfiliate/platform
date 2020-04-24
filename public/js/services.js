@@ -272,6 +272,8 @@ app.factory('Fire', function($q, Auth, $routeParams){
 			return deferred.promise;
 		}
 	}
+	if(localStorage.debug)
+		console.info('Debug enabled: delete localStorage.debug')
 	Fire.instances = [];
 	Fire.ct = {
 		read: 0,
