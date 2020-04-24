@@ -222,29 +222,30 @@ Auth, Cloudinary, Stripe, Fire, config){
 			// 	})
 			if(page.js)
 				$q.all(promises).then(function(r){
-					// try{
+					try{
 						var js;
 						eval('js = $scope.js = '+page.js)
 						if(js.init)
 							js.init();
-					// }catch(e){
-					// 	$http.post('cloud/log', {
-					// 		url:		window.location.href,
-					// 		user:		($scope.user && $scope.user.uid),
-					// 		createdOn:	new Date().toISOString(),
-					// 		name:		e.name,
-					// 		message:	e.desecription, 
-					// 		stack:		e.stack,
-					// 		line:		e.line,
-					// 		trace:		console.trace(),
-					// 		env:		{
-					// 			browser:	navigator.appName,
-					// 			agent:		navigator.userAgent,
-					// 			version:	navigator.appVersion
-					// 		}
-					// 	})
-					// 	console.error(e);
-					// }
+					}catch(e){
+						$http.post('cloud/log', {
+							url:		window.location.href,
+							user:		($scope.user && $scope.user.uid),
+							createdOn:	new Date().toISOString(),
+							name:		e.name,
+							message:	e.desecription, 
+							stack:		e.stack,
+							line:		e.line,
+							trace:		console.trace(),
+							env:		{
+								browser:	navigator.appName,
+								agent:		navigator.userAgent,
+								version:	navigator.appVersion
+							}
+						})
+						// console.error(e);
+						throw(e.stack);
+					}
 				})
 		},
 		history: {
