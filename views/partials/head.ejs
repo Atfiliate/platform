@@ -22,7 +22,11 @@
 <link rel="stylesheet" href="styles/screen.css">
 <link rel="stylesheet" href="/component/site.css">
 
-
+<!-- Logrocket Tracking -->
+<% if(process.env.logrocket){ %>
+<script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
+<script>window.LogRocket && window.LogRocket.init('<%= process.env.logrocket %>');</script>
+<% } %>
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <% if(process.env.gtag){ %>
