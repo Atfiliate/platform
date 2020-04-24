@@ -19,8 +19,10 @@ var it = {};
 if(window.location.protocol == 'http:')
 	window.location = window.location.href.replace('http:', 'https:')
 
-
-var app = angular.module('app', ['ngMaterial','firebase','ngRoute','chart.js']);
+	let imports = ['ngMaterial','firebase','ngRoute','chart.js'];
+	if(window.Raven)
+		imports.push('ngRaven')
+var app = angular.module('app', imports);
 app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider, $injector) {
 	$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|file|data|sms|tel):/);
 	$locationProvider.hashPrefix('');
