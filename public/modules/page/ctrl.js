@@ -8,7 +8,6 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 	$scope.data = {};
 	var route		= $routeParams.view || 'default';
 	var db			= firebase.firestore();
-	db.settings({timestampsInSnapshots: true});
 	var pageRef 	= firebase.database().ref("site/public/pages").child(route);
 	var historyRef	= firebase.database().ref("site/private/historicPages").child(route);
 	var snapshotRef = firebase.database().ref("site/public/snapshots").child(route);
