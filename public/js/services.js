@@ -484,30 +484,41 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 		}
 	}
 })
-app.factory('Auth', function($q, $firebaseAuth, $firebaseObject){
+app.factory('Auth', function($q, $firebaseAuth, $firebaseObject, Fire){
 	var signin = $q.defer();
 	var authState = $q.defer();
 	$firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
-			var ref = firebase.database().ref().child('site/public/roles').child(user.uid);
-			var obj = $firebaseObject(ref);
-			obj.$loaded().then(function(){
-				user.roles = obj || {};
-				user.flatRoles = Object.keys(user.roles).filter(function(r){return r.indexOf('$')==-1})
-				user.is = function(role){
-					if(role && role.slice(0,1) == '!'){
-						role = role.slice(1);
-						return role=='any' ? !user.flatRoles.length : !user.roles[role];
-					}else{
-						return !role || role=='all' || (role=='any' && user.flatRoles.length) || !!user.roles[role];
-					}
+			new Fire(`roles/${user.uid}`).get().then(r=>{
+				user.roles = r;
+				user.is = (role)=>{ //can pass 'role.subRole'
+					return pathValue(user.roles, role);
 				}
 				user.jwt = function(){
 					return firebase.auth().currentUser.getToken(true)
 				}
 				signin.resolve(user)
 				authState.resolve(user)
-			});
+			})
+			// var ref = firebase.database().ref().child('site/public/roles').child(user.uid);
+			// var obj = $firebaseObject(ref);
+			// obj.$loaded().then(function(){
+			// 	user.roles = obj || {};
+			// 	user.flatRoles = Object.keys(user.roles).filter(function(r){return r.indexOf('$')==-1})
+			// 	user.is = function(role){
+			// 		if(role && role.slice(0,1) == '!'){
+			// 			role = role.slice(1);
+			// 			return role=='any' ? !user.flatRoles.length : !user.roles[role];
+			// 		}else{
+			// 			return !role || role=='all' || (role=='any' && user.flatRoles.length) || !!user.roles[role];
+			// 		}
+			// 	}
+			// 	user.jwt = function(){
+			// 		return firebase.auth().currentUser.getToken(true)
+			// 	}
+			// 	signin.resolve(user)
+			// 	authState.resolve(user)
+			// });
 		}else{
 			authState.reject()
 		}
