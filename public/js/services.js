@@ -18,7 +18,7 @@ app.factory('config', function(){
 	return config;
 })
 
-app.factory('Fire', function($q, Auth, $routeParams){
+app.factory('Fire', function($q){
 	let db = firebase.firestore();
 
 	let _config = {prefix: ''}
