@@ -91,6 +91,7 @@ app.factory('Fire', function($q){
 					let copy = angular.copy(d);
 					d.$fire = $fire;
 					copy = fire._prepare(copy);
+					copy.updatedOn = new Date();
 					return d.$fire.ref.set(copy).then(function(r){
 						d.$status = 'saved';
 					}).catch(function(e){
@@ -112,6 +113,7 @@ app.factory('Fire', function($q){
 					Object.keys(attrObj).forEach(function(k){
 						d[k] = attrObj[k];
 					})
+					attrObj.updatedOn = new Date();
 					return d.$fire.ref.update(attrObj);
 				},
 				listen: function(check, callback){
@@ -234,6 +236,7 @@ app.factory('Fire', function($q){
 			var deferred = $q.defer();
 			item.$status = 'saving';
 			item.createdOn = new Date();
+			item.updatedOn = new Date();
 			item = fire._prepare(item);
 			fire._ref.add(item).then(r=>{
 				r.get().then(doc=>{
@@ -254,6 +257,7 @@ app.factory('Fire', function($q){
 		fire.set = function(item){
 			var deferred = $q.defer();
 			item.createdOn = new Date();
+			item.updatedOn = new Date();
 			item.$status = 'saving';
 			var id = item.id;
 			delete item.id;
