@@ -84,20 +84,24 @@ app.factory('Fire', function($q){
 			d.$fire = {
 				ref: ds.ref,
 				save: function(){
-					Fire.ct.write++;
-					d.$status = 'saving';
-					let $fire = d.$fire;
-					delete d.$fire;
-					let copy = angular.copy(d);
-					d.$fire = $fire;
-					copy = fire._prepare(copy);
-					copy.updatedOn = new Date();
-					return d.$fire.ref.set(copy).then(function(r){
-						d.$status = 'saved';
-					}).catch(function(e){
-						console.error(e);
-						e.$error = e;
-						d.$status = 'error';
+					return new Promise((res, rej)=>{
+						Fire.ct.write++;
+						d.$status = 'saving';
+						let $fire = d.$fire;
+						delete d.$fire;
+						let copy = angular.copy(d);
+						d.$fire = $fire;
+						copy = fire._prepare(copy);
+						copy.updatedOn = new Date();
+						d.$fire.ref.set(copy).then(function(r){
+							d.$status = 'saved';
+							res(r);
+						}).catch(function(e){
+							console.error(e);
+							e.$error = e;
+							d.$status = 'error';
+							rej(e);
+						})
 					})
 				},
 				delete: function(){
