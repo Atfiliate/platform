@@ -42,13 +42,12 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 		let src = `https://my.overturelearning.com/#/project/forms/-${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
-			controller: ()=>{},
+			controller: ($scope)=>{
+				$scope.src = src;
+			},
 			templateUrl: '/component/form.html',
 			clickOutsideToClose: true,
-			multiple: true,
-			locals: {
-				src: src
-			}
+			multiple: true
 		}
 		if(event)
 			options.targetEvent = event;
