@@ -18,6 +18,53 @@ app.factory('config', function(){
 	return config;
 })
 
+app.factory('Form', ($mdDialog, $mdToast)=>{
+	let callbacks = {};
+	console.log('Setting up form listener')
+	window.addEventListener("message", event=>{
+		let payload = event.data;
+		if(payload && callbacks[payload.formId]){
+			if(payload.title == 'formSaved'){
+				$mdDialog.hide();
+				callbacks[payload.formId] && callbacks[payload.formId].res(payload);
+				delete callbacks[payload.formId];
+			}
+			if(payload.message){
+				$mdToast.show($mdToast.simple().textContent(payload.message));
+			}
+		}
+	}, false);
+	return (formId, params={}, event)=>{
+		params.headless = true;
+		let qp = Object.keys(params).map(k=>{
+			return `${k}=${params[k]}`
+		}).join('&');
+		let src = `https://my.overturelearning.com/#/project/forms/-${formId}?${qp}`;
+		
+		var options = {
+			controller: ()=>{},
+			templateUrl: '/component/form.html',
+			clickOutsideToClose: true,
+			multiple: true,
+			locals: {
+				src: src
+			}
+		}
+		if(event)
+			options.targetEvent = event;
+			
+		$mdDialog.show(options).then(r=>{
+			console.log(r)
+		}).catch(e=>{
+			console.log(e)
+		})
+
+		return new Promise((res, rej)=>{
+			callbacks[formId] = {res,rej};
+		})
+	}
+})
+
 app.factory('Fire', function($q){
 	let db = firebase.firestore();
 

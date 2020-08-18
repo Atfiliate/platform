@@ -1,7 +1,7 @@
 /*global angular, app, firebase, Mousetrap, moment, whois*/
 
-app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, $mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, 
-Auth, Cloudinary, Stripe, Fire, config){
+app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, 
+	$mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, Auth, Fire, Cloudinary, Stripe, Form, config){
 	$scope.$mdDialog	= $mdDialog;
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;

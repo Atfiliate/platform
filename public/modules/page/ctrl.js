@@ -1,6 +1,7 @@
 /*global angular, app, firebase, Mousetrap, moment*/
 
-app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, $mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, Auth, Fire, Cloudinary, Stripe, config){
+app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, 
+	$mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, Auth, Fire, Cloudinary, Stripe, Form, config){
 	$scope.$mdDialog	= $mdDialog;
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
