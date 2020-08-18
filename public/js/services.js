@@ -20,6 +20,7 @@ app.factory('config', function(){
 
 app.factory('Form', ($mdDialog, $mdToast)=>{
 	let callbacks = {};
+	console.log('add listener')
 	window.addEventListener("message", event=>{
 		let payload = event.data;
 		if(payload && callbacks[payload.formId]){
