@@ -11,7 +11,8 @@ Auth, Cloudinary, Stripe, Fire, config){
 	var projectId = $routeParams.view || 'default';
 	document.title = $routeParams.view;
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
-	window._mfq && window._mfq.push(["newPageView", `project/${$routeParams.view}/${$routeParams.id}`]);
+	window._mfq = window._mfq || [];
+	window._mfq.push(["newPageView", `project/${$routeParams.view}/${$routeParams.id}`]);
 	
 	Auth().then(function(user){
 		$scope.user = user;
