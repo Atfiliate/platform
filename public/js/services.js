@@ -40,7 +40,7 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 			return `${k}=${params[k]}`
 		}).join('&');
 		let src = `https://my.overturelearning.com/#/project/forms/-${formId}?${qp}`;
-		
+		console.log('form', src);
 		var options = {
 			controller: ()=>{},
 			templateUrl: '/component/form.html',
