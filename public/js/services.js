@@ -39,7 +39,7 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 		let qp = Object.keys(params).map(k=>{
 			return `${k}=${params[k]}`
 		}).join('&');
-		let src = `https://my.overturelearning.com/#/project/forms/-${formId}?${qp}`;
+		let src = `https://my.overturelearning.com/#/project/forms/${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
 			controller: ($scope)=>{
