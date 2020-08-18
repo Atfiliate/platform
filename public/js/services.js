@@ -20,7 +20,6 @@ app.factory('config', function(){
 
 app.factory('Form', ($mdDialog, $mdToast)=>{
 	let callbacks = {};
-	console.log('Setting up form listener')
 	window.addEventListener("message", event=>{
 		let payload = event.data;
 		if(payload && callbacks[payload.formId]){
@@ -34,33 +33,36 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 			}
 		}
 	}, false);
-	return (formId, params={}, event)=>{
-		params.headless = true;
-		let qp = Object.keys(params).map(k=>{
-			return `${k}=${params[k]}`
-		}).join('&');
-		let src = `https://my.overturelearning.com/#/project/forms/${formId}?${qp}`;
-		console.log('form', src);
-		var options = {
-			controller: ($scope)=>{
-				$scope.src = src;
-			},
-			templateUrl: '/component/form.html',
-			clickOutsideToClose: true,
-			multiple: true
-		}
-		if(event)
-			options.targetEvent = event;
-			
-		$mdDialog.show(options).then(r=>{
-			console.log(r)
-		}).catch(e=>{
-			console.log(e)
-		})
 
-		return new Promise((res, rej)=>{
-			callbacks[formId] = {res,rej};
-		})
+	return {
+		dialog: (formId, params={}, event)=>{
+			params.headless = true;
+			let qp = Object.keys(params).map(k=>{
+				return `${k}=${params[k]}`
+			}).join('&');
+			let src = `https://my.overturelearning.com/#/project/forms/${formId}?${qp}`;
+			console.log('form', src);
+			var options = {
+				controller: ($scope)=>{
+					$scope.src = src;
+				},
+				templateUrl: '/component/form.html',
+				clickOutsideToClose: true,
+				multiple: true
+			}
+			if(event)
+				options.targetEvent = event;
+				
+			$mdDialog.show(options).then(r=>{
+				console.log(r)
+			}).catch(e=>{
+				console.log(e)
+			})
+
+			return new Promise((res, rej)=>{
+				callbacks[formId] = {res,rej};
+			})
+		}
 	}
 })
 
