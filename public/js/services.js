@@ -45,7 +45,7 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 			controller: ($scope, $mdDialog)=>{
 				$scope.src = src;
 				$scope.close = ()=>{
-					if(confirm('Are you sure you want to exit this form?  Your information will not be saved.'))
+					if(confirm('Are you sure you want to exit this form?  Any changes will not be saved.'))
 						$mdDialog.hide()
 				}
 			},
