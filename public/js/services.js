@@ -42,8 +42,12 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 		let src = `https://my.overturelearning.com/#/project/forms/${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
-			controller: ($scope)=>{
+			controller: ($scope, $mdDialog)=>{
 				$scope.src = src;
+				$scope.close = ()=>{
+					if(confirm('Are you sure you want to exit this form?  Your information will not be saved.'))
+						$mdDialog.hide()
+				}
 			},
 			templateUrl: '/component/form.html',
 			clickOutsideToClose: false,
