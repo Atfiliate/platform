@@ -46,7 +46,7 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 				$scope.src = src;
 			},
 			templateUrl: '/component/form.html',
-			clickOutsideToClose: true,
+			clickOutsideToClose: false,
 			multiple: true
 		}
 		if(event)
