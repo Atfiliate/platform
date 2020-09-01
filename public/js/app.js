@@ -230,14 +230,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 	});
 			// },
 			setup: profile=>{
-				var Tawk_API=Tawk_API||{};
-				var Tawk_LoadStart=new Date();
-
-				Tawk_API.onLoad = function(){
-				Tawk_API.setAttributes({
-					'name' : profile.displayName,
-					'email': profile.email
-				}, function (error) {});
 
 				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 				let version = 1.03;
