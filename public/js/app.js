@@ -147,6 +147,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		}
 	}]
 
+	$scope.$on('$routeChangeStart', ($event, next, current)=>{
+		console.log({$event, current, next});
+	});
+
 	var tools = $rootScope.rootTools = $rootScope.tools = {
 		init: function(){
 			// tools.errors();
