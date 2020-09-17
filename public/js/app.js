@@ -147,7 +147,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		}
 	}]
 
-	$scope.$on('$routeChangeStart', ($event, next, current)=>{
+	$rootScope.$on('$routeChangeStart', ($event, next, current)=>{
 		console.log({$event, current, next});
 	});
 
