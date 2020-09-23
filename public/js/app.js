@@ -148,10 +148,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	}]
 
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
-		if($scope.device && $scope.profile){
-			$scope.device.page 			= window.location.href;
-			$scope.device.lastAction 	= new Date();
-			$scope.profile.$fire.save();
+		if($rootScope.device && $rootScope.profile){
+			$rootScope.device.page 			= window.location.href;
+			$rootScope.device.lastAction 	= new Date();
+			$rootScope.profile.$fire.save();
 		}
 	});
 
