@@ -18,7 +18,7 @@ app.factory('config', function(){
 	return config;
 })
 
-app.factory('Form', ($mdDialog, $mdToast)=>{
+app.factory('Form', ($mdDialog, $mdToast, config)=>{
 	let callbacks = {};
 	window.addEventListener("message", event=>{
 		let payload = event.data;
@@ -39,7 +39,7 @@ app.factory('Form', ($mdDialog, $mdToast)=>{
 		let qp = Object.keys(params).map(k=>{
 			return `${k}=${params[k]}`
 		}).join('&');
-		let src = `https://my.overturelearning.com/#/project/forms/${formId}?${qp}`;
+		let src = `${config.origin}/#/project/forms/${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
 			controller: ($scope, $mdDialog)=>{
