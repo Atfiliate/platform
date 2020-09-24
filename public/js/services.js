@@ -287,30 +287,35 @@ app.factory('Fire', function($q){
 			}
 		}
 		fire.add = function(item){
-			var deferred = $q.defer();
-			item.$status = 'saving';
-			item.createdOn = new Date();
-			item.updatedOn = new Date();
-			item = fire._prepare(item);
-			fire._ref.add(item).then(r=>{
-				r.get().then(doc=>{
-					var obj = fire._become(doc);
-					obj.$status = 'saved';
-					if(fire.list && !fire._listen)
-						fire.list.push(obj);
-					deferred.resolve(obj);
+			if(item.id){
+				return fire.set(item);
+			}else{
+				var deferred = $q.defer();
+				item.$status = 'saving';
+				item.createdOn = new Date();
+				item.updatedOn = new Date();
+				item = fire._prepare(item);
+	
+				fire._ref.add(item).then(r=>{
+					r.get().then(doc=>{
+						var obj = fire._become(doc);
+						obj.$status = 'saved';
+						if(fire.list && !fire._listen)
+							fire.list.push(obj);
+						deferred.resolve(obj);
+					}).catch(e=>{
+						deferred.reject(e);
+					})
 				}).catch(e=>{
+					item.$status = 'error';
 					deferred.reject(e);
 				})
-			}).catch(e=>{
-				item.$status = 'error';
-				deferred.reject(e);
-			})
-			return deferred.promise;
+				return deferred.promise;
+			}
 		}
 		fire.set = function(item){
 			var deferred = $q.defer();
-			item.createdOn = new Date();
+			item.createdOn = item.createdOn || new Date();
 			item.updatedOn = new Date();
 			item.$status = 'saving';
 			var id = item.id;
