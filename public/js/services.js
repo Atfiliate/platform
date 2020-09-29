@@ -34,7 +34,7 @@ app.factory('Form', function($mdDialog, $mdToast, config){
 		}
 	}, false);
 
-	return (formId, params={}, event)=>{
+	return function(formId, params={}, event){
 		params.headless = true;
 		let qp = Object.keys(params).map(k=>{
 			return `${k}=${params[k]}`
@@ -42,7 +42,7 @@ app.factory('Form', function($mdDialog, $mdToast, config){
 		let src = `${config.origin}/#/project/forms/${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
-			controller: ($scope, $mdDialog)=>{
+			controller: function($scope, $mdDialog){
 				$scope.src = src;
 				$scope.close = ()=>{
 					if(confirm('Are you sure you want to exit this form?  Any changes will not be saved.'))
