@@ -18,7 +18,7 @@ app.factory('config', function(){
 	return config;
 })
 
-app.factory('Form', ($mdDialog, $mdToast, config)=>{
+app.factory('Form', function($mdDialog, $mdToast, config){
 	let callbacks = {};
 	window.addEventListener("message", event=>{
 		let payload = event.data;
