@@ -555,7 +555,10 @@ app.factory('Auth', function($q, $firebaseAuth, $firebaseObject, Fire){
 			new Fire(`roles/${user.uid}`).get().then(r=>{
 				user.roles = r;
 				user.is = (role)=>{ //can pass 'role.subRole'
-					return pathValue(user.roles, role);
+					if(!role || role == 'any')
+						return true;
+					else
+						return pathValue(user.roles, role);
 				}
 				user.jwt = function(){
 					return firebase.auth().currentUser.getToken(true)
