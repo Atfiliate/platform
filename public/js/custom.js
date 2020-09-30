@@ -78,7 +78,7 @@ String.prototype.compile = function(scope){
 	return parts.map(p=>{
 		let p2 = p.split('{{');
 		if(p2[1])
-			p2[1] = pathValue(scope, p2[1]);
+			p2[1] = pathValue(scope, p2[1]) || '';
 		return p2.join('');
 	}).join('');
 }
