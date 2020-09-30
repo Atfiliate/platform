@@ -72,6 +72,16 @@ String.prototype.hashCode = function() {
 	}
 	return hash;
 };
+String.prototype.compile = function(scope){
+	let str = this;
+	let parts = str.split('}}');
+	return parts.map(p=>{
+		let p2 = p.split('{{');
+		if(p2[1])
+			p2[1] = pathValue(scope, p2[1]);
+		return p2.join('');
+	}).join('');
+}
 
 
 
