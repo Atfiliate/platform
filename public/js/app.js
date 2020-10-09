@@ -465,42 +465,42 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				clickOutsideToClose: true
 			})
 		},
-		// errors: ()=>{
-		// 	window.onerror = function(message,source,lineno,colno,error) {
-		// 		$http.post('cloud/log', {
-		// 			url:		window.location.href,
-		// 			createdOn:	new Date().toISOString(),
-		// 			user:		it.uid || null,
-		// 			name:		'Window Error',
-		// 			message:	message,
-		// 			source: 	source,
-		// 			stack:		error && error.stack || '',
-		// 			line:		lineno,
-		// 			col:		colno,
-		// 			env:		{
-		// 				browser:	navigator.appName,
-		// 				agent:		navigator.userAgent,
-		// 				version:	navigator.appVersion
-		// 			}
-		// 		})
-		// 		return true;
-		// 	};
-		// 	console.error = function(error){
-		// 		$http.post('cloud/log', {
-		// 			url:		window.location.href,
-		// 			createdOn:	new Date().toISOString(),
-		// 			user:		it.uid || null,
-		// 			name:		'Console Error',
-		// 			error:		error,
-		// 			stack:		error & error.stack || null,
-		// 			env:		{
-		// 				browser:	navigator.appName,
-		// 				agent:		navigator.userAgent,
-		// 				version:	navigator.appVersion
-		// 			}
-		// 		})
-		// 	}
-		// }
+		errors: ()=>{
+			window.onerror = function(message,source,lineno,colno,error) {
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					deviceId:	localStorage.deviceId || '',
+					name:		'Window Error',
+					message:	message,
+					source: 	source,
+					stack:		error && error.stack || '',
+					line:		lineno,
+					col:		colno,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+				return true;
+			};
+			console.error = function(error){
+				$http.post('cloud/log', {
+					url:		window.location.href,
+					createdOn:	new Date().toISOString(),
+					deviceId:	localStorage.deviceId || '',
+					name:		'Console Error',
+					error:		error,
+					stack:		error & error.stack || null,
+					env:		{
+						browser:	navigator.appName,
+						agent:		navigator.userAgent,
+						version:	navigator.appVersion
+					}
+				})
+			}
+		}
 	}
 	tools.init();
 

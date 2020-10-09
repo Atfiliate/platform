@@ -222,7 +222,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			// 		})
 			// 		return deferred.promise;
 			// 	})
-			if(page.js)
+			if(page.js){
 				$q.all(promises).then(function(r){
 					try{
 						var js;
@@ -232,7 +232,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
-							user:		($scope.user && $scope.user.uid),
+							userId:		($scope.user && $scope.user.uid),
+							deviceId:	localStorage.deviceId || '',
 							createdOn:	new Date().toISOString(),
 							name:		e.name,
 							message:	e.desecription, 
@@ -249,6 +250,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						throw(e.stack);
 					}
 				})
+			}
 		},
 		history: {
 			init: function(){

@@ -196,7 +196,8 @@ app.lazy.controller('PageCtrl', function PageCtrl($scope, $firebaseObject, $fire
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
-							user:		($scope.user && $scope.user.uid),
+							userId:		($scope.user && $scope.user.uid),
+							deviceId:	localStorage.deviceId || '',
 							createdOn:	new Date().toISOString(),
 							name:		e.name,
 							message:	e.desecription, 
