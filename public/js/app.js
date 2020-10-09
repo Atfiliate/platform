@@ -149,9 +149,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
 		if($rootScope.device && $rootScope.profile){
-			$rootScope.device.page 			= window.location.href;
-			$rootScope.device.lastAction 	= new Date();
-			$rootScope.profile.$fire.save();
+			$rootScope.profile.$fire.update({
+				'stats.page': 				window.location.href,
+				'stats.currentDevice': 		$rootScope.device.id
+			});
 		}
 	});
 

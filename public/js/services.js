@@ -165,7 +165,7 @@ app.factory('Fire', function($q){
 				update: function(attrObj){
 					Fire.ct.write++;
 					Object.keys(attrObj).forEach(function(k){
-						d[k] = attrObj[k];
+						pathValue(d, k, attrObj[k]);
 					})
 					attrObj.updatedOn = new Date();
 					return d.$fire.ref.update(attrObj);
