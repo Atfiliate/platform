@@ -170,17 +170,18 @@ app.factory('Fire', function($q){
 					attrObj.updatedOn = new Date();
 					return d.$fire.ref.update(attrObj);
 				},
-				listen: function(check, callback){
-					//returns ignore function.
-					return d.$fire.ref.onSnapshot({includeMetadataChanges:false}, doc=>{
-						Fire.ct.read++;
-						let notify = (typeof check == 'function' ? check(doc) : true);
-						if(notify){
-							fire.obj = fire._become(doc);
-							callback && callback(fire.obj)
-						}
-					})
-				},
+				listen: fire.listen,
+				// function(check, callback){
+				// 	//returns ignore function.
+				// 	return d.$fire.ref.onSnapshot({includeMetadataChanges:false}, doc=>{
+				// 		Fire.ct.read++;
+				// 		let notify = (typeof check == 'function' ? check(doc) : true);
+				// 		if(notify){
+				// 			fire.obj = fire._become(doc);
+				// 			callback && callback(fire.obj)
+				// 		}
+				// 	})
+				// },
 				doc: d,
 				ds: ds
 			}
@@ -231,7 +232,7 @@ app.factory('Fire', function($q){
 		fire.refresh = function(){
 			return fire.get(null, true);
 		}
-		fire.listen = function(check, callback){
+		fire.listen = function($scope, check, callback, persist){
 			fire._listen = callback;
 			let checkFn = (change)=>{
 				return new Promise((res,rej)=>{
@@ -251,19 +252,32 @@ app.factory('Fire', function($q){
 								if(change.type === 'added'){
 									var doc = change.doc;
 									var odoc = fire.list.find(d=>d.id==change.doc.id);
-									if(!odoc)
-										fire.list.push(fire._become(doc));
+									if(!odoc){
+										let newItem = fire._become(doc);
+											newItem.$listenStatus = 'added';
+										fire.list.push(newItem);
+									}
 								}else if(change.type === 'modified'){
 									Fire.ct.read++;
 									var data = change.doc.data();
 									var obj = fire._clean(data);
 									var odoc = fire.list.find(d=>d.id==change.doc.id);
+										odoc.$listenStatus = 'modified';
+										odoc.$listenChanges = [];
 									Object.keys(obj).forEach(k=>{
+										odoc.$listenChanges.push({
+											path: 	k,
+											from: 	odoc[k],
+											to: 	obj[k]
+										})
 										odoc[k] = obj[k];
 									})
 								}else if(change.type === 'removed'){
 									var idx = fire.list.findIndex(d=>d.id==change.doc.id);
-									fire.list.splice(idx, 1);
+									let oldItem = fire.list.splice(idx, 1);
+									oldItem.$listenRemove = new Date();
+									fire.list.$listenRemoved = fire.list.$listenRemoved || [];
+									fire.list.$listenRemoved.push(oldItem);
 								}
 							}
 						}))
@@ -284,6 +298,13 @@ app.factory('Fire', function($q){
 						//do nothing
 					})
 				})
+			}
+			if(!persist){
+				fire._cancelRouteListener = $scope.$on('$routeChangeStart', ($event, cur, pre)=>{
+					fire._ignore();
+					fire._cancelRouteListener();
+					delete fire._ignore;
+				});
 			}
 		}
 		fire.add = function(item){
