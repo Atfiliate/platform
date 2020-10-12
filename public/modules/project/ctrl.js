@@ -57,7 +57,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			})
 		},
 		alert: function(message, confirm){
-			if(button){
+			if(confirm){
 				return new Promise((res,rej)=>{
 					$mdToast.show(
 						$mdToast.simple().textContent(message).hideDelay(0).action(confirm)
