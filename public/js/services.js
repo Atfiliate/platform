@@ -265,14 +265,14 @@ app.factory('Fire', function($q){
 										odoc.$listenStatus = 'modified';
 										odoc.$listenChanges = [];
 									Object.keys(obj).forEach(k=>{
-										odoc[k] = obj[k];
 										let ov = odoc[k];
 										let nv = obj[k];
 										if(typeof ov == 'object')
 											ov = JSON.stringify(odoc[k]);
 										if(typeof nv == 'object')
 											nv = JSON.stringify(obj[k]);
-										if(ov != nv){
+										if(ov != nv){ //only update necessary root attributes
+											odoc[k] = obj[k];
 											odoc.$listenChanges.push({
 												path: 	k,
 												from: 	odoc[k],
