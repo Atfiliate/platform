@@ -56,12 +56,19 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}
 			})
 		},
-		alert: function(message){
-			$mdToast.show(
-			$mdToast.simple()
-				.textContent(message)
-				.hideDelay(5000)
-			);
+		alert: function(message, params){
+			let toast = $mdToast.simple();
+			if(params){
+				toast = toast.textContent(message);
+				Object.keys(params).forEach(k=>{
+					toast = toast[k](params[k])
+				})
+				return $mdToast.show(toast);
+			}else{
+				return $mdToast.show(
+					$mdToast.simple().textContent(message).hideDelay(5000)
+				);
+			}
 		},
 		dialog: function(dialog, params){
 			if(dialog.indexOf('http') != -1)
