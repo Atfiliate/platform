@@ -263,7 +263,7 @@ app.factory('Fire', function($q){
 									var obj = fire._clean(data);
 									var odoc = fire.list.find(d=>d.id==change.doc.id);
 										odoc.$listenStatus = 'modified';
-										odoc.$listenChanges = [];
+										odoc.$listenChanges = odoc.$listenChanges || [];
 									Object.keys(obj).forEach(k=>{
 										let ov = odoc[k];
 										let nv = obj[k];
