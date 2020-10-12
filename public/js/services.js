@@ -265,11 +265,19 @@ app.factory('Fire', function($q){
 										odoc.$listenStatus = 'modified';
 										odoc.$listenChanges = [];
 									Object.keys(obj).forEach(k=>{
-										odoc.$listenChanges.push({
-											path: 	k,
-											from: 	odoc[k],
-											to: 	obj[k]
-										})
+										let ov = odoc[k];
+										let nv = obj[k];
+										if(typeof ov == 'object')
+											ov = JSON.parse(odoc[k]);
+										if(typeof nv == 'object')
+											nv = JSON.parse(obj[k]);
+										if(ov != nv){
+											odoc.$listenChanges.push({
+												path: 	k,
+												from: 	odoc[k],
+												to: 	obj[k]
+											});
+										}
 										odoc[k] = obj[k];
 									})
 								}else if(change.type === 'removed'){
