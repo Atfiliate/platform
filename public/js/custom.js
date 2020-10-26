@@ -143,7 +143,7 @@ function pathValue(obj, path, val){
 			if(obj)
 				return pathValue(obj[attr], path);
 			else
-				return undefined;
+				return null;
 		else
 			return obj;
 	}
