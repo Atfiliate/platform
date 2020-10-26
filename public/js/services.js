@@ -123,6 +123,7 @@ app.factory('Fire', function($q){
 						obj[k] = fire._prepare(obj[k])
 					}
 				})
+				obj.$hash = JSON.stringify(obj).hashCode(); //this becomes outdated when a user 'updates' a document.
 			}
 			return obj;
 		}
@@ -165,6 +166,10 @@ app.factory('Fire', function($q){
 				update: function(attrObj){
 					Fire.ct.write++;
 					Object.keys(attrObj).forEach(function(k){
+						if(attrObj[k] == undefined){
+							delete attrObj[k];
+							pathValue(d, k, null);
+						}
 						pathValue(d, k, attrObj[k]);
 					})
 					attrObj.updatedOn = new Date();
@@ -387,7 +392,9 @@ app.factory('Fire', function($q){
 			if(obj){
 				var keys = Object.keys(obj);
 				keys.forEach(k=>{
-					if(obj[k]){
+					if(obj[k] == undefined){
+						delete obj[k];
+					}else if(obj[k]){
 						if(k.indexOf('$') != -1)
 							delete obj[k]
 						else if(obj[k].toISOString)
@@ -420,7 +427,12 @@ app.factory('Fire', function($q){
 				},
 				update: function(attrObj){
 					Object.keys(attrObj).forEach(k=>{
-						d[k] = attrObj[k];
+						if(attrObj[k] == undefined){
+							delete attrObj[k];
+							delete d[k];
+						}else{
+							d[k] = attrObj[k];
+						}
 					})
 					return d.$fire.ref.update(attrObj);
 				},
