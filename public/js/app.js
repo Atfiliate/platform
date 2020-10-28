@@ -23,7 +23,7 @@ if(window.location.protocol == 'http:')
 	if(window.Raven)
 		imports.push('ngRaven')
 var app = angular.module('app', imports);
-app.config(function($routeProvider, $locationProvider, $controllerProvider, $ngSanitizeProvider, $provide, $compileProvider, $mdThemingProvider, $injector) {
+app.config(function($routeProvider, $locationProvider, $controllerProvider, $provide, $compileProvider, $mdThemingProvider, $injector, $ngSanitize) {
 	$compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|file|data|sms|tel):/);
 	$locationProvider.hashPrefix('');
 	app.lazy = {
