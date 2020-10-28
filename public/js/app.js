@@ -19,7 +19,7 @@ var it = {};
 if(window.location.protocol == 'http:')
 	window.location = window.location.href.replace('http:', 'https:')
 
-	let imports = ['ngMaterial','firebase','ngRoute','chart.js'];
+	let imports = ['ngMaterial','firebase','ngRoute','ngSanitize','chart.js'];
 	if(window.Raven)
 		imports.push('ngRaven')
 var app = angular.module('app', imports);
