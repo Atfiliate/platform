@@ -154,6 +154,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				'stats.page': 				window.location.href,
 				'stats.currentDevice': 		$rootScope.device.id
 			});
+			
+			if($rootScope.session){
+				let session = 		$rootScope.session;
+				session.page = 		window.location.href;
+				session.deviceId = 	$rootScope.device.id;
+				session.$fire.save();
+			}
 		}
 	});
 
@@ -315,9 +322,29 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			initDefer: $q.defer(),
 			init: (profile)=>{
 				tools.device.get(profile).then(device=>{
-					$rootScope.profile.$fire.update({
+					profile.$fire.update({
 						'stats.page': 				window.location.href,
 						'stats.currentDevice': 		$rootScope.device.id
+					});
+					
+					new Fire(`profile/${profile.id}/stats`).add({
+						page: 		window.location.href,
+						deviceId: 	device.id,
+						type: 		'New Page',
+						time: 		0,
+						hasFocus: 	document.hasFocus(),
+						updatedOn: 	new Date()
+					}).then(session=>{
+						$rootScope.session = session;
+						document.addEventListener("visibilitychange", c=>{
+							let updatedOn 	= new Date();
+							let time 		= session.time;
+							let hasFocus 	= document.hasFocus();
+							if(hasFocus){
+								time += moment(updatedOn).diff(moment(session.updatedOn));
+								session.$fire.update({updatedOn, time, hasFocus});
+							}
+						});
 					});
 					const messaging = $rootScope.messaging = firebase.messaging();
 					let origin = window.location.origin;
