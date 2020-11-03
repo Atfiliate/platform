@@ -220,10 +220,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					$rootScope.profile = {status:'pending'}
 					new Fire(`profile/${user.uid}`).get().then(profile=>{
 						$rootScope.profile = profile;
-						profile.$fire.update({
-							'stats.page': 				window.location.href,
-							'stats.currentDevice': 		$rootScope.device.id
-						});
 						tools.profile.sync(profile, [{
 							title: 	'Display Name',
 							path: 	'displayName'
@@ -318,25 +314,27 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		device: {
 			initDefer: $q.defer(),
 			init: (profile)=>{
-				const messaging = $rootScope.messaging = firebase.messaging();
-				let origin = window.location.origin;
-				navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
-				.then(registration=>{
-					messaging.useServiceWorker(registration);
-					if(window.Notification.permission == "granted")
-						tools.device.messaging();
-					tools.device.get(profile).then(device=>{
+				tools.device.get(profile).then(device=>{
+					$rootScope.profile.$fire.update({
+						'stats.page': 				window.location.href,
+						'stats.currentDevice': 		$rootScope.device.id
+					});
+					const messaging = $rootScope.messaging = firebase.messaging();
+					let origin = window.location.origin;
+					navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
+					.then(registration=>{
+						messaging.useServiceWorker(registration);
+						if(window.Notification.permission == "granted")
+							tools.device.messaging();
 						tools.device.initDefer.resolve();
+					}).catch(e=>{
+						console.log(e);
 					})
-				}).catch(e=>{
-					tools.device.get(profile);
-				})
 
-				if(window.Notification.permission == "granted"){
-					tools.device.messaging();
-				}else{
-					tools.device.get(profile);
-				}
+					if(window.Notification.permission == "granted"){
+						tools.device.messaging();
+					}
+				})
 			},
 			list: ()=>{
 				new Fire(`profile/${user.uid}/devices`).get().then(devices=>{
