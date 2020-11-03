@@ -227,7 +227,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							title: 	'Email',
 							path: 	'email'
 						}]);
-						tools.device.init(device);
+						tools.device.init(profile);
 					})
 				}
 			},
