@@ -358,7 +358,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							});
 						});
 					}else{
-						new Fire(`profile/${user.uid}/devices/${device.id}`).get().then(device=>{
+						new Fire(`profile/${profile.uid}/devices/${device.id}`).get().then(device=>{
 							profile.$device = device;
 							$rootScope.device = profile.$device;
 							res(device);
