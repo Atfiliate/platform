@@ -147,6 +147,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		}
 	}]
 
+	
+	$rootScope.profile.$fire.update({
+		'stats.page': 				window.location.href,
+		'stats.currentDevice': 		$rootScope.device.id
+	});
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
 		if($rootScope.device && $rootScope.profile){
 			$rootScope.profile.$fire.update({
@@ -219,8 +224,14 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					$rootScope.profile = {status:'pending'}
 					new Fire(`profile/${user.uid}`).get().then(profile=>{
 						$rootScope.profile = profile;
-						tools.profile.setup(profile);
-						tools.device.init();
+						tools.profile.sync(profile, [{
+							title: 	'Display Name',
+							path: 	'displayName'
+						}, {
+							title: 	'Email',
+							path: 	'email'
+						}]);
+						tools.device.init(device);
 					})
 				}
 			},
@@ -238,7 +249,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 		})
 			// 	});
 			// },
-			setup: profile=>{
+			sync: (profile, reqAttrs = [])=>{
 				var Tawk_API = window.Tawk_API || {};
 				Tawk_API.onLoad = function(){
 					Tawk_API.setAttributes({
@@ -247,13 +258,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					}, function(error){});
 				}
 
-				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
-				let version = 1.03;
 				
 				profile.$save = (closeDialog)=>{
 					profile = organize(profile);
 					profile.$fire.save();
-					new Fire.legacy(`profile`).set(profile);
+					// new Fire.legacy(`profile`).set(profile);
 					if(closeDialog)
 						$mdDialog.hide();
 				}
@@ -262,34 +271,28 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
 				}
 				
-				let organize = profile=>{
+
+				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
+				let version = 1.03;
+				if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
 					profile.version = version;
 					profile.displayName = profile.displayName || $rootScope.user.displayName || ' ';
 					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
-					profile.lastName 	= profile.lastName || profile.displayName.split(' ')[1];
+					profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName, '');
 					profile.authEmail 	= $rootScope.user.email;
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
-					return profile;
-				}
-
-				if(!profile.version || profile.version < version){
-					profile = organize(profile);
-
-					let reqAttrs = [];
-					if(profile.displayName == ' ')
-						reqAttrs.push('displayName');
-					if(!profile.email)
-						reqAttrs.push('email');
-					if(reqAttrs.length)
-						profile.$dialog(reqAttrs)
 
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						if($rootScope.user.photoURL){
 							let imgUrl = $rootScope.user.photoURL;
 							$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
 								profile.img = result.data.secure_url || defaultImg;
+								profile.picture = profile.picture || {
+									img_url: 		profile.img,
+									secure_url: 	profile.img
+								}
 								profile.$save();
 							})
 						}else{
@@ -299,12 +302,22 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						profile.$save()
 					}
 				}
+				
+				//if we have requested any new values that don't exist on the profile, we will prompt for those.
+				for(var i = reqAttrs.length - 1; i >= 0; i--){
+					if(pathValue(profile, reqAttrs[i].path) !== null){
+						reqAttrs.splice(i, 1);
+					}
+				}
+				if(reqAttrs.length){
+					profile.$dialog(reqAttrs)
+				}
 			}
 		},
 
 		device: {
 			initDefer: $q.defer(),
-			init: ()=>{
+			init: (profile)=>{
 				const messaging = $rootScope.messaging = firebase.messaging();
 				let origin = window.location.origin;
 				navigator.serviceWorker.register(`${origin}/component/firebase-sw.js`)
@@ -312,56 +325,70 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					messaging.useServiceWorker(registration);
 					if(window.Notification.permission == "granted")
 						tools.device.messaging();
-					$rootScope.device = tools.device.get();
-					tools.device.initDefer.resolve();
+					tools.device.get(profile).then(device=>{
+						tools.device.initDefer.resolve();
+					})
 				}).catch(e=>{
-					$rootScope.device = tools.device.get();
+					tools.device.get(profile);
 				})
 
 				if(window.Notification.permission == "granted"){
 					tools.device.messaging();
 				}else{
-					$rootScope.device = tools.device.get();
+					tools.device.get(profile);
 				}
 			},
-			get: ()=>{
-				var deviceId = localStorage.getItem('deviceId');
-				if(!deviceId){
-					deviceId = chance.md5();
-					localStorage.setItem('deviceId', deviceId);
-				}
-				$rootScope.profile.devices = $rootScope.profile.devices || [];
-				let device = $rootScope.profile.devices.find(d=>d.id==deviceId);
-				if(!device){
-					device = {
-						id: deviceId,
-						createdOn: new Date()
+			list: ()=>{
+				new Fire(`profile/${user.uid}/devices`).get().then(devices=>{
+					$rootScope.myDevices = devices;
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog');
+				});
+			},
+			get: (profile)=>{
+				return new Promise((res,rej)=>{
+					let version = 1.0;
+					var device = JSON.parse(localStorage.getItem('device') || '{}');
+					if(!device.id || device.version < version){
+						presence.device.init().then(device=>{
+							device.version 		= version;
+							new Fire(`profile/${user.uid}/devices`).add(device).then(newDevice=>{
+								device.id = newDevice.id;
+								localStorage.setItem('device', JSON.stringify(device));
+								profile.$device = newDevice;
+								$rootScope.device = profile.$device;
+								res(newDevice);
+							});
+						});
+					}else{
+						new Fire(`profile/${user.uid}/devices/${device.id}`).get().then(device=>{
+							profile.$device = device;
+							$rootScope.device = profile.$device;
+							res(device);
+						});
 					}
-					$rootScope.profile.devices.push(device);
-					$rootScope.profile.$fire.save();
-				}
-				return device;
+				});
 			},
-			type: ()=>{
-				if(navigator.userAgent.match(/Android/i))
-					return 'Android'
-				else if(navigator.userAgent.match(/BlackBerry/i))
-					return 'BlackBerry'
-				else if(navigator.userAgent.match(/iPhone|iPad|iPod/i))
-					return 'iOS'
-				else if(navigator.userAgent.match(/Opera Mini/i))
-					return 'Opera'
-				else if(navigator.userAgent.match(/IEMobile/i))
-					return 'Windows'
-				else if(navigator.userAgent.match(/Windows/i))
-					return 'Windows'
-				else
-					return 'Unknown'
-			},
+			// type: ()=>{
+			// 	if(navigator.userAgent.match(/Android/i))
+			// 		return 'Android'
+			// 	else if(navigator.userAgent.match(/BlackBerry/i))
+			// 		return 'BlackBerry'
+			// 	else if(navigator.userAgent.match(/iPhone|iPad|iPod/i))
+			// 		return 'iOS'
+			// 	else if(navigator.userAgent.match(/Opera Mini/i))
+			// 		return 'Opera'
+			// 	else if(navigator.userAgent.match(/IEMobile/i))
+			// 		return 'Windows'
+			// 	else if(navigator.userAgent.match(/Windows/i))
+			// 		return 'Windows'
+			// 	else
+			// 		return 'Unknown'
+			// },
 			register: ()=>{
 				return new Promise((resolve)=>{
-					$rootScope.device.type = tools.device.type();
-					$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${$rootScope.device.type} Device`;
+					// $rootScope.device.type = tools.device.type();
+					let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
+					$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
 					$rootScope.device.subscribe = true;
 					
 					$rootScope.messaging.requestPermission()
@@ -370,7 +397,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					})
 					.catch(function(err){
 						$rootScope.device.status = 'No Permission';
-						$rootScope.profile.$fire.save()
+						$rootScope.device.$fire.save()
 					});
 				})
 			},
@@ -404,13 +431,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 								delete $rootScope.device.error;
 								$rootScope.device.token = token;
 								$rootScope.device.status = 'Registered';
-								$rootScope.profile.$fire.save()
+								$rootScope.device.$fire.save()
 								if(resolve)
 									resolve('Device Registered');
 							}
 						}else{
 							$rootScope.device.status = 'Unregistered';
-							$rootScope.profile.$fire.save()
+							$rootScope.device.$fire.save()
 						}
 					})
 					.catch(function(err){
@@ -418,7 +445,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						if($rootScope.device.status != newStatus){
 							$rootScope.device.status = newStatus;
 							$rootScope.device.error = err.message;
-							$rootScope.profile.$fire.save()
+							$rootScope.device.$fire.save()
 						}
 					});
 				})
