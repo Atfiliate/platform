@@ -253,24 +253,23 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 	});
 			// },
 			sync: (profile, reqAttrs = [])=>{
-				var Tawk_API = window.Tawk_API || {};
-				Tawk_API.onLoad = function(){
-					Tawk_API.setAttributes({
-						name: 	profile.displayName,
-						email: 	profile.email
-					}, function(error){});
-				}
-
-				
 				profile.$save = (closeDialog)=>{
-					profile = organize(profile);
+					if($rootScope.profileNeeds){
+						$rootScope.profileNeeds.forEach(pn=>{
+							let oVal = pathValue(profile, pn.path);
+							let nVal = pn.value || oVal;
+							pathValue(profile, pn.path, nVal);
+						})
+					}
 					profile.$fire.save();
-					// new Fire.legacy(`profile`).set(profile);
 					if(closeDialog)
 						$mdDialog.hide();
 				}
 				profile.$dialog = (reqAttrs = [])=>{
 					$rootScope.profileNeeds = reqAttrs;
+					$rootScope.profileNeeds.forEach(pn=>{
+						pn.value = pathValue(profile, pn.path);
+					})
 					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
 				}
 				
@@ -326,7 +325,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						'stats.page': 				window.location.href,
 						'stats.currentDevice': 		$rootScope.device.id
 					});
-					
+
 					new Fire(`profile/${profile.id}/stats`).add({
 						page: 		window.location.href,
 						deviceId: 	device.id,
