@@ -363,9 +363,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				})
 			},
 			list: ()=>{
-				new Fire(`profile/${$rootScope.user.uid}/devices`).get().then(devices=>{
+				return new Fire(`profile/${$rootScope.user.uid}/devices`).get().then(devices=>{
 					$rootScope.myDevices = devices;
-					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog');
+					return devices;
 				});
 			},
 			get: (profile)=>{
