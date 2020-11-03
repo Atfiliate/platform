@@ -155,10 +155,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				'stats.currentDevice': 		$rootScope.device.id
 			});
 		}
-			$rootScope.profile.$fire.update({
-				'stats.page': 				window.location.href,
-				'stats.currentDevice': 		$rootScope.device.id
-			});
 	});
 
 	var tools = $rootScope.rootTools = $rootScope.tools = {
