@@ -349,7 +349,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					if(!device.id || device.version < version){
 						presence.device.init().then(device=>{
 							device.version 		= version;
-							new Fire(`profile/${user.uid}/devices`).add(device).then(newDevice=>{
+							new Fire(`profile/${profile.id}/devices`).add(device).then(newDevice=>{
 								device.id = newDevice.id;
 								localStorage.setItem('device', JSON.stringify(device));
 								profile.$device = newDevice;
