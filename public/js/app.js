@@ -148,10 +148,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	}]
 
 	
-	$rootScope.profile.$fire.update({
-		'stats.page': 				window.location.href,
-		'stats.currentDevice': 		$rootScope.device.id
-	});
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
 		if($rootScope.device && $rootScope.profile){
 			$rootScope.profile.$fire.update({
@@ -159,6 +155,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				'stats.currentDevice': 		$rootScope.device.id
 			});
 		}
+			$rootScope.profile.$fire.update({
+				'stats.page': 				window.location.href,
+				'stats.currentDevice': 		$rootScope.device.id
+			});
 	});
 
 	var tools = $rootScope.rootTools = $rootScope.tools = {
@@ -224,6 +224,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					$rootScope.profile = {status:'pending'}
 					new Fire(`profile/${user.uid}`).get().then(profile=>{
 						$rootScope.profile = profile;
+						profile.$fire.update({
+							'stats.page': 				window.location.href,
+							'stats.currentDevice': 		$rootScope.device.id
+						});
 						tools.profile.sync(profile, [{
 							title: 	'Display Name',
 							path: 	'displayName'
