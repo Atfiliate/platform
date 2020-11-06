@@ -13,6 +13,9 @@ md-datepicker{
 	width: 100%;
     max-width: 100%;
 }
+form.row, .row.form{
+	align-items: end;
+}
 
 .chip{
 	display: inline-block;
