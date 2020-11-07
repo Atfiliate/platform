@@ -5,7 +5,8 @@ var stripe = require('./cloud/stripe.js');
 var express = require('express');
 var bodyParser = require('body-parser');
 var busboy  = require('connect-busboy');
-var compression = require('compression')
+var compression = require('compression');
+var multer = require('multer');
 
 
 var app = express();
@@ -16,6 +17,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json({limit:'50mb'}));
 // app.use(bodyParser.urlencoded({extended:true, limit:'50mb'}));
 app.use(bodyParser.urlencoded());
+app.use(multer()); 
 app.use(busboy());
 app.use(compression());
 
