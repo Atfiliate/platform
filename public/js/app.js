@@ -252,6 +252,12 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 		})
 			// 	});
 			// },
+			contactChoice: (choice)=>{
+				$rootScope.profile.contactChoice = choice
+				if(choice == 'PUSH'){
+					tools.device.register();
+				}
+			},
 			sync: (profile, reqAttrs = [])=>{
 				profile.$save = (closeDialog)=>{
 					if($rootScope.profileNeeds){
@@ -393,20 +399,27 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				});
 			},
 			register: ()=>{
-				return new Promise((resolve)=>{
+				return new Promise((res,rej)=>{
 					// $rootScope.$device.type = tools.device.type();
 					let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
 					$rootScope.$device.title = $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
-					$rootScope.$device.subscribe = true;
 					
-					$rootScope.messaging.requestPermission()
-					.then(()=>{
-						tools.device.messaging(resolve);
-					})
-					.catch(function(err){
-						$rootScope.$device.status = 'No Permission';
-						$rootScope.$device.$fire.save()
-					});
+					if($rootScope.$device.status != 'Registered'){
+						$rootScope.$device.subscribe = true;
+						$rootScope.messaging.requestPermission()
+						.then(()=>{
+							
+							tools.device.messaging();
+						})
+						.catch(function(err){
+							$rootScope.$device.status = 'No Permission';
+							$rootScope.$device.$fire.save();
+							rej(err);
+						});
+					}else{
+						$rootScope.$device.subscribe = false;
+						$rootScope.$device.$fire.save();
+					}
 				})
 			},
 			messaging: ()=>{
@@ -431,7 +444,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				});
 				$rootScope.messaging.onTokenRefresh(tools.device.syncToken);
 			},
-			syncToken: (resolve)=>{
+			syncToken: ()=>{
 				tools.device.initDefer.promise.then(r=>{
 					$rootScope.messaging.getToken().then(token=>{
 						if(token){
@@ -440,8 +453,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 								$rootScope.$device.token = token;
 								$rootScope.$device.status = 'Registered';
 								$rootScope.$device.$fire.save()
-								if(resolve)
-									resolve('Device Registered');
 							}
 						}else{
 							$rootScope.$device.status = 'Unregistered';
