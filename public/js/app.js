@@ -398,7 +398,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			},
 			toggle: ()=>{
 				if($rootScope.$device.subscribe == undefined){
-					$rootScope.$device.subscribe = true;
 					return tools.device.register();
 				}else{
 					$rootScope.$device.subscribe = !$rootScope.$device.subscribe;
@@ -409,7 +408,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				return new Promise((res,rej)=>{
 					// $rootScope.$device.type = tools.device.type();
 						let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
-						$rootScope.$device.title = $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
+						$rootScope.$device.title 		= $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
+						$rootScope.$device.subscribe 	= true;
 						$rootScope.messaging.requestPermission()
 						.then(()=>{
 							tools.device.messaging();
