@@ -398,30 +398,25 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			},
 			toggle: ()=>{
 				if($rootScope.$device.subscribe == undefined){
-					return tools.device.register();
+					tools.device.register();
 				}else{
 					$rootScope.$device.subscribe = !$rootScope.$device.subscribe;
-					return $rootScope.$device.$fire.save();
+					$rootScope.$device.$fire.save();
 				}
 			},
 			register: ()=>{
-				return new Promise((res,rej)=>{
-					// $rootScope.$device.type = tools.device.type();
-						let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
-						$rootScope.$device.title 		= $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
-						$rootScope.$device.subscribe 	= true;
-						$rootScope.messaging.requestPermission()
-						.then(()=>{
-							tools.device.messaging();
-							res();
-						})
-						.catch(function(err){
-							delete $rootScope.$device.status.token;
-							$rootScope.$device.status = 'No Permission';
-							$rootScope.$device.$fire.save();
-							rej(err);
-						});
+				let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
+				$rootScope.$device.title 		= $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
+				$rootScope.$device.subscribe 	= true;
+				$rootScope.messaging.requestPermission()
+				.then(()=>{
+					tools.device.messaging();
 				})
+				.catch(function(err){
+					delete $rootScope.$device.status.token;
+					$rootScope.$device.status = 'No Permission';
+					$rootScope.$device.$fire.save();
+				});
 			},
 			messaging: ()=>{
 				tools.device.syncToken();
