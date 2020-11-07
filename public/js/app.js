@@ -253,10 +253,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 	});
 			// },
 			contactChoice: (choice)=>{
-				$rootScope.profile.contactChoice = choice
-				if(choice == 'PUSH'){
+				if(choice == 'PUSH')
 					tools.device.register();
-				}
 			},
 			sync: (profile, reqAttrs = [])=>{
 				profile.$save = (closeDialog)=>{
@@ -408,7 +406,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						$rootScope.$device.subscribe = true;
 						$rootScope.messaging.requestPermission()
 						.then(()=>{
-							
 							tools.device.messaging();
 						})
 						.catch(function(err){
