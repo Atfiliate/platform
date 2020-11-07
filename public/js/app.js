@@ -408,11 +408,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				if($rootScope.$device.subscribe == undefined){
 					tools.device.register();
 				}else{
+					let type = pathValue($rootScope, '$device.browserStats.browser.name') || 'Unknown';
+					$rootScope.$device.title = $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
 					$rootScope.$device.$fire.save();
 				}
 			},
 			register: ()=>{
-				let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
+				let type = pathValue($rootScope, '$device.browserStats.browser.name') || 'Unknown';
 				$rootScope.$device.title 		= $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
 				$rootScope.$device.subscribe 	= true;
 				$rootScope.messaging.requestPermission()
