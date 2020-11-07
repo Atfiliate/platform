@@ -376,7 +376,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			},
 			get: (profile)=>{
 				return new Promise((res,rej)=>{
-					let version = 1.0;
+					let version = 1.1;
 					var device = JSON.parse(localStorage.getItem('device') || '{}');
 					if(!device.id || device.version < version){
 						presence.device.init().then(device=>{
@@ -389,9 +389,17 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							});
 						});
 					}else{
-						new Fire(`profile/${profile.id}/devices/${device.id}`).get().then(device=>{
-							$rootScope.$device = device;
-							res(device);
+						new Fire(`profile/${profile.id}/devices/${device.id}`).get().then($device=>{
+							$rootScope.$device = $device;
+							if($device.version < version){
+								presence.device.init().then(device=>{
+									device.version 	= version;
+									device.id 		= $device.id;
+									$device.$fire.update(device);
+									res($device);
+								});
+							}
+							res($device);
 						});
 					}
 				});
