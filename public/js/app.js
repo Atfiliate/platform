@@ -149,16 +149,16 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 
 	
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
-		if($rootScope.device && $rootScope.profile){
+		if($rootScope.$device && $rootScope.profile){
 			$rootScope.profile.$fire.update({
 				'stats.page': 				window.location.href,
-				'stats.currentDevice': 		$rootScope.device.id
+				'stats.currentDevice': 		$rootScope.$device.id
 			});
 			
 			if($rootScope.session){
 				let session = 		$rootScope.session;
 				session.page = 		window.location.href;
-				session.deviceId = 	$rootScope.device.id;
+				session.deviceId = 	$rootScope.$device.id;
 				session.$fire.save();
 			}
 		}
@@ -323,7 +323,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				tools.device.get(profile).then(device=>{
 					profile.$fire.update({
 						'stats.page': 				window.location.href,
-						'stats.currentDevice': 		$rootScope.device.id
+						'stats.currentDevice': 		$rootScope.$device.id
 					});
 
 					new Fire(`profile/${profile.id}/stats`).add({
@@ -365,6 +365,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			list: ()=>{
 				return new Fire(`profile/${$rootScope.user.uid}/devices`).get().then(devices=>{
 					$rootScope.myDevices = devices;
+					let did = pathValue($rootScope, '$device.id');
+					$rootScope.$device = devices.find(d=>d.id == did); //this was already declared, but we will switch to this one for better sync.
 					return devices;
 				});
 			},
@@ -378,50 +380,32 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 							new Fire(`profile/${profile.id}/devices`).add(device).then(newDevice=>{
 								device.id = newDevice.id;
 								localStorage.setItem('device', JSON.stringify(device));
-								profile.$device = newDevice;
-								$rootScope.device = profile.$device;
+								$rootScope.$device = newDevice;
 								res(newDevice);
 							});
 						});
 					}else{
-						new Fire(`profile/${profile.uid}/devices/${device.id}`).get().then(device=>{
-							profile.$device = device;
-							$rootScope.device = profile.$device;
+						new Fire(`profile/${profile.id}/devices/${device.id}`).get().then(device=>{
+							$rootScope.$device = device;
 							res(device);
 						});
 					}
 				});
 			},
-			// type: ()=>{
-			// 	if(navigator.userAgent.match(/Android/i))
-			// 		return 'Android'
-			// 	else if(navigator.userAgent.match(/BlackBerry/i))
-			// 		return 'BlackBerry'
-			// 	else if(navigator.userAgent.match(/iPhone|iPad|iPod/i))
-			// 		return 'iOS'
-			// 	else if(navigator.userAgent.match(/Opera Mini/i))
-			// 		return 'Opera'
-			// 	else if(navigator.userAgent.match(/IEMobile/i))
-			// 		return 'Windows'
-			// 	else if(navigator.userAgent.match(/Windows/i))
-			// 		return 'Windows'
-			// 	else
-			// 		return 'Unknown'
-			// },
 			register: ()=>{
 				return new Promise((resolve)=>{
-					// $rootScope.device.type = tools.device.type();
+					// $rootScope.$device.type = tools.device.type();
 					let type = pathValue($rootScope, 'device.browserStats.browser.name') || 'Unknown';
-					$rootScope.device.title = $rootScope.device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
-					$rootScope.device.subscribe = true;
+					$rootScope.$device.title = $rootScope.$device.title || prompt('You can name this device to receive notifications.') || `My ${type} Device`;
+					$rootScope.$device.subscribe = true;
 					
 					$rootScope.messaging.requestPermission()
 					.then(()=>{
 						tools.device.messaging(resolve);
 					})
 					.catch(function(err){
-						$rootScope.device.status = 'No Permission';
-						$rootScope.device.$fire.save()
+						$rootScope.$device.status = 'No Permission';
+						$rootScope.$device.$fire.save()
 					});
 				})
 			},
@@ -451,25 +435,25 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				tools.device.initDefer.promise.then(r=>{
 					$rootScope.messaging.getToken().then(token=>{
 						if(token){
-							if(token != $rootScope.device.token){
-								delete $rootScope.device.error;
-								$rootScope.device.token = token;
-								$rootScope.device.status = 'Registered';
-								$rootScope.device.$fire.save()
+							if(token != $rootScope.$device.token){
+								delete $rootScope.$device.error;
+								$rootScope.$device.token = token;
+								$rootScope.$device.status = 'Registered';
+								$rootScope.$device.$fire.save()
 								if(resolve)
 									resolve('Device Registered');
 							}
 						}else{
-							$rootScope.device.status = 'Unregistered';
-							$rootScope.device.$fire.save()
+							$rootScope.$device.status = 'Unregistered';
+							$rootScope.$device.$fire.save()
 						}
 					})
 					.catch(function(err){
 						let newStatus = 'Token Error';
-						if($rootScope.device.status != newStatus){
-							$rootScope.device.status = newStatus;
-							$rootScope.device.error = err.message;
-							$rootScope.device.$fire.save()
+						if($rootScope.$device.status != newStatus){
+							$rootScope.$device.status = newStatus;
+							$rootScope.$device.error = err.message;
+							$rootScope.$device.$fire.save()
 						}
 					});
 				})

@@ -244,7 +244,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						$http.post('cloud/log', {
 							url:		window.location.href,
 							userId:		($scope.user && $scope.user.uid),
-							deviceId:	localStorage.deviceId || '',
+							deviceId:	JSON.parse(localStorage.device || '{}').id,
 							createdOn:	new Date().toISOString(),
 							name:		e.name,
 							message:	e.desecription, 
