@@ -400,7 +400,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				if($rootScope.$device.subscribe == undefined){
 					tools.device.register();
 				}else{
-					$rootScope.$device.subscribe = !$rootScope.$device.subscribe;
 					$rootScope.$device.$fire.save();
 				}
 			},
