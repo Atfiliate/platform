@@ -742,14 +742,15 @@ app.factory('Cloudinary', function($timeout, $q, config){
 				}else if(result && result.event == 'close'){
 					if(results.length){
 						results = results.map(function(doc){
-							doc.pdf_url = doc.secure_url.replace('.jpg', '.pdf')
-							doc.pdf_url = doc.pdf_url.replace('.png', '.pdf')
-							doc.pdf_url = doc.pdf_url.replace('.tiff', '.pdf')
-							doc.pdf_url = doc.pdf_url.replace('.bmp', '.pdf')
-							if(doc.secure_url.indexOf('.png') != -1)
-								doc.img_url = doc.secure_url;
-							else
-								doc.img_url = doc.pdf_url.replace('.pdf', '.jpg')
+							doc.src = doc.secure_url;
+							doc.img = doc.src;
+							doc.img = doc.img.replace('.pdf', '.jpg')
+							doc.img = doc.img.replace('.png', '.jpg')
+							doc.img = doc.img.replace('.tiff', '.jpg')
+							doc.img = doc.img.replace('.bmp', '.jpg')
+							if(doc.src.indexOf('.png') != -1)
+								doc.img = doc.src;
+							doc.img_url = doc.img; //eventually img_url will be removed.
 							return doc;
 						})
 						deferred.resolve(results)
