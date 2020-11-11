@@ -742,6 +742,7 @@ app.factory('Cloudinary', function($timeout, $q, config){
 				}else if(result && result.event == 'close'){
 					if(results.length){
 						results = results.map(function(doc){
+							doc.title = doc.original_filename || null;
 							doc.src = doc.secure_url;
 							doc.img = doc.src;
 							doc.img = doc.img.replace('.pdf', '.jpg')
