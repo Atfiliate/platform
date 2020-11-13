@@ -35,6 +35,7 @@
 		"jimp": 				"*",
 		"compression":			"*",
 		"multer": 				"*",
+		"elasticsearch": 		"*",
 		"@google-cloud/language":			"*"
 	},
 	"repository": {
