@@ -96,7 +96,7 @@ app.directive('clSrc', function($timeout) {
 				return transform;
 			}
 			scope.$watch('clSrc', function(val) {
-				if(val){
+				if(val && val.indexOf('upload') != -1){
 					tsrc = val.split('upload')
 					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1]
 					$(ele).attr("src", src);
@@ -104,7 +104,7 @@ app.directive('clSrc', function($timeout) {
 			})
 			scope.$watch('attrs', function(newVal, oldVal) {
 				// console.log('changed');
-				if(tsrc){
+				if(tsrc && val.indexOf('upload') != -1){
 					src = tsrc[0]+'upload/'+transform(newVal)+tsrc[1]
 					$(ele).attr("src", src);
 				}
