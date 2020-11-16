@@ -364,10 +364,10 @@ app.factory('Fire', function($q){
 						fire.list.push(obj);
 					deferred.resolve(obj);
 				}).catch(e=>{
-					deferred.reject(e);
+					deferred.reject({message: 'Set but could not get', e});
 				});
 			}).catch(e=>{
-				deferred.reject(e);
+				deferred.reject({message: 'Could not set', e});
 			})
 			return deferred.promise;
 		}
