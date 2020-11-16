@@ -96,22 +96,19 @@ app.directive('clSrc', function($timeout) {
 				return transform;
 			}
 			scope.$watch('clSrc', function(val) {
-				if(val && val.indexOf('upload') != -1){
-					tsrc = val.split('upload')
-					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1]
-					$(ele).attr("src", src);
-				}else{
-					$(ele).attr("src", src);
-				}
+				tsrc = val.split('upload');
+				src = val;
+				if(tsrc.length > 1)
+					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1];
+				$(ele).attr("src", src);
 			})
 			scope.$watch('attrs', function(newVal, oldVal) {
 				// console.log('changed');
-				if(tsrc && tsrc.indexOf('upload') != -1){
-					src = tsrc[0]+'upload/'+transform(newVal)+tsrc[1]
-					$(ele).attr("src", src);
-				}else{
-					$(ele).attr("src", tsrc);
-				}
+				tsrc = val.split('upload');
+				src = val;
+				if(tsrc.length > 1)
+					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1];
+				$(ele).attr("src", src);
 			}, true);
 		}
 	};
