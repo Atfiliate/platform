@@ -104,10 +104,8 @@ app.directive('clSrc', function($timeout) {
 			})
 			scope.$watch('attrs', function(newVal, oldVal) {
 				// console.log('changed');
-				tsrc = val.split('upload');
-				src = val;
 				if(tsrc.length > 1)
-					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1];
+					src = tsrc[0]+'upload/'+transform(newVal)+tsrc[1];
 				$(ele).attr("src", src);
 			}, true);
 		}
