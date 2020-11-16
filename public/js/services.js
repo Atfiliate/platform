@@ -90,7 +90,7 @@ app.factory('Fire', function($q){
 		fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
-		fire._clean = function(obj){
+		fire._clean = function(obj){ //clean is called when getting data from the DB for local use.
 			if(obj){
 				var keys = Object.keys(obj);
 				if(keys.indexOf('_firestoreClient') == -1){
@@ -112,7 +112,7 @@ app.factory('Fire', function($q){
 			}
 			return obj;
 		}
-		fire._prepare = function(obj){
+		fire._prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 			if(obj){
 				Object.keys(obj).forEach(function(k){
 					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
@@ -355,8 +355,10 @@ app.factory('Fire', function($q){
 			var id = item.id;
 			delete item.id;
 			item = fire._prepare(item);
-			fire._ref.doc(id).set(item).then(r=>{
-				fire._ref.doc(id).get().then(doc=>{
+			let set = fire._ref.set || fire._ref.doc(id).set;
+			let get = fire._ref.get || fire._ref.doc(id).get;
+			set(item).then(r=>{
+				get().then(doc=>{
 					var obj = fire._become(doc);
 						obj.$status = 'saved';
 					if(fire.list)
@@ -364,7 +366,7 @@ app.factory('Fire', function($q){
 					deferred.resolve(obj);
 				}).catch(e=>{
 					deferred.reject(e);
-				})
+				});
 			})
 			return deferred.promise;
 		}
