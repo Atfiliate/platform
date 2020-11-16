@@ -355,10 +355,9 @@ app.factory('Fire', function($q){
 			var id = item.id;
 			delete item.id;
 			item = fire._prepare(item);
-			let set = fire._ref.set || fire._ref.doc(id).set;
-			let get = fire._ref.get || fire._ref.doc(id).get;
-			set(item).then(r=>{
-				get().then(doc=>{
+			let ref =  fire._cd == 'doc' ? fire._ref : fire._ref.doc(id);
+			ref.set(item).then(r=>{
+				ref.get().then(doc=>{
 					var obj = fire._become(doc);
 						obj.$status = 'saved';
 					if(fire.list)
@@ -367,6 +366,8 @@ app.factory('Fire', function($q){
 				}).catch(e=>{
 					deferred.reject(e);
 				});
+			}).catch(e=>{
+				deferred.reject(e);
 			})
 			return deferred.promise;
 		}
