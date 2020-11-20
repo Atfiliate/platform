@@ -359,8 +359,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					if(k.indexOf('$') != -1)
 						delete newPkg[k];
 				})
-				var packageRef = firebase.database().ref('project').child(view);
-				packageRef.once('value', doc=>{
+				$scope.diff.packageRef = firebase.database().ref('project').child(view);
+				$scope.diff.packageRef.once('value', doc=>{
 					let oldPkg = $scope.diff.oldPkg = doc.val();
 					oldPkg.page = oldPkg.page || {};
 					oldPkg.component = oldPkg.component || {};
@@ -475,7 +475,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					}
 				})
 
-				packageRef.set(oldPkg).then(function(){
+				$scope.diff.packageRef.set(oldPkg).then(function(){
 					window.location.reload();
 				})
 			},
