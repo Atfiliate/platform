@@ -19,9 +19,9 @@
 			<md-list-item ng-repeat="item in diff.components" ng-click="tools.package.compare(item)">
 				<!--<img alt="{{member.name}}" ng-src="{{member.img}}" class="md-avatar">-->
 				<p>{{ item.title }}</p>
-                <md-button clas="md-secondary" ng-show="item.change == 'add'">Add</md-button>
-                <md-button clas="md-secondary" ng-show="item.change == 'remove'">Remove</md-button>
-                <md-button clas="md-secondary" ng-show="item.change == 'change'">Change</md-button>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'add'">Add</md-button>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'remove'">Remove</md-button>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'change'">Change</md-button>
     			<md-checkbox class="md-secondary" title="Approve Change" ng-model="item.approved"></md-checkbox>
 			</md-list-item>
 		</md-list>
