@@ -463,7 +463,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				item.approved = !item.approved;
 			},
 			apply: (side)=>{
-				$scope.diff.item.v1 = $scope.diff.ace.getEditors()[side].getValue();
+				$scope.diff.item.rev = $scope.diff.ace.getEditors()[side].getValue();
 				$scope.diff.item.approved = true;
 				$mdDialog.hide();
 			},
@@ -473,7 +473,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				$scope.diff.components.forEach(item=>{
 					if(item.approved){
 						if(item.change == 'change')
-							pathValue(oldPkg, item.path, item.v1);
+							pathValue(oldPkg, item.path, (item.rev || item.v2));
 						else if(item.change == 'add')
 							oldPkg[item.type][item.id] = item.p2;
 						else if(item.change == 'remove')
