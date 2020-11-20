@@ -1,0 +1,28 @@
+<link href="https://unpkg.com/ace-diff@^2.0.0/dist/ace-diff-dark.min.css" rel="stylesheet">
+<md-dialog aria-label="Code Diff" style="width: 96vw; height:90vh; max-width: 96vw; max-height:90vh;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>Code Compare: {{temp.component.id}}</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="$mdDialog.hide()">
+				<md-icon><i class="fa fa-close"></i></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-content>
+		<div id="codediff" style="width:100%; height:75vh;"></div>
+	</md-content>
+	<md-dialog-actions layout="row">
+		<md-button ng-click="js.applyDiff('left')">
+			Apply Left
+		</md-button>
+		<span flex></span>
+		<md-button ng-click="$mdDialog.cancel()">
+			Cancel
+		</md-button>
+		<span flex></span>
+		<md-button ng-click="js.applyDiff('right')">
+			Apply Right
+		</md-button>
+	</md-dialog-actions>
+</md-dialog>

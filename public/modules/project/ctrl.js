@@ -142,19 +142,21 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 							tools.cloud.save($scope.temp.cloud);
 					}
 				}
-				tools.edit.dialog()
+				tools.edit.dialog('editDialog');
 			},
-			dialog: function(){
+			dialog: function(name, onComplete){
 				$scope.editSize = localStorage.getItem('editSize') || 60;
 				$mdDialog.show({
 					scope: $scope,
 					preserveScope: true,
-					templateUrl: 'modules/project/partials/editDialog.html',
+					templateUrl: `modules/project/partials/${name}.html`,
 					parent: angular.element(document.body),
 					clickOutsideToClose: true,
 					fullscreen: true,
+					multiple: 	true,
 					onComplete: function(){
 						tools.edit.size($scope.editSize);
+						onComplete && onComplete();
 					}
 				});
 			},
@@ -349,34 +351,127 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.package.init(newPath);
 				tools.alert(`Loading packages from new path: ${newPath}`)
 			},
-			load: function(pkg){
+			load: function(newPkg){
+				$scope.diff = {newPkg};
 				var view = $scope.params.view;
-				var origId = pkg.$id;
-				Object.keys(pkg).forEach(k=>{
+				newPkg.origId = newPkg.$id;
+				Object.keys(newPkg).forEach(k=>{
 					if(k.indexOf('$') != -1)
-						delete pkg[k];
+						delete newPkg[k];
 				})
 				var packageRef = firebase.database().ref('project').child(view);
-				pkg.origId = origId;
 				packageRef.once('value', doc=>{
-					let proj = doc.val();
-					//at this point we could run a diff and have the user approve all updates
+					let oldPkg = $scope.diff.oldPkg = doc.val();
+					oldPkg.page = oldPkg.page || {};
+					oldPkg.component = oldPkg.component || {};
+					oldPkg.cloud = oldPkg.cloud || {};
+					tools.package.analyze(oldPkg, newPkg);
+				})
+			},
+			analyze: (pkg1, pkg2)=>{
+				let components = [];
+				components.push({
+					title:	'Html',
+					path:	'page.html',
+					v1: 	pkg1.page.html,
+					v2: 	pkg2.page.html,
+					change: (pkg1.page.html != pkg2.page.html)
+				})
+				components.push({
+					title:	'JavaScript',
+					path:	'page.js',
+					v1: 	pkg1.page.js,
+					v2: 	pkg2.page.js,
+					change: (pkg1.page.js != pkg2.page.js)
+				})
+				Object.keys({...pkg1.component, ...pkg2.component}).forEach(key=>{
+					let willAdd = !pathValue(pkg1, `component.${key}.code`) && pathValue(pkg2, `component.${key}.code`);
+					let canRemove = pathValue(pkg1, `component.${key}.code`) && !pathValue(pkg2, `component.${key}.code`);
+					components.push({
+						title:	`Component: ${key}`,
+						type: 	'component',
+						path:	`component.${key}.code`,
+						id: 	key,
+						p1: 	pkg1,
+						p2: 	pkg2,
+						v1: 	pathValue(pkg1, `component.${key}.code`),
+						v2: 	pathValue(pkg2, `component.${key}.code`),
+						change: (pathValue(pkg1, `component.${key}.code`) != pathValue(pkg2, `component.${key}.code`)),
+						willAdd: willAdd,
+						canRemove: canRemove
+					})
+				})
+				Object.keys({...pkg1.cloud, ...pkg2.cloud}).forEach(key=>{
+					let canAdd = !pathValue(pkg1, `cloud.${key}.code`) && pathValue(pkg2, `cloud.${key}.code`);
+					let canRemove = pathValue(pkg1, `cloud.${key}.code`) && !pathValue(pkg2, `cloud.${key}.code`);
+					let hasChange = (pathValue(pkg1, `cloud.${key}.code`) != pathValue(pkg2, `cloud.${key}.code`));
+					let change = canAdd ? 'add' : canRemove ? 'remove' : hasChange ? 'change' : 'none';
+					components.push({
+						title:	`Cloud: ${key}`,
+						type: 	'cloud',
+						path:	`cloud.${key}.code`,
+						id: 	key,
+						p1: 	pkg1,
+						p2: 	pkg2,
+						v1: 	pathValue(pkg1, `cloud.${key}.code`),
+						v2: 	pathValue(pkg2, `cloud.${key}.code`),
+						change: change
+					})
+				})
+				$scope.diff.components = components;
+				tools.edit.dialog('packageDialog');
+			},
+			compare: (item)=>{
+				$scope.diff.item = item;
+				return new Promise((res,rej)=>{
+					console.log(item);
+					let mode = 'ace/mode/html'
+					if(item.path.indexOf('.js') != -1 || item.path.indexOf('_js') != -1 || item.path.indexOf('cloud.') != -1)
+						mode = 'ace/mode/javascript'
 
-					pkg.page.local = proj.page.local || pkg.page.local;
-					pkg.cloud = pkg.cloud || {}; //keep any custom existing cloud functions
-					Object.keys(proj && proj.cloud || {}).forEach(k=>{
-						if(!pkg.cloud[k])
-							pkg.cloud[k] = proj.cloud[k]
+					$.getScript('https://unpkg.com/ace-diff@^2.0.0', r=>{
+						tools.edit.dialog('diffDialog', ()=>{
+							$scope.diff.ace = new AceDiff({
+								element:	'#codediff',
+								theme:		'ace/theme/monokai',
+								mode:		mode,
+								left: {
+									content: item.v1,
+								},
+								right: {
+									content: item.v2,
+								},
+							});
+						});
 					})
-					pkg.component = pkg.component || {}; //keep any custom existing components
-					Object.keys(proj && proj.component || {}).forEach(k=>{
-						if(!pkg.component[k])
-							pkg.component[k] = proj.component[k]
-					})
+				});
+			},
+			toggleApprove: (item)=>{
+				item.approved = !item.approved;
+			},
+			apply: (side)=>{
+				$scope.diff.item.v1 = $scope.diff.ace.getEditors()[side].getValue();
+				$scope.diff.item.approved = true;
+				$mdDialog.hide();
+			},
+			import: ()=>{
+				let oldPkg = $scope.diff.oldPkg;
+				// oldPkg.page.local = oldPkg.page.local || newPkg.page.local; //we do not update local here if set.
+				$scope.diff.components.forEach(item=>{
+					if(item.approved){
+						if(item.change == 'change')
+							pathValue(oldPkg, item.path, item.v1);
+						else if(item.change == 'add')
+							oldPkg[item.type][item.key] = item.p2;
+						else if(item.change == 'remove')
+							oldPkg[item.type].splice(oldPkg[item.type].indexOf(item.p1), 1);
+						else
+							console.log({status: 'not sure', item});
+					}
+				})
 
-					packageRef.set(pkg).then(function(){
-						window.location.reload();
-					})
+				packageRef.set(oldPkg).then(function(){
+					window.location.reload();
 				})
 			},
 			publish: function(meta){

@@ -1,0 +1,36 @@
+<md-dialog layout-padding flex="90" flex-gt-md="60" style="min-height:50vh;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<!--<md-button class="md-icon-button" ng-click="js.pipeline.link()"><i class="fa fa-link"></i></md-button>-->
+			<h2 flex>Package Import</h2>
+			<md-button class="md-icon-button" aria-label="close" ng-click="$mdDialog.hide()"><i class="fa fa-close"></i></md-button>
+		</div>
+	</md-toolbar>
+	<md-content layout="column" layout-margin>
+		<div md-whiteframe="">
+			<p>Title: {{diff.newPkg.meta.title}}</p>
+			<p>Created On: {{moment(diff.newPkg.serverMeta.createdOn).calendar()}}</p>
+			<p>Origin: {{diff.newPkg.serverMeta.orgin}}</p>
+			<p>Origin: {{diff.newPkg.serverMeta.orgin}}</p>
+		</div>
+		<md-list>
+			<md-divider></md-divider>
+			<md-subheader class="md-no-sticky">Components</md-subheader>
+			<md-list-item ng-repeat="item in diff.components" ng-click="tools.package.compare(item)">
+				<!--<img alt="{{member.name}}" ng-src="{{member.img}}" class="md-avatar">-->
+				<p>
+					<span flex>{{ item.title }}</span>
+					<span class="chip" ng-show="item.change == 'add'">Add</span>
+					<span class="chip" ng-show="item.change == 'remove'">Remove</span>
+					<span class="chip" ng-show="item.change == 'change'">Change</span>
+				</p>
+    			<md-checkbox class="md-secondary" title="Approve Change" ng-model="item.approved"></md-checkbox>
+			</md-list-item>
+		</md-list>
+	</md-content>
+	<md-dialog-actions layout="row">
+		<!--<md-button class="md-raised" aria-label="Add" ng-click="addon.email.add()">Add</md-button>-->
+		<span flex></span>
+		<md-button class="md-raised" aria-label="Apply Changes" ng-click="tools.package.import()">Apply Changes</md-button>
+	</md-dialog-actions>
+</md-dialog>
