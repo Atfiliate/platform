@@ -477,7 +477,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						else if(item.change == 'add')
 							oldPkg[item.type][item.id] = item.p2;
 						else if(item.change == 'remove')
-							oldPkg[item.type].splice(oldPkg[item.type].indexOf(item.p1), 1);
+							delete oldPkg[item.type][item.id];
 						else
 							console.log({status: 'not sure', item});
 					}
