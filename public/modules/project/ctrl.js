@@ -372,14 +372,22 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				let components = [];
 				components.push({
 					title:	'Html',
+					type: 	'page',
 					path:	'page.html',
+					id: 	'html',
+					p1: 	pkg1.page.html,
+					p2: 	pkg2.page.html,
 					v1: 	pkg1.page.html,
 					v2: 	pkg2.page.html,
 					change: (pkg1.page.html != pkg2.page.html)
 				})
 				components.push({
 					title:	'JavaScript',
+					type: 	'page',
 					path:	'page.js',
+					id: 	'js',
+					p1: 	pkg1.page.js,
+					p2: 	pkg2.page.js,
 					v1: 	pkg1.page.js,
 					v2: 	pkg2.page.js,
 					change: (pkg1.page.js != pkg2.page.js)
@@ -394,8 +402,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						type: 	'component',
 						path:	`component.${key}.code`,
 						id: 	key,
-						p1: 	pkg1,
-						p2: 	pkg2,
+						p1: 	pkg1.component[key],
+						p2: 	pkg2.component[key],
 						v1: 	pathValue(pkg1, `component.${key}.code`),
 						v2: 	pathValue(pkg2, `component.${key}.code`),
 						change: change
@@ -411,8 +419,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						type: 	'cloud',
 						path:	`cloud.${key}.code`,
 						id: 	key,
-						p1: 	pkg1,
-						p2: 	pkg2,
+						p1: 	pkg1.cloud[key],
+						p2: 	pkg2.cloud[key],
 						v1: 	pathValue(pkg1, `cloud.${key}.code`),
 						v2: 	pathValue(pkg2, `cloud.${key}.code`),
 						change: change
