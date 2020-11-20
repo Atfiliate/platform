@@ -11,7 +11,7 @@
 			<p>Title: {{diff.newPkg.meta.title}}</p>
 			<p>Created On: {{moment(diff.newPkg.serverMeta.createdOn).calendar()}}</p>
 			<p>Origin: {{diff.newPkg.serverMeta.orgin}}</p>
-			<p>Origin: {{diff.newPkg.serverMeta.orgin}}</p>
+			<p>Changes: {{diff.stats.changes}} | New Items: {{diff.stats.adds}} | Missing Items: {{diff.stats.removes}}</p>
 		</div>
 		<md-list>
 			<md-divider></md-divider>

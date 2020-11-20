@@ -418,6 +418,11 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						change: change
 					})
 				})
+				$scope.diff.stats = {
+					changes: 	components.filter(c=>c.change == 'change').length,
+					adds: 		components.filter(c=>c.change == 'add').length,
+					removes: 	components.filter(c=>c.change == 'remove').length
+				}
 				$scope.diff.components = components;
 				tools.edit.dialog('packageDialog');
 			},
