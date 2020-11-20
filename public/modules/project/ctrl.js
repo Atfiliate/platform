@@ -379,7 +379,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					p2: 	pkg2.page.html,
 					v1: 	pkg1.page.html,
 					v2: 	pkg2.page.html,
-					change: (pkg1.page.html != pkg2.page.html)
+					change: (pkg1.page.html != pkg2.page.html) ? 'change' : 'none'
 				})
 				components.push({
 					title:	'JavaScript',
@@ -390,7 +390,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					p2: 	pkg2.page.js,
 					v1: 	pkg1.page.js,
 					v2: 	pkg2.page.js,
-					change: (pkg1.page.js != pkg2.page.js)
+					change: (pkg1.page.js != pkg2.page.js) ? 'change' : 'none'
 				})
 				Object.keys({...pkg1.component, ...pkg2.component}).forEach(key=>{
 					let canAdd = !pathValue(pkg1, `component.${key}.code`) && !!pathValue(pkg2, `component.${key}.code`);
