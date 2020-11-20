@@ -385,8 +385,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					change: (pkg1.page.js != pkg2.page.js)
 				})
 				Object.keys({...pkg1.component, ...pkg2.component}).forEach(key=>{
-					let willAdd = !pathValue(pkg1, `component.${key}.code`) && pathValue(pkg2, `component.${key}.code`);
-					let canRemove = pathValue(pkg1, `component.${key}.code`) && !pathValue(pkg2, `component.${key}.code`);
+					let canAdd = !pathValue(pkg1, `component.${key}.code`) && !!pathValue(pkg2, `component.${key}.code`);
+					let canRemove = !!pathValue(pkg1, `component.${key}.code`) && !pathValue(pkg2, `component.${key}.code`);
+					let hasChange = (pathValue(pkg1, `component.${key}.code`) != pathValue(pkg2, `component.${key}.code`));
+					let change = canAdd ? 'add' : canRemove ? 'remove' : hasChange ? 'change' : 'none';
 					components.push({
 						title:	`Component: ${key}`,
 						type: 	'component',
@@ -396,14 +398,12 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						p2: 	pkg2,
 						v1: 	pathValue(pkg1, `component.${key}.code`),
 						v2: 	pathValue(pkg2, `component.${key}.code`),
-						change: (pathValue(pkg1, `component.${key}.code`) != pathValue(pkg2, `component.${key}.code`)),
-						willAdd: willAdd,
-						canRemove: canRemove
+						change: change
 					})
 				})
 				Object.keys({...pkg1.cloud, ...pkg2.cloud}).forEach(key=>{
-					let canAdd = !pathValue(pkg1, `cloud.${key}.code`) && pathValue(pkg2, `cloud.${key}.code`);
-					let canRemove = pathValue(pkg1, `cloud.${key}.code`) && !pathValue(pkg2, `cloud.${key}.code`);
+					let canAdd = !pathValue(pkg1, `cloud.${key}.code`) && !!pathValue(pkg2, `cloud.${key}.code`);
+					let canRemove = !!pathValue(pkg1, `cloud.${key}.code`) && !pathValue(pkg2, `cloud.${key}.code`);
 					let hasChange = (pathValue(pkg1, `cloud.${key}.code`) != pathValue(pkg2, `cloud.${key}.code`));
 					let change = canAdd ? 'add' : canRemove ? 'remove' : hasChange ? 'change' : 'none';
 					components.push({
@@ -436,10 +436,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 								theme:		'ace/theme/monokai',
 								mode:		mode,
 								left: {
-									content: item.v1,
+									content: item.v1 || '',
 								},
 								right: {
-									content: item.v2,
+									content: item.v2 || '',
 								},
 							});
 						});

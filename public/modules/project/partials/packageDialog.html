@@ -18,12 +18,10 @@
 			<md-subheader class="md-no-sticky">Components</md-subheader>
 			<md-list-item ng-repeat="item in diff.components" ng-click="tools.package.compare(item)">
 				<!--<img alt="{{member.name}}" ng-src="{{member.img}}" class="md-avatar">-->
-				<p>
-					<span flex>{{ item.title }}</span>
-					<span class="chip" ng-show="item.change == 'add'">Add</span>
-					<span class="chip" ng-show="item.change == 'remove'">Remove</span>
-					<span class="chip" ng-show="item.change == 'change'">Change</span>
-				</p>
+				<p>{{ item.title }}</p>
+                <md-button clas="md-secondary" ng-show="item.change == 'add'">Add</md-button>
+                <md-button clas="md-secondary" ng-show="item.change == 'remove'">Remove</md-button>
+                <md-button clas="md-secondary" ng-show="item.change == 'change'">Change</md-button>
     			<md-checkbox class="md-secondary" title="Approve Change" ng-model="item.approved"></md-checkbox>
 			</md-list-item>
 		</md-list>
