@@ -338,7 +338,12 @@ app.factory('Fire', function($q){
 							fire.list.push(obj);
 						deferred.resolve(obj);
 					}).catch(e=>{
-						deferred.reject(e);
+						item.id = r.id;
+						item.$status = 'saved';
+						item.$fire = 'Item saved but not read.';
+						if(fire.list && !fire._listen)
+							fire.list.push(item);
+						deferred.resolve(item);
 					})
 				}).catch(e=>{
 					item.$status = 'error';
