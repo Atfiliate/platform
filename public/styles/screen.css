@@ -245,13 +245,13 @@ img.stretch, img.fill{
 .simple > section.full{
 	width: 98%;
 }
-.simple .title{
+.simple > section > .title{
 	background: rgba(255,255,255,.5);
 	height: 59px;
 	line-height: 59px;
 	text-align: center;
 }
-.simple .title .icon{
+.simple > section > .title .icon{
 	display: block;
 	width: 59px;
 	height: 59px;
@@ -260,17 +260,17 @@ img.stretch, img.fill{
 	border-radius: 5px;
 	margin: 0px 2px;
 }
-.simple .title .icon.md-menu a{
+.simple > section > .title .icon.md-menu a{
 	display: block;
 	width: 59px;
 	height: 59px;
 	line-height: 59px;
 }
-.simple .title.layout-row{
+.simple > section > .title.layout-row{
 	height: 75px;
 	line-height: 75px;
 }
-.simple .title h1, .simple .title .t2{
+.simple > section > .title h1, .simple > section > .title .t2{
 	margin: 0px;
 	font-weight: 300;
 	font-size: 40px;
