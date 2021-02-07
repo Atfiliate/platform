@@ -554,6 +554,8 @@ app.factory('Fire', function($q){
 // 	return ref;
 // })
 app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
+	let stripe = Stripe(config.stripe);
+	return stripe;
 // 	if(window.Stripe)
 // 		Stripe.setPublishableKey(config.stripe);
 // 	return {
