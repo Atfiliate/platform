@@ -554,48 +554,48 @@ app.factory('Fire', function($q){
 // 	return ref;
 // })
 app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
-	if(window.Stripe)
-		Stripe.setPublishableKey(config.stripe);
-	return {
-		checkout: function(cart, event){
-			//cart: {title:'', description:'', amount:''}
-			var deferred = $q.defer();
-			var options = {
-				controller: 'StripeCtrl',
-				templateUrl: '/component/stripe.html',
-				clickOutsideToClose: true,
-				locals: {
-					view: 'checkout',
-					cart: cart
-				}
-			}
-			if(event)
-				options.targetEvent = event;
+// 	if(window.Stripe)
+// 		Stripe.setPublishableKey(config.stripe);
+// 	return {
+// 		checkout: function(cart, event){
+// 			//cart: {title:'', description:'', amount:''}
+// 			var deferred = $q.defer();
+// 			var options = {
+// 				controller: 'StripeCtrl',
+// 				templateUrl: '/component/stripe.html',
+// 				clickOutsideToClose: true,
+// 				locals: {
+// 					view: 'checkout',
+// 					cart: cart
+// 				}
+// 			}
+// 			if(event)
+// 				options.targetEvent = event;
 				
-			$mdDialog.show(options).then(function(r){
-				deferred.resolve(r);
-			})
-			return deferred.promise;
-		},
-		manage: function(event){
-			var deferred = $q.defer();
-			var options = {
-				controller: 'StripeCtrl',
-				templateUrl: '/component/stripe.html',
-				clickOutsideToClose: true,
-				locals: {
-					view: 'manage'
-				}
-			}
-			if(event)
-				options.targetEvent = event;
+// 			$mdDialog.show(options).then(function(r){
+// 				deferred.resolve(r);
+// 			})
+// 			return deferred.promise;
+// 		},
+// 		manage: function(event){
+// 			var deferred = $q.defer();
+// 			var options = {
+// 				controller: 'StripeCtrl',
+// 				templateUrl: '/component/stripe.html',
+// 				clickOutsideToClose: true,
+// 				locals: {
+// 					view: 'manage'
+// 				}
+// 			}
+// 			if(event)
+// 				options.targetEvent = event;
 				
-			$mdDialog.show(options).then(function(r){
-				deferred.resolve(r);
-			})
-			return deferred.promise;
-		}
-	}
+// 			$mdDialog.show(options).then(function(r){
+// 				deferred.resolve(r);
+// 			})
+// 			return deferred.promise;
+// 		}
+// 	}
 })
 app.factory('Auth', function($q, $firebaseAuth, $firebaseObject, Fire){
 	var signin = $q.defer();
