@@ -442,7 +442,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					if(item.path.indexOf('.js') != -1 || item.path.indexOf('_js') != -1 || item.path.indexOf('cloud.') != -1)
 						mode = 'ace/mode/javascript'
 
-					$.getScript('https://unpkg.com/ace-diff@^2.0.0', r=>{
+					$.getScript('/vendor/ace-diff.min.js', r=>{
 						tools.edit.dialog('diffDialog', ()=>{
 							$scope.diff.ace = new AceDiff({
 								element:	'#codediff',
