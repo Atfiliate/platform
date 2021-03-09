@@ -638,15 +638,19 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
-				var suffix = '';
-				if($scope.edits)
-					suffix = '?test='+$scope.edits;
-				//project/:uid/component/:componentId
-				if(id.indexOf('/') != -1){
-					id = id.replace('/', '');
-					return config.origin+'/project/component/'+id+suffix;
-				}else{
-					return config.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
+				if(id.indexOf('://' != -1){
+				   return id;
+			   	}else{
+					var suffix = '';
+					if($scope.edits)
+						suffix = '?test='+$scope.edits;
+					//project/:uid/component/:componentId
+					if(id.indexOf('/') != -1){
+						id = id.replace('/', '');
+						return config.origin+'/project/component/'+id+suffix;
+					}else{
+						return config.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
+					}
 				}
 			}
 		},
