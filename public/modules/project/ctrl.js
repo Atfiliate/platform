@@ -638,7 +638,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
-				if(id.indexOf('://' != -1){
+				if(id.indexOf('://' != -1)){
 				   return id;
 			   	}else{
 					var suffix = '';
