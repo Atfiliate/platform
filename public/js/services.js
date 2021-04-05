@@ -417,7 +417,7 @@ app.factory('Fire', function($q){
 		fire._become = function(doc){
 			var d = doc.exists() ? doc.val() : {};
 			d.id = doc.key;
-			d.$hash = JSON.stringify(d).hashCode();
+// 			d.$hash = JSON.stringify(d).hashCode();
 			d.$fire = {
 				ref: doc.ref,
 				save: function(){
