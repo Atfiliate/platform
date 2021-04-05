@@ -123,7 +123,7 @@ app.factory('Fire', function($q){
 						obj[k] = fire._prepare(obj[k])
 					}
 				})
-				obj.$hash = JSON.stringify(obj).hashCode(); //this becomes outdated when a user 'updates' a document.
+// 				obj.$hash = JSON.stringify(obj).hashCode(); //this becomes outdated when a user 'updates' a document.
 			}
 			return obj;
 		}
