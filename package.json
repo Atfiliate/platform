@@ -36,6 +36,7 @@
 		"compression":			"*",
 		"multer": 				"*",
 		"elasticsearch": 		"*",
+		"node-cron": 				"*",
 		"@google-cloud/language":			"*"
 	},
 	"repository": {
