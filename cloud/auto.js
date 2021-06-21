@@ -45,7 +45,7 @@ module.exports = {
 					try{
 						var js; eval('js = '+code)
 						if(js && js.init)
-							js.init(request, response)
+							js.init();
 						else
 							console.log(`JS had no init function: ${key}`);
 					}catch(e){
