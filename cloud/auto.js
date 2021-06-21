@@ -35,7 +35,7 @@ module.exports = {
 			response.end();
 		}
 	},
-	startup: function()=>{
+	startup: ()=>{
 			console.log('STARTUP-F(N)S----------> ');
 			var ref = firebase.database().ref('site/private/startupfns');
 			ref.once('value', function(snapshot){
