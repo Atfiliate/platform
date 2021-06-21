@@ -44,7 +44,7 @@ module.exports = {
 					let code = snap.val();
 					try{
 						var js; eval('js = '+code)
-						if(js && js.init){
+						if(js && js.init)
 							js.init(request, response)
 						else
 							console.log(`JS had no init function: ${key}`);
