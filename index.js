@@ -8,6 +8,7 @@ var busboy  = require('connect-busboy');
 var compression = require('compression');
 var multer = require('multer');
 
+auto.startup();
 
 var app = express();
 

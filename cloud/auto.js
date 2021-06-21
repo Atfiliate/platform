@@ -35,13 +35,32 @@ module.exports = {
 			response.end();
 		}
 	},
+	startup: function()=>{
+			console.log('STARTUP-F(N)S----------> ');
+			var ref = firebase.database().ref('site/private/startupfns');
+			ref.once('value', function(snapshot){
+				snapshot.forEach(snap=>{
+					let key = snap.key;
+					let code = snap.val();
+					try{
+						var js; eval('js = '+code)
+						if(js && js.init){
+							js.init(request, response)
+						else
+							console.log(`JS had no init function: ${key}`);
+					}catch(e){
+						console.log(`Error running startup function: ${key}`);
+					}
+				})
+			});
+	},
 	cloud: function(request, response){
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
-		
+
 		var path = request.params.path;
 		var code = mcache.get(path)
 		if(code){
@@ -87,9 +106,9 @@ module.exports = {
 		var gid = process.env.a_gid || 'iZTQIVnPzPW7b2CzNUmO';
 		var pid = process.env.a_pid || 'LIJGdBKzktXHntCWjoln';
 		var cid = request.params.path || 'index.html';
-			
+
 		function hashIt(s){
-			return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
+			return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 		}
 		function send(code){
 			if(request.body.update){
@@ -104,11 +123,11 @@ module.exports = {
 				response.send(code)
 			}
 		}
-		
+
 		var path = `home/${gid}/${pid}/${cid}`;
 		var hashPath = 'temp/component'+hashIt(path);
 		mkdir('temp');
-		
+
 		var record = mcache.get(path);
 		if(record && request.query.update != process.env.a_key){
 			fs.readFile(hashPath, 'utf8', (e,d)=>{
@@ -145,21 +164,21 @@ module.exports = {
 	component: function(request, response){
 		var path = request.params.path;
 			path = path.split('.').join('_');
-		
+
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
-		
+
 		if(path.indexOf('_js') != -1)
 			response.setHeader("Content-Type", 'application/javascript');
 		else if(path.indexOf('_css') != -1)
 			response.setHeader("Content-Type", 'text/css');
 		else if(path.indexOf('_json') != -1)
 			response.setHeader("Content-Type", 'application/json');
-		
-		
+
+
 		var cache = mcache.get(path)
 		if(cache){
 			console.log('From Cache: '+path);
@@ -177,7 +196,7 @@ module.exports = {
 				}catch(e){
 					response.send(e);
 				}
-			}); 
+			});
 		}
 	},
 	project: function(request, response){
@@ -188,20 +207,20 @@ module.exports = {
 		if(request.params.component){
 			var path = request.params.component;
 				path = path.split('.').join('_');
-			
+
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 				response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			}
-			
+
 			if(path.indexOf('_js') != -1)
 				response.setHeader("Content-Type", 'application/javascript');
 			else if(path.indexOf('_css') != -1)
 				response.setHeader("Content-Type", 'text/css');
 			else if(path.indexOf('_json') != -1)
 				response.setHeader("Content-Type", 'application/json');
-			
+
 			var cachePath = request.params.projId+'/'+path;
 			var cache = mcache.get(cachePath)
 			if(cache){
@@ -212,7 +231,7 @@ module.exports = {
 					var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
 				else
 					var ref = firebase.database().ref('project/private/component').child(path);
-				
+
 				ref.once('value', function(snapshot){
 					var component = snapshot.val();
 					try{
@@ -223,18 +242,18 @@ module.exports = {
 					}catch(e){
 						response.send(e);
 					}
-				}); 
+				});
 			}
 		}else if(request.params.cloud){
 			var path = request.params.cloud;
 				path = path.split('.').join('_');
-			
+
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 				response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			}
-			
+
 			var cachePath = request.params.projId+'/cloud/'+path;
 			var code = mcache.get(cachePath)
 			if(code){
@@ -254,7 +273,7 @@ module.exports = {
 					var ref = firebase.database().ref('project/'+request.params.projId+'/cloud').child(path);
 				else
 					var ref = firebase.database().ref('project/private/cloud').child(path);
-				
+
 				ref.once('value', function(snapshot){
 					var cloud = snapshot.val();
 					var code = cloud.code;
@@ -262,7 +281,7 @@ module.exports = {
 						if(cloud.cache){
 							mcache.put(cachePath, cloud.code, Number(cloud.cache));
 						}
-						
+
 						var js; eval('js = '+code);
 						if(js && js.init){
 							js.init(request, response)
@@ -272,7 +291,7 @@ module.exports = {
 					}catch(e){
 						response.send(e);
 					}
-				}); 
+				});
 			}
 		}
 	}
