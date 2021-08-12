@@ -24,6 +24,46 @@ if(process.env.cloudinaryName)
 		api_secret: process.env.cloudinaryToken
 	});
 
+function pathValue(obj, path, val){
+	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
+	var attr = path && path.shift();
+	if(attr && attr.indexOf(']') != -1)
+		attr = attr.replace('[', '').replace(']', '');
+	if(val !== undefined){
+		if(path.length){
+			if(obj[attr]){
+				pathValue(obj[attr], path, val)
+			}else{
+				obj[attr] = {};
+				pathValue(obj[attr], path, val)
+			}
+		}else if(val == '_delete_'){
+			delete obj[attr];
+		}else{
+			 obj[attr] = val;
+		}
+	}else{
+		if(attr)
+			if(obj)
+				return pathValue(obj[attr], path);
+			else
+				return null;
+		else
+			return obj;
+	}
+}
+String.prototype.compile = function(scope){
+	let str = this;
+	let parts = str.split('}}');
+	return parts.map(p=>{
+		let p2 = p.split('{{');
+		if(p2[1])
+			p2[1] = pathValue(scope, p2[1]) || '';
+		return p2.join('');
+	}).join('');
+}
+
+
 module.exports = {
 	options: function(request, response){
 		if(request.headers.origin){
