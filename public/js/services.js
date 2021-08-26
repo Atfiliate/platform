@@ -304,7 +304,7 @@ app.factory('Fire', function($q){
 				})
 			}else{
 				fire._ignore = fire._ref.onSnapshot(doc=>{
-					check = check || ()=>Promise.resolve();
+					check = check || checkFn;
 					check(doc).then(r=>{ //documents only perform callback if check passes
 						fire.obj = fire._become(doc);
 						fire._listen && fire._listen(fire.obj)
