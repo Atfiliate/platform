@@ -52,6 +52,53 @@ function pathValue(obj, path, val){
 			return obj;
 	}
 }
+
+Array.prototype._flat = Array.prototype.flat;
+//fix because someone added a 'flat' to arrays in standards :S:)
+Array.prototype.flat = function(col, placeholder){
+	if(col)
+		return this.map(function(i){
+			return i[col] && i[col] === undefined ? placeholder : i[col];
+		})
+	else
+		return this._flat();
+}
+Array.prototype.getUnique = function() {
+	var u = {undefined:1},
+		a = [];
+	for (var i = 0, l = this.length; i < l; ++i) {
+		if (u.hasOwnProperty(this[i]))
+			continue;
+		a.push(this[i]);
+		u[this[i]] = 1;
+	}
+	return a;
+}
+Array.prototype.unique = function(col){
+	if(col)
+		return this.flat(col).getUnique();
+	else
+		return this.getUnique();
+}
+Array.prototype.shuffle = function() {
+	var i = this.length,
+		j, temp;
+	if (i == 0) return this;
+	while (--i) {
+		j = Math.floor(Math.random() * (i + 1));
+		temp = this[i];
+		this[i] = this[j];
+		this[j] = temp;
+	}
+	return this;
+}
+Array.prototype.max = function() {
+	return Math.max.apply(null, this);
+};
+
+Array.prototype.min = function() {
+	return Math.min.apply(null, this);
+};
 String.prototype.compile = function(scope){
 	let str = this;
 	let parts = str.split('}}');
