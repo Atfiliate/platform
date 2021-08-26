@@ -133,6 +133,7 @@ app.factory('Fire', function($q){
 			var d = (ds.exists ? fire._clean(data) : {});
 			d.id = ds.id;
 			d.$fire = {
+				_parent: fire,
 				ref: ds.ref,
 				save: function(){
 					return new Promise((res, rej)=>{
@@ -302,7 +303,7 @@ app.factory('Fire', function($q){
 					})
 				})
 			}else{
-				fire._ignore = fire.ref.onSnapshot(doc=>{
+				fire._ignore = fire._qref.onSnapshot(doc=>{
 					check = check || checkFn;
 					check(doc).then(r=>{ //documents only perform callback if check passes
 						fire.obj = fire._become(doc);
