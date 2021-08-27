@@ -718,12 +718,9 @@ app.factory('Cloudinary', function($timeout, $q, config){
 							doc.title = doc.original_filename || null;
 							doc.src = doc.secure_url;
 							doc.img = doc.src;
-							doc.img = doc.img.replace('.pdf', '.jpg')
-							doc.img = doc.img.replace('.png', '.jpg')
-							doc.img = doc.img.replace('.tiff', '.jpg')
-							doc.img = doc.img.replace('.bmp', '.jpg')
-							if(doc.src.indexOf('.png') != -1)
-								doc.img = doc.src;
+							doc.img = doc.img.split('.');
+							doc.img[doc.img.length-1] = 'jpg'
+							doc.img = doc.img.join('.');
 							doc.img_url = doc.img; //eventually img_url will be removed.
 							return doc;
 						})
