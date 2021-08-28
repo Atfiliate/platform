@@ -133,7 +133,6 @@ app.factory('Fire', function($q){
 			var d = (ds.exists ? fire._clean(data) : {});
 			d.id = ds.id;
 			d.$fire = {
-				_parent: fire,
 				ref: ds.ref,
 				save: function(){
 					return new Promise((res, rej)=>{
