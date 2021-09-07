@@ -128,9 +128,9 @@ module.exports = {
 			ref.once('value', function(snapshot){
 				snapshot.forEach(snap=>{
 					let key = snap.key;
-					let code = snap.val();
+					let module = snap.val();
 					try{
-						var js; eval('js = '+code)
+						var js; eval('js = '+module.code)
 						if(js && js.init)
 							js.init();
 						else
