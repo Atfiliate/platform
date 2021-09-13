@@ -200,7 +200,7 @@ module.exports = {
 		function send(code){
 			if(request.body.update){
 				response.send('Cache Updated')
-			}else{
+			}else if(cid){
 				if(cid.indexOf('.js') != -1)
 					response.setHeader("Content-Type", 'application/javascript');
 				else if(cid.indexOf('.htm') != -1)
@@ -208,6 +208,8 @@ module.exports = {
 				else if(cid.indexOf('.css') != -1)
 					response.setHeader("Content-Type", 'text/css');
 				response.send(code)
+			}else{
+				response.send('');
 			}
 		}
 
