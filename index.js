@@ -57,10 +57,10 @@ app.get('/project/component/:component', auto.project)
 app.options('/project/:projId/cloud/:cloud', auto.options)
 app.get('/project/:projId/cloud/:cloud', auto.project)
 app.post('/project/:projId/cloud/:cloud', auto.project)
+app.get('/project/:projId/cloud/:cloud/:id', auto.project)
 app.options('/project/cloud/:cloud', auto.options)
 app.get('/project/cloud/:cloud', auto.project)
 app.post('/project/cloud/:cloud', auto.project)
-app.get('/project/cloud/:cloud/:id', auto.project)
 
 
 app.listen(app.get('port'), function() {
