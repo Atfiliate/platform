@@ -365,8 +365,8 @@ module.exports = {
 
 				ref.once('value', function(snapshot){
 					var cloud = snapshot.val();
-					var code = cloud.code;
 					try{
+						var code = cloud.code;
 						if(cloud.cache){
 							mcache.put(cachePath, cloud.code, Number(cloud.cache));
 						}
