@@ -413,6 +413,29 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					$scope.jsEditor.setValue($scope.temp.page.js, -1);
 			}
 		},
+		snippet: {
+			init: ()=>{
+				let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/PtZtDBm8KCRAzxbsIzBf?projectId=P39rbX4JwozoMhNhp6Gz';
+				path = path.split('?');
+				let gid = path[0].split('/').pop();
+				let pid = path[1].split('projectId=')[1];
+				$http.post(`https://a.alphabetize.us/project/code/cloud/list`, {
+					gid, pid
+				}).then(r=>{
+					$scope.temp.snippets = r.data;
+					$mdBottomSheet.show({
+						templateUrl:	tools.component.get('component-sheet'),
+						scope:			$scope,
+						preserveScope:	true
+					})
+				})
+			},
+			select: snippet=>{
+				let editor = $scope.editor;
+				editor.session.insert(editor.getCursorPosition(), snippet.code)
+				$mdBottomSheet.hide();
+			}
+		},
 		template: {
 			init: function(){
 				// var page = $firebaseObject(pageRef);
