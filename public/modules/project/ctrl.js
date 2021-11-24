@@ -26,9 +26,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			})
 		},
 		broadcast: (action, ...rest)=>{
-			$scope.addonPromise.then(r=>{
-				api._proclaim(action, rest)	
-			});
+			api._proclaim(action, rest)	
 		},
 		act: (action, fn, undo, ...rest)=>{
 			return new Promise((res,rej)=>{
