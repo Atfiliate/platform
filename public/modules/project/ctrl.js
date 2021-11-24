@@ -419,12 +419,13 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				path = path.split('?');
 				let gid = path[0].split('/').pop();
 				let pid = path[1].split('projectId=')[1];
+				console.log({gid, pid});
 				$http.post(`https://a.alphabetize.us/project/code/cloud/list`, {
 					gid, pid
 				}).then(r=>{
 					$scope.temp.snippets = r.data;
 					$mdBottomSheet.show({
-						templateUrl:	tools.component.get('component-sheet'),
+						templateUrl:	tools.component.get('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
 						scope:			$scope,
 						preserveScope:	true
 					})
