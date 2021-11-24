@@ -1017,7 +1017,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					},
 					exec: function(env, args, request) {
 						console.log({env,args,request})
-						js.snippet.init();
+						tools.snippet.init();
 					}
 				});
 			}
