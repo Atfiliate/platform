@@ -254,7 +254,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-settings.dialog', {
 					onComplete: function(){
 						tools.edit.size($scope.editSize);
-						onComplete && onComplete();
 					}
 				})
 				// tools.edit.dialog('editDialog');
@@ -556,7 +555,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					removes: 	components.filter(c=>c.change == 'remove').length
 				}
 				$scope.diff.components = components;
-				tools.edit.dialog('packageDialog');
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-package.dialog');
 			},
 			compare: (item)=>{
 				$scope.diff.item = item;
@@ -567,18 +566,20 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						mode = 'ace/mode/javascript'
 
 					$.getScript('/vendor/ace-diff.min.js', r=>{
-						tools.edit.dialog('diffDialog', ()=>{
-							$scope.diff.ace = new AceDiff({
-								element:	'#codediff',
-								theme:		'ace/theme/monokai',
-								mode:		mode,
-								left: {
-									content: item.v1 || '',
-								},
-								right: {
-									content: item.v2 || '',
-								},
-							});
+						tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-diff.dialog', {
+							onComplete: ()=>{
+								$scope.diff.ace = new AceDiff({
+									element:	'#codediff',
+									theme:		'ace/theme/monokai',
+									mode:		mode,
+									left: {
+										content: item.v1 || '',
+									},
+									right: {
+										content: item.v2 || '',
+									},
+								});
+							}
 						});
 					})
 				});
