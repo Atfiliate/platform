@@ -415,22 +415,24 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 		},
 		snippet: {
 			init: ()=>{
-				let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/PtZtDBm8KCRAzxbsIzBf?projectId=P39rbX4JwozoMhNhp6Gz';
-				path = path.split('?');
-				let gid = path[0].split('/').pop();
-				let pid = path[1].split('projectId=')[1];
-				console.log({gid, pid});
-				$http.post(`https://a.alphabetize.us/project/code/cloud/list`, {
-					gid, pid
-				}).then(r=>{
-					$scope.temp.snippets = r.data;
-					$mdBottomSheet.show({
-						parent: 		'#project-settings',
-						templateUrl:	$sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
-						scope:			$scope,
-						preserveScope:	true
-					})
+				tools.snippet.templates();
+				$mdBottomSheet.show({
+					parent: 		'#project-settings',
+					templateUrl:	$sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
+					scope:			$scope,
+					preserveScope:	true
 				})
+			},
+			templates: (reload)=>{
+				if(reload || !$scope.temp.snippets){
+					let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/PtZtDBm8KCRAzxbsIzBf?projectId=P39rbX4JwozoMhNhp6Gz';
+					path = path.split('?');
+					let gid = path[0].split('/').pop();
+					let pid = path[1].split('projectId=')[1];
+					$http.get(`https://a.alphabetize.us/project/code/cloud/list?gid=${gid}&pid=${pid}`).then(r=>{
+						$scope.temp.snippets = r.data;
+					})
+				}
 			},
 			select: snippet=>{
 				let editor = $scope.editor;
@@ -944,8 +946,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 		ace: {
 			focus: function(editor){
 				let code, mode, state;
-				if($scope[editor])
+				if($scope[editor]){
+					$scope.editor = $scope[editor];
 					code = $scope[editor].getValue();
+				}
 				
 				if(editor == 'htmlEditor'){
 					mode = 'ace/mode/html';
@@ -958,7 +962,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}
 				
 				tools.ace.setup(editor, code, mode, state);
-				
 			},
 			state: (editor, state)=>{
 				var session = editor.session;
@@ -1006,12 +1009,16 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					readOnly: true
 				});
 				$scope[editor].commands.addCommand({
-					name: 'snippet',
-					bindKey: {win: 'Ctrl-i', mac: 'Command-i'},
-					exec: function(editor) {
-						tools.ace.snip();
+						name: 'openComponentTray',
+						bindKey: {
+						win: 'Ctrl-Enter',
+						mac: 'Command-Enter',
+						sender: 'editor|cli'
 					},
-					readOnly: true
+					exec: function(env, args, request) {
+						console.log({env,args,request})
+						js.snippet.init();
+					}
 				});
 			}
 		},
