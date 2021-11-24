@@ -181,7 +181,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			}
 		},
 		dialog: function(dialog, params){
-			if(dialog.indexOf('http') != -1)
+			if(dialog.includes('http'))
 				dialog = $sce.trustAsResourceUrl(dialog);
 			else
 				dialog = tools.component.get(dialog);
@@ -425,7 +425,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}).then(r=>{
 					$scope.temp.snippets = r.data;
 					$mdBottomSheet.show({
-						templateUrl:	tools.component.get('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
+						templateUrl:	$sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
 						scope:			$scope,
 						preserveScope:	true
 					})
@@ -785,9 +785,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
-				if(id.indexOf('://') != -1){
-				   return id;
-			   	}else{
+				if(id.includes('://')){
 					var suffix = '';
 					if($scope.edits)
 						suffix = '?test='+$scope.edits;
@@ -798,6 +796,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					}else{
 						return config.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
 					}
+				}else{
+				   return id;
 				}
 			}
 		},
