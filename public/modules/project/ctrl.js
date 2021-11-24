@@ -425,6 +425,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}).then(r=>{
 					$scope.temp.snippets = r.data;
 					$mdBottomSheet.show({
+						parent: 		'#project-settings',
 						templateUrl:	$sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-component.sheet'),
 						scope:			$scope,
 						preserveScope:	true
