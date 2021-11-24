@@ -1,15 +1,134 @@
 /*global angular, app, firebase, Mousetrap, moment, whois*/
-
 app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, 
 	$mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, $sanitize, $compile, Auth, Fire, Cloudinary, Stripe, Form, config){
 	$scope.$mdDialog	= $mdDialog;
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
 	$scope.temp = {};
+	var api = window.api = $scope.api = $scope.api || {
+		_ct:		25, //history count
+		_elements:	{},
+		_unElems:	{},
+		_events:	{},
+		_waiters:	[], // used to store fn's to be called on api.register
+		_listeners: [], // used to store fn's to be called on api.act
+		_once:		[],
+		_checks:	{},
+		_history:	[],
+		_future:	[],
+		_proclaim: function(action, rest){
+			api._events[action] = api._events[action] || {action, rest}
+			api._listeners.forEach(l=>{
+				if(l.action == action)
+					l.fn(...rest);
+				else if(l.action == 'any')
+					l.fn(action, ...rest)
+			})
+		},
+		broadcast: (action, ...rest)=>{
+			$scope.addonPromise.then(r=>{
+				api._proclaim(action, rest)	
+			});
+		},
+		act: (action, fn, undo, ...rest)=>{
+			return new Promise((res,rej)=>{
+				api.check(action, rest).then(r=>{
+					api._proclaim(action, rest);
+					if(fn && undo)
+						api._history.push({action,fn,undo,rest});
+					if(api._history.length > api.ct)
+						api._history.shift();
+					if(fn)
+						fn(...rest);
+					res(r);
+				}).catch(e=>{
+					console.log(e);
+					rej(e);
+				});	
+			})
+		},
+		undo: ()=>{
+			var item = api._history.pop();
+			if(item){
+				item.undo(...item.rest);
+				api._proclaim(item.action+'.undo', item.rest);
+				api._future.push(item);
+			}
+		},
+		redo: ()=>{
+			var item = api._future.pop();
+			if(item){
+				item.fn(...item.rest);
+				api._proclaim(item.action+'.redo', item.rest);
+				api._history.push(item);
+			}
+		},
+		check: (action, rest)=>{
+			if(api._checks[action]){
+				return Promise.all(api._checks[action].map(checkFn=>{
+						return checkFn(...rest);
+					})
+				)
+			}else{
+				return Promise.resolve();
+			}
+		},
+		limit: (action, checkFn)=>{ //register will pass: (location,element,fn) to the limit check fn
+			api._checks[action] = api._checks[action] || [];
+			api._checks[action].push(checkFn);
+		},
+		register: (location, element, fn)=>{
+			// register needs to consider as reference: user preferences
+			// this could include: 'hide' & 'order' for registered elements.
+			api.broadcast(`api.register`, location, element, fn);
+			if(typeof location == 'object'){
+				location.forEach(key=>{
+					api._elements[key] = [];
+				})
+			}else{
+				if(element){
+					api.check('api.register', location, element, fn).then(r=>{
+						if(!api._elements[location])
+							api._elements[location] = [];
+						element.fn = element.fn || fn;
+						if(element.template)
+							element.template = $sce.trustAsResourceUrl(element.template);
+						api._elements[location].push(element)
+						api.waitCheck();
+					}).catch(e=>{
+						if(!api._unElems[location])
+							api._unElems[location] = [];
+						element.fn = fn;
+						api._unElems[location].push(element)
+					})
+				}
+			}
+		},
+		waitCheck: ()=>{
+			for(var i = api._waiters.length-1; i>=0; i--){
+				let w = api._waiters[i];
+				let elemLoc = pathValue(api, `_elements.${w.location}`) || [];
+				let elem = elemLoc.find(e=>e.name == w.name);
+				if(elem){
+					api._waiters.splice(i, 1);
+					w.fn(elem);
+				}
+			}
+		},
+		wait: (location, name, fn)=>{
+			api._waiters.push({location, name, fn});
+			api.waitCheck();
+		},
+		on: (action, fn)=>{
+			api._listeners.push({action, fn});
+			if(api._events[action]) //This already occurred at least once.
+				fn(...api._events[action].rest);
+		}
+	}
 	
 	// $scope.data = {};
 	var projectId = $routeParams.view || 'default';
-	document.title = $routeParams.view;
+	document.title = $routeParams.view.capitalize();
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
 	window._mfq = window._mfq || [];
 	window._mfq.push(["newPageView", `project/${$routeParams.view}/${$routeParams.id}`]);
@@ -38,22 +157,11 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				e.preventDefault();
 				tools.edit.save();
 			})
-			Mousetrap.bind('ctrl+i', function(e){
-				e.preventDefault();
-				tools.ace.snip();
-			})
 
 			page.$bindTo($scope, "page");
 			page.$loaded(function(page){
 				tools.render(page)
 				document.title = page.title;
-				
-				if(window.gtag && config.gtag){
-					gtag('config', config.gtag, {
-					'page_title' : page.title,
-					'page_path': 'project/'+$routeParams.view,
-					});
-				}
 			})
 		},
 		alert: function(message, confirm){
@@ -114,11 +222,12 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 
 		edit: {
 			init: function(){
+				$scope.editSize = localStorage.getItem('editSize') || 60;
 				tools.history.init();
 				tools.snapshot.init();
 				$scope.temp.page = angular.copy($scope.page);
 				if(!$scope.temp.page.js)
-					$scope.temp.page.js = 'js = {\n\tinit: function(){\n\t\t\n\t}\n}'
+					$scope.temp.page.js = 'js = {\n\tinit: function(api){\n\t\t\n\t}\n}'
 				if(!$scope.temp.page.html)
 					$scope.temp.page.html = '<h1>New Page</h1>'
 
@@ -142,24 +251,31 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 							tools.cloud.save($scope.temp.cloud);
 					}
 				}
-				tools.edit.dialog('editDialog');
-			},
-			dialog: function(name, onComplete){
-				$scope.editSize = localStorage.getItem('editSize') || 60;
-				$mdDialog.show({
-					scope: $scope,
-					preserveScope: true,
-					templateUrl: `modules/project/partials/${name}.html`,
-					parent: angular.element(document.body),
-					clickOutsideToClose: true,
-					fullscreen: true,
-					multiple: 	true,
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;project-settings.dialog', {
 					onComplete: function(){
 						tools.edit.size($scope.editSize);
 						onComplete && onComplete();
 					}
-				});
+				})
+				// tools.edit.dialog('editDialog');
 			},
+			// dialog: function(name, onComplete){
+			// 	$scope.editSize = localStorage.getItem('editSize') || 60;
+				
+			// 	$mdDialog.show({
+			// 		scope: $scope,
+			// 		preserveScope: true,
+			// 		templateUrl: `modules/project/partials/${name}.html`,
+			// 		parent: angular.element(document.body),
+			// 		clickOutsideToClose: true,
+			// 		fullscreen: true,
+			// 		multiple: 	true,
+			// 		onComplete: function(){
+			// 			tools.edit.size($scope.editSize);
+			// 			onComplete && onComplete();
+			// 		}
+			// 	});
+			// },
 			size: function(size){
 				localStorage.setItem('editSize', size)
 				$scope.editSize = size;
@@ -170,15 +286,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				$('.dynaSize').css("height", height);
 				$('.dynaSize').css("max-height", height);
 				window.dispatchEvent(new Event('resize'))
-			},
-			data: function(key){
-				if(key){
-					delete $scope.temp.page.data[key];
-				}else{
-					$scope.temp.page.data = $scope.temp.page.data || {};
-					$scope.temp.page.data[$scope.temp.data.alias] = angular.copy($scope.temp.data)
-					$scope.temp.data = {};
-				}
 			},
 			
 			save: function(keepOpen){
@@ -241,7 +348,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						var js;
 						eval('js = $scope.js = '+page.js)
 						if(js.init)
-							js.init();
+							js.init(api);
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
@@ -350,6 +457,23 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				let newPath = prompt('Enter alternate project pull path.');
 				tools.package.init(newPath);
 				tools.alert(`Loading packages from new path: ${newPath}`)
+			},
+			fromView: ()=>{
+				let meta = {};
+				let view = prompt('Enter Project Id');
+				meta.view = view;
+				meta.createdOn = new Date().toISOString();
+				meta.createdBy = (({displayName, email, uid}) => ({displayName, email, uid}))($scope.user)
+				var myPackage = firebase.database().ref('project').child(view);
+				myPackage.once('value', r=>{
+					var pkg = r.val();
+					pkg.meta = meta;
+					Object.keys(pkg).forEach(k=>{
+						if(k.includes('historic'))
+							delete pkg[k];
+					})
+					tools.package.load(pkg);
+				})
 			},
 			load: function(newPkg){
 				$scope.diff = {newPkg};
@@ -865,45 +989,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					},
 					readOnly: true
 				});
-			},
-			snip: function(){
-				var editor = $scope[$scope.inEdit];
-				var selection = editor.getSelectedText();
-				if(!!selection){
-					//save selection
-					var prompt = $mdDialog.prompt()
-						.title('Save Code Snippet')
-						.textContent('Enter a name for this snippet (do not use [[]] brackets, spaces or special chars) _ and - are allowed.')
-						.placeholder('random-cool-element || awesomeFunction')
-						.ariaLabel('Snippet name')
-						.multiple(true)
-						.ok('Save!')
-						.cancel('Cancel');
-					
-					$mdDialog.show(prompt).then(function(snipTitle) {
-						if(snipTitle.length){
-							var snipRef = firebase.database().ref("site/public/codeSnippet").child(snipTitle);
-								snipRef.set({
-									code: selection
-								})
-							alert('You can now use this snippet with: [['+snipTitle+']] and pressing ctrl+i')
-						}
-					}, function(){
-						//Canceled saving...
-					});
-				}else{
-					//load selection options
-					var snipTitle = editor.getValue().split('\n')[editor.getCursorPosition().row].split('[[')[1].split(']]')[0];
-					if(snipTitle){
-						var snipRef = firebase.database().ref("site/public/codeSnippet").child(snipTitle);
-						snipRef.on("value", function(snapshot) {
-							var code = snapshot.val().code;
-							editor.replace(code, {needle:'[['+snipTitle+']]'})
-						})
-					}else{
-						alert('No snippet syntax found.')
-					}
-				}
 			}
 		},
 		img: {
