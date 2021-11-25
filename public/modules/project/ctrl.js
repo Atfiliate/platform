@@ -946,10 +946,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 		ace: {
 			focus: function(editor){
 				let code, mode, state;
-				if($scope[editor]){
-					$scope.editor = $scope[editor];
+				if($scope[editor])
 					code = $scope[editor].getValue();
-				}
 				
 				if(editor == 'htmlEditor'){
 					mode = 'ace/mode/html';
@@ -992,7 +990,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}
 			},
 			setup: function(editor, code, mode, state){
-				$scope[editor] = ace.edit(editor);
+				$scope.editor = $scope[editor] = ace.edit(editor);
 				$scope[editor].setTheme("ace/theme/monokai");
 				$scope[editor].setOption('useSoftTabs', false);
 				
@@ -1016,7 +1014,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						sender: 'editor|cli'
 					},
 					exec: function(env, args, request) {
-						console.log({env,args,request})
 						tools.snippet.init();
 					}
 				});
