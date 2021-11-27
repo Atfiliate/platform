@@ -1166,7 +1166,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				}
 			},
 			genId: manifest=>{
-				let m = js.addon.vanilla(manifest);
+				let m = tools.addon.vanilla(manifest);
 				let id = 'addon-'+JSON.stringify(m).hashCode();
 				return id;
 			},
@@ -1181,11 +1181,11 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				return m2;
 			},
 			encoded: manifest=>{
-				return js.addon.vanilla(manifest, ['createdBy', 'description', 'img', 'name', 'title', 'url']);
+				return tools.addon.vanilla(manifest, ['createdBy', 'description', 'img', 'name', 'title', 'url']);
 			},
 			copyManifest: manifest=>{
-				manifest = js.addon.vanilla(manifest, ['name', 'version', 'title', 'description', 'img', 'url', 'signature', 'installId', 'createdBy']);
-				tools.copy(JSON.stringify(js.addon.vanilla(manifest)), 'Addon manifest copied to clipboard');
+				manifest = tools.addon.vanilla(manifest, ['name', 'version', 'title', 'description', 'img', 'url', 'signature', 'installId', 'createdBy']);
+				tools.copy(JSON.stringify(tools.addon.vanilla(manifest)), 'Addon manifest copied to clipboard');
 			},
 			
 			//adds sketchy addons to the user's list so they can be utilized in the group.
