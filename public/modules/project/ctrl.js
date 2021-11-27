@@ -162,6 +162,66 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				document.title = page.title;
 			})
 		},
+		render: function(page){
+			var promises = [];
+			// if(page.data)
+			// 	promises = Object.keys(page.data).map(function(key){
+			// 		var ref = page.data[key];
+			// 		var deferred = $q.defer();
+			// 		var refPath = ref.path
+			// 		if($scope.user){
+			// 			refPath = refPath.replace('{{uid}}', $scope.user.uid);
+			// 			refPath = refPath.replace('{{email}}', $scope.user.email);
+			// 		}
+			// 		Object.keys($scope.params).forEach(key=>{
+			// 			refPath = refPath.replace('{{'+key+'}}', $scope.params[key]);
+			// 		})
+
+			// 		var dataRef = firebase.database().ref().child(refPath);
+			// 		if(ref.array)
+			// 			$scope.data[ref.alias] = $firebaseArray(dataRef);
+			// 		else
+			// 			$scope.data[ref.alias] = $firebaseObject(dataRef);
+			// 		$scope.data[ref.alias].$loaded(function(obj){
+			// 			deferred.resolve(obj)
+			// 		}, function(e){
+			// 			deferred.resolve(e)
+			// 		})
+			// 		return deferred.promise;
+			// 	})
+			if(page.js){
+				$q.all(promises).then(function(r){
+					try{
+						var js;
+						eval('js = $scope.js = '+page.js)
+						if(js.init)
+							js.init(api);
+					}catch(e){
+						$http.post('cloud/log', {
+							url:		window.location.href,
+							userId:		($scope.user && $scope.user.uid),
+							deviceId:	JSON.parse(localStorage.device || '{}').id,
+							createdOn:	new Date().toISOString(),
+							name:		e.name,
+							message:	e.desecription, 
+							stack:		e.stack,
+							line:		e.line,
+							trace:		console.trace(),
+							env:		{
+								browser:	navigator.appName,
+								agent:		navigator.userAgent,
+								version:	navigator.appVersion
+							}
+						})
+						// console.error(e);
+						throw(e.stack);
+					}
+				})
+			}
+		},
+		toggleSide: function(id){
+			$mdSidenav(id).toggle()
+		},
 		alert: function(message, confirm){
 			if(confirm){
 				return new Promise((res,rej)=>{
@@ -217,7 +277,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			})
 		},
 		
-
 		edit: {
 			init: function(){
 				$scope.editSize = localStorage.getItem('editSize') || 60;
@@ -310,63 +369,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					firebase.database().ref('project/'+$routeParams.view).remove();
 					$mdDialog.hide()
 				}
-			}
-		},
-		render: function(page){
-			var promises = [];
-			// if(page.data)
-			// 	promises = Object.keys(page.data).map(function(key){
-			// 		var ref = page.data[key];
-			// 		var deferred = $q.defer();
-			// 		var refPath = ref.path
-			// 		if($scope.user){
-			// 			refPath = refPath.replace('{{uid}}', $scope.user.uid);
-			// 			refPath = refPath.replace('{{email}}', $scope.user.email);
-			// 		}
-			// 		Object.keys($scope.params).forEach(key=>{
-			// 			refPath = refPath.replace('{{'+key+'}}', $scope.params[key]);
-			// 		})
-
-			// 		var dataRef = firebase.database().ref().child(refPath);
-			// 		if(ref.array)
-			// 			$scope.data[ref.alias] = $firebaseArray(dataRef);
-			// 		else
-			// 			$scope.data[ref.alias] = $firebaseObject(dataRef);
-			// 		$scope.data[ref.alias].$loaded(function(obj){
-			// 			deferred.resolve(obj)
-			// 		}, function(e){
-			// 			deferred.resolve(e)
-			// 		})
-			// 		return deferred.promise;
-			// 	})
-			if(page.js){
-				$q.all(promises).then(function(r){
-					try{
-						var js;
-						eval('js = $scope.js = '+page.js)
-						if(js.init)
-							js.init(api);
-					}catch(e){
-						$http.post('cloud/log', {
-							url:		window.location.href,
-							userId:		($scope.user && $scope.user.uid),
-							deviceId:	JSON.parse(localStorage.device || '{}').id,
-							createdOn:	new Date().toISOString(),
-							name:		e.name,
-							message:	e.desecription, 
-							stack:		e.stack,
-							line:		e.line,
-							trace:		console.trace(),
-							env:		{
-								browser:	navigator.appName,
-								agent:		navigator.userAgent,
-								version:	navigator.appVersion
-							}
-						})
-						// console.error(e);
-						throw(e.stack);
-					}
-				})
 			}
 		},
 		history: {
@@ -1097,10 +1099,270 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				$mdDialog.hide(imgUrl);
 			}
 		},
-		
-		toggleSide: function(id){
-			$mdSidenav(id).toggle()
+		addon: {
+			/*
+				addon.confirm =>	user approves un-signed addon
+				addon.deny =>		user denies un-signed addon
+				addon.sign =>		user signs addon
+				addon.install =>	user installs addon
+				addon.uninstall =>	user removes addon
+			*/
+			_checkList: [],
+			init: (list=[])=>{
+				tools.addon._invalidList = [];
+				$scope.addon = $scope.addon || {};
+				list.forEach(m=>{
+					tools.addon.verify(m).then(r=>{
+						tools.addon.load(r);
+					}).catch(e=>{
+						if(tools.addon._invalidList.length == 0)
+							tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-validate.dialog')
+						tools.addon._invalidList.push(m);
+					})
+				})
+			},
+			verify: manifest=>{
+				return new Promise((res, rej)=>{
+					let publicKey = pathValue($scope, 'page.publicKey') || tools.validate._publicKey;
+					let signature = manifest.signature || '';
+					let cleanManifest = tools.addon.encoded(manifest);
+					tools.validate.verify(cleanManifest, signature, publicKey).then(isValid=>{
+						if(isValid){
+							res(manifest);
+						}else{
+							rej(manifest);
+						}
+					})
+				})
+			},
+			load: manifest=>{
+				$scope.addon = $scope.addon || {};
+				try{
+					return $http.get(manifest.url).then(r=>{
+						let addon = r.data;
+						if(typeof r.data == 'string'){
+							addon = (function(str){
+								return eval(str)
+							})(addon)
+						}else{
+							addon.meta.url = manifest.url;
+						}
+						if(addon){
+							if(!$scope.addon[addon.meta.name]){
+								$scope.addon[addon.meta.name] = addon;
+								$scope.addon[addon.meta.name].init && $scope.addon[addon.meta.name].init(api);
+								manifest.$installed = true;
+							}else{
+								console.error(`Addon with the name: ${addon.meta.name} already exists.`)
+							}
+							return addon;
+						}else{
+							console.info(`The addon at: ${url} could not be loaded.`)
+						}
+					})
+				}catch(e){
+					console.log('--THERE WAS AN ERROR LOADING THE FOLLOWING ADDON', manifest)
+					console.log(e);
+				}
+			},
+			genId: manifest=>{
+				let m = js.addon.vanilla(manifest);
+				let id = 'addon-'+JSON.stringify(m).hashCode();
+				return id;
+			},
+			vanilla: (manifest, attrs)=>{  //clean manifest data.
+				manifest = typeof manifest == 'string' ? angular.fromJson(manifest) : manifest;
+				attrs = attrs || ['name', 'version', 'title', 'description', 'img', 'url', 'signature', 'createdBy'];
+				let m2 = {};
+				attrs.forEach(k=>{
+					if(manifest[k])
+						m2[k] = manifest[k] || null;
+				})
+				return m2;
+			},
+			encoded: manifest=>{
+				return js.addon.vanilla(manifest, ['createdBy', 'description', 'img', 'name', 'title', 'url']);
+			},
+			copyManifest: manifest=>{
+				manifest = js.addon.vanilla(manifest, ['name', 'version', 'title', 'description', 'img', 'url', 'signature', 'installId', 'createdBy']);
+				tools.copy(JSON.stringify(js.addon.vanilla(manifest)), 'Addon manifest copied to clipboard');
+			},
+			
+			//adds sketchy addons to the user's list so they can be utilized in the group.
+			check: (manifest)=>{ //displays to the user so they can sign/approve
+				if(!$scope.tools.addon._checkList.length){
+					$scope.tools.addon._checkList.push(manifest);
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-validate.dialog');
+				}
+			},
+			confirm: (manifest)=>{ //user approves
+				manifest.$confirmed = true;
+				manifest.$id = tools.manifest.genId(manifest);
+				api.broadcast('addon.confirm', manifest);
+			},
+			deny: (manifest)=>{
+				manifest.$denied = true;
+				manifest.$id = tools.manifest.genId(manifest);
+				api.broadcast('addon.deny', manifest);
+			},
+			sign: (manifest, privateKey)=>{ //user signs
+				privateKey = privateKey || (tools.validate._keys && tools.validate._keys.privateKey) || tools.validate._privateKey;
+				manifest.title = manifest.title.replace('**', '').replace('** (DEV)', '');
+				let cleanManifest = tools.addon.encoded(manifest);
+				tools.validate.sign(cleanManifest, privateKey).then(signature=>{
+					manifest.signature = signature;
+					api.broadcast('addon.sign', manifest);
+				})
+			},
+			
+			browse: (list)=>{
+				tools.addon._browseList = list;
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-browse.dialog');
+				list.forEach(option=>{
+					option.$installed = $scope.service.addons.find(a=>a.url == option.url);
+				})
+			},
+			dev: ()=>{ //require full manifest to install
+				api.act('addon.dev', ()=>{
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-dev.dialog');
+				})
+			},
+			preview: manifest=>{
+				if(typeof manifest == 'string')
+					manifest = JSON.parse(manifest);
+				tools.addon._preview = manifest;
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-preview.dialog');
+			},
+			
+			view: (view)=>{ //?What is this?
+				$scope.temp.addonView = view;
+			},
+			//loads an addon for use within the group.
+			install: addon=>{
+				addon.$installed	= true;
+				addon.installId 	= addon.installId || tools.addon.genId(addon);
+				addon.installedOn	= new Date();
+				addon.installedBy	= $scope.user.uid;
+				addon.createdBy		= addon.createdBy || $scope.user.uid;
+				api.broadcast('addon.install', addon);
+			},
+			uninstall: addon=>{
+				api.broadcast('addon.uninstall', addon);
+			},
+			act: (action, manifest)=>{
+				api.broadcast(`addon.${action}`, manifest);
+			}
 		},
+		validate: {
+			keys: {
+				generate: ()=>{
+					let defer = $q.defer();
+					crypto.subtle.generateKey({
+						name: 'RSA-PSS', 
+						modulusLength: 2048,
+						publicExponent: new Uint8Array([1, 0, 1]),
+						hash: 'SHA-256'
+					}, true, ['sign','verify']).then(r=>{
+						tools.validate._keys = r;
+						tools.validate.keys.export().then(keys=>{
+							defer.resolve(keys)
+						})
+					});
+					return defer.promise; 
+				},
+				export: ()=>{
+					return Promise.all([
+						crypto.subtle.exportKey('jwk', tools.validate._keys.privateKey).then(r=>{
+							tools.validate._privateKey = JSON.stringify(r);
+						}),
+						crypto.subtle.exportKey('jwk', tools.validate._keys.publicKey).then(r=>{
+							tools.validate._publicKey = JSON.stringify(r);
+						})
+					]).then(r=>{
+						return tools.validate;
+					})
+				},
+				import: (publicPrivate, keyImport)=>{
+					keyImport = keyImport || JSON.parse(tools.validate[`_${publicPrivate}Key`]);
+					return crypto.subtle.importKey(
+						'jwk',
+						keyImport,
+						{
+							name: 'RSA-PSS', 
+							modulusLength: 2048,
+							publicExponent: new Uint8Array([1, 0, 1]),
+							hash: 'SHA-256'
+						},
+						true,
+						keyImport.key_ops
+					).then(r=>{
+						tools.validate[`_${publicPrivate}Key`] = r;
+						return r;
+						// tools.validate._keys = r;
+					})
+				}
+			},
+			a2b64: (arrayBuffer)=>{
+			    var byteArray = new Uint8Array(arrayBuffer);
+			    var byteString = '';
+			    for(var i=0; i < byteArray.byteLength; i++) {
+			        byteString += String.fromCharCode(byteArray[i]);
+			    }
+			    var b64 = window.btoa(byteString);
+			    return b64;
+			},
+			b642a: (b64)=>{
+				var byteString = window.atob(b64);
+				var byteArray = new Uint8Array(byteString.length);
+				for(var i=0; i < byteString.length; i++) {
+				    byteArray[i] = byteString.charCodeAt(i);
+				}
+				return byteArray;
+			},
+			encode: doc=>{
+				doc = typeof doc == 'string' ? doc : JSON.stringify(doc);
+				let enc = new TextEncoder();
+				return enc.encode(doc);
+			},
+			sign: (doc, privateKey)=>{
+				doc = tools.validate.encode(doc);
+				privateKey = privateKey || (tools.validate._keys && tools.validate._keys.privateKey) || tools.validate._privateKey;
+				if(typeof privateKey == 'string')
+					privateKey = JSON.parse(privateKey);
+				if(privateKey.alg)
+					privateKey = tools.validate.keys.import('public', privateKey);
+				else
+					privateKey = Promise.resolve(privateKey);
+				// return new Promise(res=>{
+				return privateKey.then(pk=>{
+					return crypto.subtle.sign({
+						name: "RSA-PSS",
+						saltLength: 32,
+					}, pk, doc).then(r=>{
+						let signature = tools.validate.a2b64(r);
+						return signature;
+						// res(signature);
+					})	
+				})
+				// });
+			},
+			verify: (doc, signature, publicKey)=>{
+				doc = tools.validate.encode(doc);
+				publicKey = publicKey || (tools.validate._keys && tools.validate._keys.publicKey) || tools.validate._publicKey;
+				if(typeof publicKey == 'string')
+					publicKey = JSON.parse(publicKey);
+				if(publicKey.alg)
+					publicKey = tools.validate.keys.import('public', publicKey);
+				else
+					publicKey = Promise.resolve(publicKey);
+				return publicKey.then(pk=>{
+					return crypto.subtle.verify({
+						name: "RSA-PSS",
+						saltLength: 32,
+					}, pk, tools.validate.b642a(signature), doc);	
+				})
+			}
+		}
 	}
 
 	it.ProjCtrl = $scope;
