@@ -1107,7 +1107,12 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				addon.install =>	user installs addon
 				addon.uninstall =>	user removes addon
 			*/
-			_checkList: [],
+			dialogs: {
+				validate:	'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-validate.dialog',
+				browse: 	'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-browse.dialog',
+				dev:		'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-dev.dialog',
+				preview:	'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-preview.dialog'
+			},
 			init: (list=[])=>{
 				tools.addon._invalidList = [];
 				$scope.addon = $scope.addon || {};
@@ -1116,7 +1121,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						tools.addon.load(r);
 					}).catch(e=>{
 						if(tools.addon._invalidList.length == 0)
-							tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-validate.dialog')
+							tools.dialog(tools.addon.dialogs.validate)
 						tools.addon._invalidList.push(m);
 					})
 				})
@@ -1188,21 +1193,18 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.copy(JSON.stringify(tools.addon.vanilla(manifest)), 'Addon manifest copied to clipboard');
 			},
 			
-			//adds sketchy addons to the user's list so they can be utilized in the group.
-			check: (manifest)=>{ //displays to the user so they can sign/approve
-				if(!$scope.tools.addon._checkList.length){
-					$scope.tools.addon._checkList.push(manifest);
-					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-validate.dialog');
-				}
-			},
 			confirm: (manifest)=>{ //user approves
 				manifest.$confirmed = true;
 				manifest.$id = tools.manifest.genId(manifest);
+				let idx = tools.addon._invalidList.indexOf(manifest);
+				tools.addon._invalidList.splice(idx, 1);
 				api.broadcast('addon.confirm', manifest);
 			},
 			deny: (manifest)=>{
 				manifest.$denied = true;
 				manifest.$id = tools.manifest.genId(manifest);
+				let idx = tools.addon._invalidList.indexOf(manifest);
+				tools.addon._invalidList.splice(idx, 1);
 				api.broadcast('addon.deny', manifest);
 			},
 			sign: (manifest, privateKey)=>{ //user signs
@@ -1211,32 +1213,31 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				let cleanManifest = tools.addon.encoded(manifest);
 				tools.validate.sign(cleanManifest, privateKey).then(signature=>{
 					manifest.signature = signature;
+					let idx = tools.addon._invalidList.indexOf(manifest);
+					tools.addon._invalidList.splice(idx, 1);
 					api.broadcast('addon.sign', manifest);
 				})
 			},
 			
 			browse: (list)=>{
 				tools.addon._browseList = list;
-				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-browse.dialog');
+				tools.dialog(tools.addon.dialogs.browse);
 				list.forEach(option=>{
 					option.$installed = $scope.service.addons.find(a=>a.url == option.url);
 				})
 			},
 			dev: ()=>{ //require full manifest to install
 				api.act('addon.dev', ()=>{
-					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-dev.dialog');
+					tools.dialog(tools.addon.dialogs.dev)
 				})
 			},
 			preview: manifest=>{
 				if(typeof manifest == 'string')
 					manifest = JSON.parse(manifest);
 				tools.addon._preview = manifest;
-				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-preview.dialog');
+				tools.dialog(tools.addon.dialogs.preview)
 			},
 			
-			view: (view)=>{ //?What is this?
-				$scope.temp.addonView = view;
-			},
 			//loads an addon for use within the group.
 			install: addon=>{
 				addon.$installed	= true;
