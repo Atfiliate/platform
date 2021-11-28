@@ -1195,17 +1195,26 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			
 			confirm: (manifest)=>{ //user approves
 				manifest.$confirmed = true;
-				manifest.$id = tools.manifest.genId(manifest);
+				manifest.$id = tools.addon.genId(manifest);
 				let idx = tools.addon._invalidList.indexOf(manifest);
 				tools.addon._invalidList.splice(idx, 1);
+				tools.addon.load(manifest);
 				api.broadcast('addon.confirm', manifest);
+				if(tools.addon._invalidList.length == 0){
+					$mdDialog.hide();
+					api.broadcast('addon.verifyComplete', manifest);
+				}
 			},
 			deny: (manifest)=>{
 				manifest.$denied = true;
-				manifest.$id = tools.manifest.genId(manifest);
+				manifest.$id = tools.addon.genId(manifest);
 				let idx = tools.addon._invalidList.indexOf(manifest);
 				tools.addon._invalidList.splice(idx, 1);
 				api.broadcast('addon.deny', manifest);
+				if(tools.addon._invalidList.length == 0){
+					$mdDialog.hide();
+					api.broadcast('addon.verifyComplete', manifest);
+				}
 			},
 			sign: (manifest, privateKey)=>{ //user signs
 				privateKey = privateKey || (tools.validate._keys && tools.validate._keys.privateKey) || tools.validate._privateKey;
@@ -1215,7 +1224,12 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					manifest.signature = signature;
 					let idx = tools.addon._invalidList.indexOf(manifest);
 					tools.addon._invalidList.splice(idx, 1);
+					tools.addon.load(manifest);
 					api.broadcast('addon.sign', manifest);
+					if(tools.addon._invalidList.length == 0){
+						$mdDialog.hide();
+						api.broadcast('addon.verifyComplete', manifest);
+					}
 				})
 			},
 			
@@ -1238,7 +1252,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.dialog(tools.addon.dialogs.preview)
 			},
 			
-			//loads an addon for use within the group.
 			install: addon=>{
 				addon.$installed	= true;
 				addon.installId 	= addon.installId || tools.addon.genId(addon);
@@ -1247,12 +1260,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				addon.createdBy		= addon.createdBy || $scope.user.uid;
 				api.broadcast('addon.install', addon);
 			},
-			uninstall: addon=>{
-				api.broadcast('addon.uninstall', addon);
-			},
-			act: (action, manifest)=>{
-				api.broadcast(`addon.${action}`, manifest);
-			}
+			// uninstall: addon=>{
+			// 	api.broadcast('addon.uninstall', addon);
+			// },
 		},
 		validate: {
 			keys: {
