@@ -29,12 +29,6 @@
 				};
 			});
 			app.controller('SiteCtrl', ['$scope','$sce', function($scope, $sce) {
-				let ccs = {};
-				let component = $scope.component = (pg)=>{
-					let c = ccs[pg] || $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;${pg}`);
-					ccs[pg] = c;
-					return c;
-				}
 				$scope.view = component('server-index.html');
 			}]);
 			angular.element(function() {
