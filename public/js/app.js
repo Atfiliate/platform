@@ -1,8 +1,6 @@
 /*
 	global app, angular, firebase, gapi, $script, localStorage, navigator
-
 	Load even w/out whois.
-
 */
 
 var it = {};
@@ -73,13 +71,22 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			redirectTo: '/page/main'
 		});
 	
+	let defConfig = {
+		color: {
+			primary:			'blue',
+			secondary:			'light-blue',
+			customPrimary:		{},
+			customSecondary:	{}
+		}
+	}
 	var config = localStorage.getItem('whois') || '{}';
 	config = JSON.parse(config);
-	config.color = config.color || {};
-	config.color.primary = config.color.primary || 'blue';
-	config.color.secondary = config.color.secondary || 'light-green';
-	config.color.customPrimary = config.color.customPrimary || {};
-	config.color.customSecondary = config.color.customSecondary || {};
+	config = Object.assign(defConfig, config);
+	// config.color = config.color || {};
+	// config.color.primary = config.color.primary || 'blue';
+	// config.color.secondary = config.color.secondary || 'light-green';
+	// config.color.customPrimary = config.color.customPrimary || {};
+	// config.color.customSecondary = config.color.customSecondary || {};
 
 	var customPrimary = $mdThemingProvider.extendPalette(config.color.primary, config.color.customPrimary);
 	var customSecondary = $mdThemingProvider.extendPalette(config.color.secondary, config.color.customSecondary);
