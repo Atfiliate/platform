@@ -29,7 +29,7 @@
 				};
 			});
 			app.controller('SiteCtrl', ['$scope','$sce', function($scope, $sce) {
-				$scope.view = component('server-index.html');
+				$scope.view = $sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;setup.html')
 			}]);
 			angular.element(function() {
 				angular.bootstrap(document, ['app']);
