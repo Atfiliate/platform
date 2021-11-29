@@ -26,8 +26,11 @@ app.use(compression());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
-app.get('/', function(request, response) {
-	response.render('pages/index');
+app.get('/', function(request, response){
+	if(process.env.googleJson)
+		response.render('pages/index');
+	else
+		response.render('pages/setup');
 });
 
 app.get('/home', auto.home)
