@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -24,8 +23,18 @@
 		<script>
 			let imports = ['ngMaterial','ngSanitize'];
 			var app = angular.module('app', imports);
+			app.config(function($controllerProvider) {
+				app.lazy = {
+					controller: $controllerProvider.register
+				};
+			});
 			app.controller('SiteCtrl', ['$scope','$sce', function($scope, $sce) {
-				let component = $scope.component = (pg)=>{return $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;${pg}`);}
+				let ccs = {};
+				let component = $scope.component = (pg)=>{
+					let c = ccs[pg] || $sce.trustAsResourceUrl(`https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;${pg}`);
+					ccs[pg] = c;
+					return c;
+				}
 				$scope.view = component('server-index.html');
 			}]);
 			angular.element(function() {
