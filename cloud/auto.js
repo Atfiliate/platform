@@ -95,7 +95,6 @@ Array.prototype.shuffle = function() {
 Array.prototype.max = function() {
 	return Math.max.apply(null, this);
 };
-
 Array.prototype.min = function() {
 	return Math.min.apply(null, this);
 };
@@ -110,7 +109,6 @@ String.prototype.compile = function(scope){
 	}).join('');
 }
 
-
 module.exports = {
 	options: function(request, response){
 		if(request.headers.origin){
@@ -123,6 +121,7 @@ module.exports = {
 		}
 	},
 	startup: ()=>{
+		if(firebase.apps.length !== 0){
 			console.log('STARTUP-F(N)S----------> ');
 			var ref = firebase.database().ref('site/private/startupfns');
 			ref.once('value', function(snapshot){
@@ -140,6 +139,7 @@ module.exports = {
 					}
 				})
 			});
+		}
 	},
 	cloud: function(request, response){
 		if(request.headers.origin){
