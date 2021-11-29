@@ -123,6 +123,18 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				fn(...api._events[action].rest);
 		}
 	}
+	Mousetrap.bind('ctrl+z', (e)=>{
+		e.preventDefault();
+		$timeout(()=>{
+			api.undo();
+		}, 0);
+	});
+	Mousetrap.bind('ctrl+y', (e)=>{
+		e.preventDefault();
+		$timeout(()=>{
+			api.redo();
+		}, 0);
+	});
 	
 	// $scope.data = {};
 	var projectId = $routeParams.view || 'default';
