@@ -3,13 +3,33 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Site Setup</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Setup Site</title>
+		
+		<link rel="stylesheet" media="screen" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.20/angular-material.css">
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-animate.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-aria.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-messages.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-route.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-sanitize.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angular_material/1.2.1/angular-material.min.js"></script>
 	</head>
-	<body layout="column">
-    <div ng-include="'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;setup.html'"></div>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
-<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.js"></script>
+	<body layout="column" ng-controller="SiteCtrl">
+		<md-content flex ng-include="view"></md-content>
+		<script>
+			let imports = ['ngMaterial','ngSanitize'];
+			var app = angular.module('app', imports);
+			app.controller('SiteCtrl', ['$scope','$sce', function($scope, $sce) {
+				$scope.view = $sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;server-index.html');
+			}]);
+			angular.element(function() {
+				angular.bootstrap(document, ['app']);
+			});
+		</script>
 	</body>
 </html>
