@@ -3,6 +3,7 @@
 */
 app.factory('config', function(){
 	let config = window.config || JSON.parse(localStorage.getItem('whois') || '{}');
+	config.firebase.databaseURL = config.firebase.databaseURL || config.fire.databaseURL;
 	firebase.initializeApp(config.firebase);
 	if(config.fire && config.fire.messagingKey){
 		try{
