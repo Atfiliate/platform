@@ -23,10 +23,10 @@
 <link rel="stylesheet" href="styles/screen.css">
 <link rel="stylesheet" href="/component/site.css">
 
-<!-- Firebase Config -->
+<!-- Site Config -->
 <% if(process.env.config){ %>
 <script>
-  window.config = '<%= process.env.config %>');
+  window.config = '<%- process.env.config %>');
 </script>
 <% } %>
 
