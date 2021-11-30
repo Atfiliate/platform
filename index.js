@@ -27,7 +27,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
-	if(process.env.googleJson)
+	if(process.env.config)
 		response.render('pages/index');
 	else
 		response.render('pages/setup');
