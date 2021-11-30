@@ -4,8 +4,6 @@ app.lazy.controller('StartCtrl', function MainCtrl($scope, $firebaseArray, $rout
 	var tools = $scope.tools = {
 		init: function(){
 			Auth().then(user=>{
-				if($scope.profile)
-					$scope.profile.$fire.save();
 				firebase.database().ref('site/public/roles').child(user.uid).child('admin').set('rw')
 				whois.database().ref('site/public/seed').once('value', snap=>{
 					var seed = snap.val();
