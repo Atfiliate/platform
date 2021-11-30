@@ -333,10 +333,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			initDefer: $q.defer(),
 			init: (profile)=>{
 				tools.device.get(profile).then(device=>{
-					profile.$fire.update({
-						'stats.page': 				window.location.href,
-						'stats.currentDevice': 		$rootScope.$device.id
-					});
+					if(profile.version)
+						profile.$fire.update({
+							'stats.page': 				window.location.href,
+							'stats.currentDevice': 		$rootScope.$device.id
+						});
 
 					new Fire(`profile/${profile.id}/stats`).add({
 						page: 		window.location.href,
@@ -703,11 +704,13 @@ var whoisConfig = {
     appId: "1:126442541687:web:1819721adcc2b9fe24ec72"
 }
 var whois = firebase.initializeApp(whoisConfig, "whois");
-var site = window.location.origin.replace('https://', '').replace('http://', '').split('.').join('*');
-whois.database().ref('whois/public').child(site).once('value', snap=>{
-	whois.config = snap.val();
-	localStorage.setItem('whois', JSON.stringify(whois.config));
-	angular.element(function() {
-		angular.bootstrap(document, ['app']);
-	});
-})
+
+angular.element(function() {
+	angular.bootstrap(document, ['app']);
+});
+
+
+
+
+
+
