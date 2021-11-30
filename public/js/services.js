@@ -2,10 +2,7 @@
 	global app, angular, Stripe, firebase, cloudinary, gapi
 */
 app.factory('config', function(){
-	//whois from app.js loads config data and stores it in localStorage.
-	//config gets infomration and distributes it when necessary.
-	let config = localStorage.getItem('whois') || '{}';
-	config = JSON.parse(config);
+	let config = window.config || JSON.parse(localStorage.getItem('whois') || '{}');
 	firebase.initializeApp(config.firebase);
 	if(config.fire && config.fire.messagingKey){
 		try{
