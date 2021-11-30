@@ -23,6 +23,13 @@
 <link rel="stylesheet" href="styles/screen.css">
 <link rel="stylesheet" href="/component/site.css">
 
+<!-- Firebase Config -->
+<% if(process.env.sentry){ %>
+<script>
+  window.fireConfig = '<%= process.env.fireConfig %>');
+</script>
+<% } %>
+
 <!-- Logrocket Tracking -->
 <% if(process.env.logrocket){ %>
 <script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
