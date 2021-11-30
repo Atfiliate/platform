@@ -24,9 +24,9 @@
 <link rel="stylesheet" href="/component/site.css">
 
 <!-- Firebase Config -->
-<% if(process.env.sentry){ %>
+<% if(process.env.config){ %>
 <script>
-  window.fireConfig = '<%= process.env.fireConfig %>');
+  window.config = '<%= process.env.config %>');
 </script>
 <% } %>
 
