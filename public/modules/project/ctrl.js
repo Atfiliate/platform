@@ -439,7 +439,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			},
 			templates: (reload)=>{
 				if(reload || !$scope.temp.snippets){
-					let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/PtZtDBm8KCRAzxbsIzBf?projectId=P39rbX4JwozoMhNhp6Gz';
+					let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/gThh06um8VuYE2qsCIQf?projectId=qOBhK4TMzSy3JsnNvKTH';
 					path = path.split('?');
 					let gid = path[0].split('/').pop();
 					let pid = path[1].split('projectId=')[1];
