@@ -165,7 +165,8 @@ module.exports = {
 			console.log('NOTFROMCACHE-cloud----------> '+request.params.path);
 			var ref = firebase.database().ref('site/private/endpoints').child(request.params.path);
 			ref.once('value', function(snapshot){
-				var code = snapshot.val();
+				var endpoint = snapshot.val();
+				var code = endpoint.code;
 				if(process.env.cache)
 					mcache.put(path, code, Number(process.env.cache));
 				//we need to migrate endpoint code to be similar to the components
