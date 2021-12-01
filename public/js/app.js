@@ -68,7 +68,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			resolve: dep
 		})
 		.otherwise({
-			redirectTo: '/page/main'
+			redirectTo: '/project/main'
 		});
 	
 	let defConfig = {
