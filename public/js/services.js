@@ -515,7 +515,10 @@ app.factory('Fire', function($q){
 			item.createdOn = new Date();
 			let copy = angular.copy(item);
 			copy = fire._cleanForDb(copy);
-			var newItemRef = fire._ref.push();
+			if(!item.id)
+				var newItemRef = fire._ref.push();
+			else
+				var newItemRef = fire._ref.child(item.id);
 			newItemRef.set(copy);
 			newItemRef.once('value', function(snap) {
 				var obj = fire._become(snap);
