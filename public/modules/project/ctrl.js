@@ -803,6 +803,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
 				if(id.includes('://')){
+					return id;
+				}else{
 					var suffix = '';
 					if($scope.edits)
 						suffix = '?test='+$scope.edits;
@@ -813,8 +815,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					}else{
 						return config.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
 					}
-				}else{
-				   return id;
 				}
 			}
 		},
