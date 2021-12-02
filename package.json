@@ -37,7 +37,7 @@
 		"multer": 				"*",
 		"elasticsearch": 		"*",
 		"node-cron": 				"*",
-		"octokit/rest": 			"*",
+		"@octokit/rest": 			"*",
 		"js-base64":				"*"
 		"@google-cloud/language":			"*"
 	},
