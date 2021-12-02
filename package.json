@@ -38,7 +38,7 @@
 		"elasticsearch": 		"*",
 		"node-cron": 				"*",
 		"@octokit/rest": 			"*",
-		"js-base64":				"*"
+		"js-base64":				"*",
 		"@google-cloud/language":			"*"
 	},
 	"repository": {
