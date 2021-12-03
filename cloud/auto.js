@@ -1,21 +1,12 @@
 var firebase	= require('firebase-admin');
 var request		= require('request');
 var http		= require('request-promise');
-var cheerio 	= require('cheerio');
-var Plivo		= require('plivo');
-var Phaxio		= require('phaxio');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment');
 var mcache		= require('memory-cache');
+
 if(firebase.apps.length)
 	var db 		= firebase.firestore();
-
-
-if(process.env.phaxioKey)
-	var phaxio = new Phaxio(process.env.phaxioKey, process.env.phaxioToken)
-
-if(process.env.plivoId)
-	var plivo = new Plivo.Client(process.env.plivoId, process.env.plivoToken);
 
 if(process.env.cloudinaryName)
 	cloudinary.config({
@@ -23,6 +14,7 @@ if(process.env.cloudinaryName)
 		api_key: process.env.cloudinaryKey,
 		api_secret: process.env.cloudinaryToken
 	});
+
 
 function pathValue(obj, path, val){
 	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
