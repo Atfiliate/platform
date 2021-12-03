@@ -523,7 +523,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				})
 				$scope.diff.packageRef = firebase.database().ref('project').child(view);
 				$scope.diff.packageRef.once('value', doc=>{
-					let oldPkg = $scope.diff.oldPkg = doc.val();
+					let oldPkg = $scope.diff.oldPkg = doc.val() || {};
 					oldPkg.page = oldPkg.page || {};
 					oldPkg.component = oldPkg.component || {};
 					oldPkg.cloud = oldPkg.cloud || {};
