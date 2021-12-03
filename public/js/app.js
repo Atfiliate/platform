@@ -100,6 +100,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 })
 
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
+	$rootScope.config = config;
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
 	$rootScope.$mdToast = $mdToast;
@@ -196,8 +197,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 		login: function(method){
 			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
-				if($rootScope.site.login)
-					return $rootScope.site.login.indexOf(m.title) != -1;
+				if($rootScope.config.login)
+					return $rootScope.config.login.indexOf(m.title) != -1;
 				else
 					return true;
 			})
