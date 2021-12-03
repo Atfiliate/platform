@@ -6,7 +6,7 @@ var firebase	= require('firebase-admin');
 // 	clientEmail: process.env.googleEmail,
 // 	privateKey: process.env.googleKey
 // })
-let dbUrl = process.env.config && process.env.config.firebase && process.env.config.firebase.databaseUrl;
+let dbUrl = process.env.config && process.env.config.firebase && process.env.config.firebase.databaseURL;
 if(dbUrl && process.env.googleJson)
 	firebase.initializeApp({
 		databaseURL: dbUrl,
