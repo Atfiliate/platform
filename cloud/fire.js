@@ -6,9 +6,10 @@ var firebase	= require('firebase-admin');
 // 	clientEmail: process.env.googleEmail,
 // 	privateKey: process.env.googleKey
 // })
-if(process.env.firebase && process.env.googleJson)
+let dbUrl = process.env.config && process.env.config.firebase && process.env.config.firebase.databaseUrl;
+if(dbUrl && process.env.googleJson)
 	firebase.initializeApp({
-		databaseURL: process.env.firebase,
+		databaseURL: dbUrl,
 		// credential: firebase.credential.cert(JSON.parse(fs.readFileSync('./cloud/service.json', 'utf8')))
 		credential: firebase.credential.cert(JSON.parse(process.env.googleJson))
 	});
