@@ -298,7 +298,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
-
+					profile.$fire.save();
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						if($rootScope.user.photoURL){
 							let imgUrl = $rootScope.user.photoURL;
