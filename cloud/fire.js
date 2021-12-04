@@ -3,6 +3,7 @@ var firebase	= require('firebase-admin');
 
 console.log('---------------------------INIT FIREBASE------------------------------------')
 console.log(process.env.config)
+console.log(typeof process.env.config);
 console.log(process.env.config.firebase);
 let databaseURL = process.env.config.firebase.databaseURL;
 console.log({databaseURL});
