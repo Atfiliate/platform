@@ -265,28 +265,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				if(choice == 'PUSH')
 					tools.device.register();
 			},
-			sync: (profile, reqAttrs = [])=>{
-				profile.$save = (closeDialog)=>{
-					if($rootScope.profileNeeds){
-						$rootScope.profileNeeds.forEach(pn=>{
-							let oVal = pathValue(profile, pn.path);
-							let nVal = pn.value || oVal;
-							pathValue(profile, pn.path, nVal);
-						})
-					}
-					profile.$fire.save();
-					if(closeDialog)
-						$mdDialog.hide();
-				}
-				profile.$dialog = (reqAttrs = [])=>{
-					$rootScope.profileNeeds = reqAttrs;
-					$rootScope.profileNeeds.forEach(pn=>{
-						pn.value = pathValue(profile, pn.path);
-					})
-					tools.dialog('https://a.alphabetize.us/project/code/cloud/code?gid=iZTQIVnPzPW7b2CzNUmO&pid=WAEzasxjWZSggmwP3MER&cid=profile.dialog')
-				}
-				
-
+			sync: (profile)=>{
 				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 				let version = 1.03;
 				if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
@@ -298,7 +277,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					profile.email 		= profile.email || $rootScope.user.email;
 					profile.createdOn 	= profile.createdOn || new Date();
 					profile.updatedOn	= new Date();
-					profile.$fire.save();
 					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
 						if($rootScope.user.photoURL){
 							let imgUrl = $rootScope.user.photoURL;
@@ -308,24 +286,14 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 									img_url: 		profile.img,
 									secure_url: 	profile.img
 								}
-								profile.$save();
+								profile.$fire.save();
 							})
 						}else{
 							profile.img = defaultImg;
 						}
 					}else{
-						profile.$save()
+						profile.$fire.save()
 					}
-				}
-				
-				//if we have requested any new values that don't exist on the profile, we will prompt for those.
-				for(var i = reqAttrs.length - 1; i >= 0; i--){
-					if(pathValue(profile, reqAttrs[i].path) !== null){
-						reqAttrs.splice(i, 1);
-					}
-				}
-				if(reqAttrs.length){
-					profile.$dialog(reqAttrs)
 				}
 			}
 		},
