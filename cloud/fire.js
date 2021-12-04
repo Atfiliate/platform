@@ -1,16 +1,10 @@
 var fs			= require('fs');
 var firebase	= require('firebase-admin');
 
-console.log('---------------------------INIT FIREBASE------------------------------------')
-console.log(process.env.config)
-console.log(typeof process.env.config);
-console.log(process.env.config.firebase);
-let databaseURL = process.env.config.firebase.databaseURL;
-console.log({databaseURL});
-
-if(databaseURL && process.env.googleJson){
+if(process.env.config){
+	let config = JSON.parse(process.env.config);
 	firebase.initializeApp({
-		databaseURL,
+		databaseURL: config.firebase.databaseURL,
 		// credential: firebase.credential.cert(JSON.parse(fs.readFileSync('./cloud/service.json', 'utf8')))
 		credential: firebase.credential.cert(JSON.parse(process.env.googleJson))
 	});
