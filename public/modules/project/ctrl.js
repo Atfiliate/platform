@@ -171,7 +171,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			page.$bindTo($scope, "page");
 			page.$loaded(function(page){
 				tools.render(page)
-				document.title = page.title;
+				if(page.title)
+					document.title = page.title;
 			})
 		},
 		render: function(page){
