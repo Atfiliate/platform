@@ -157,7 +157,7 @@ module.exports = {
 			console.log('NOTFROMCACHE-cloud----------> '+request.params.path);
 			var ref = firebase.database().ref('site/private/endpoints').child(request.params.path);
 			ref.once('value', function(snapshot){
-				var endpoint = snapshot.val();
+				var endpoint = snapshot.val() || '404 Not Found';
 				var code = endpoint.code;
 				if(process.env.cache)
 					mcache.put(path, code, Number(process.env.cache));
