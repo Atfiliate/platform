@@ -440,17 +440,17 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			},
 			templates: (reload)=>{
 				let suffix = $scope.editor.session.getMode().$id == 'ace/mode/javascript' ? '.js' : '.html'
-				if(reload || !tools.snippets._list){
+				if(reload || !tools.snippet._list){
 					let path = pathValue($scope, 'temp.page.snippetRef') || 'https://a.alphabetize.us/#/project/code/gThh06um8VuYE2qsCIQf?projectId=qOBhK4TMzSy3JsnNvKTH';
 					path = path.split('?');
 					let gid = path[0].split('/').pop();
 					let pid = path[1].split('projectId=')[1];
 					$http.get(`https://a.alphabetize.us/project/code/cloud/list?gid=${gid}&pid=${pid}`).then(r=>{
-						tools.snippets._list = r.data;
-						$scope.temp.snippets = tools.snippets._list.filter(s=>s.indexOf(suffix) != -1)
+						tools.snippet._list = r.data;
+						$scope.temp.snippets = tools.snippet._list.filter(s=>s.indexOf(suffix) != -1)
 					})
 				}else{
-					$scope.temp.snippets = tools.snippets._list.filter(s=>s.indexOf(suffix) != -1)
+					$scope.temp.snippets = tools.snippet._list.filter(s=>s.indexOf(suffix) != -1)
 				}
 			},
 			select: snippet=>{
