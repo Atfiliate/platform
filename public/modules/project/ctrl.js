@@ -447,10 +447,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					let pid = path[1].split('projectId=')[1];
 					$http.get(`https://a.alphabetize.us/project/code/cloud/list?gid=${gid}&pid=${pid}`).then(r=>{
 						tools.snippet._list = r.data;
-						$scope.temp.snippets = tools.snippet._list.filter(s=>s.indexOf(suffix) != -1)
+						$scope.temp.snippets = tools.snippet._list.filter(s=>s.id.indexOf(suffix) != -1)
 					})
 				}else{
-					$scope.temp.snippets = tools.snippet._list.filter(s=>s.indexOf(suffix) != -1)
+					$scope.temp.snippets = tools.snippet._list.filter(s=>s.id.indexOf(suffix) != -1)
 				}
 			},
 			select: snippet=>{
