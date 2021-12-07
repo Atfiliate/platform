@@ -38,7 +38,7 @@
 	<body layout="column" ng-controller="SiteCtrl">
 		<md-content flex ng-include="view"></md-content>
 		<script>
-			let imports = ['ngMaterial','ngSanitize','firebase'];
+			let imports = ['ngMaterial','ngSanitize','firebase','ngAnimate'];
 			var app = angular.module('app', imports);
 			app.config(function($controllerProvider) {
 				app.lazy = {
