@@ -286,7 +286,9 @@ module.exports = {
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
 		}
-		if(request.params.component){
+		if(firebase.apps.length === 0){
+			response.send('Firebase Not Setup');
+		}else if(request.params.component){
 			var path = request.params.component;
 				path = path.split('.').join('_');
 
