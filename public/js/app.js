@@ -71,7 +71,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			redirectTo: '/project/main'
 		});
 	
-	let defConfig = {
+	let defaults = {
 		color: {
 			primary:			'blue',
 			secondary:			'light-blue',
@@ -79,10 +79,11 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			customSecondary:	{}
 		}
 	}
-	var config = localStorage.getItem('whois') || '{}';
-	config = JSON.parse(config);
-	config = Object.assign(defConfig, config);
-	config.color = Object.assign(defConfig.color, config.color); //We need to account for main colors set w/out custom colors.
+	
+	if(config.color)
+		Object.assign(defaults.color, config.color);
+	Object.assign(defaults, config);
+	config = defaults;
 
 	var customPrimary = $mdThemingProvider.extendPalette(config.color.primary, config.color.customPrimary);
 	var customSecondary = $mdThemingProvider.extendPalette(config.color.secondary, config.color.customSecondary);
