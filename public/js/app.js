@@ -82,11 +82,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 	var config = localStorage.getItem('whois') || '{}';
 	config = JSON.parse(config);
 	config = Object.assign(defConfig, config);
-	// config.color = config.color || {};
-	// config.color.primary = config.color.primary || 'blue';
-	// config.color.secondary = config.color.secondary || 'light-green';
-	// config.color.customPrimary = config.color.customPrimary || {};
-	// config.color.customSecondary = config.color.customSecondary || {};
+	config.color = Object.assign(defConfig.color, config.color); //We need to account for main colors set w/out custom colors.
 
 	var customPrimary = $mdThemingProvider.extendPalette(config.color.primary, config.color.customPrimary);
 	var customSecondary = $mdThemingProvider.extendPalette(config.color.secondary, config.color.customSecondary);
@@ -116,8 +112,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// tools.profile.gapi(user);
 		}
 	});
-	var siteRef = firebase.database().ref().child("site/public/settings");
-	$rootScope.site = $firebaseObject(siteRef);
+	
 	$rootScope.loginMethods = [{
 		title: 	'Google',
 		icon: 	'google',
