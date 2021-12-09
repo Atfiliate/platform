@@ -80,10 +80,9 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		}
 	}
 	
-	if(config.color)
-		Object.assign(defaults.color, config.color);
-	Object.assign(defaults, config);
-	config = defaults;
+	config.color = {...defConfig.color, ...config.color}
+	config = {...defConfig, ...config}
+	
 
 	var customPrimary = $mdThemingProvider.extendPalette(config.color.primary, config.color.customPrimary);
 	var customSecondary = $mdThemingProvider.extendPalette(config.color.secondary, config.color.customSecondary);
