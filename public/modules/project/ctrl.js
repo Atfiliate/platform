@@ -4,8 +4,128 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 	$scope.$mdDialog	= $mdDialog;
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
-	$scope.api			= window.api;
 	$scope.temp 		= {};
+	
+	console.log('Proj Ctrl');
+	//we need to initialize api each time so it doesn't retain leftovers from a previous view.
+	let api = window.api = $scope.api = {
+		_ct:		25, //history count
+		_elements:	{},
+		_unElems:	{},
+		_events:	{},
+		_waiters:	[], // used to store fn's to be called on api.register
+		_listeners: [], // used to store fn's to be called on api.act
+		_once:		[],
+		_checks:	{},
+		_history:	[],
+		_future:	[],
+		_proclaim: function(action, rest){
+			api._events[action] = api._events[action] || {action, rest}
+			api._listeners.forEach(l=>{
+				if(l.action == action)
+					l.fn(...rest);
+				else if(l.action == 'any')
+					l.fn(action, ...rest)
+			})
+		},
+		broadcast: (action, ...rest)=>{
+			api._proclaim(action, rest)	
+		},
+		act: (action, fn, undo, ...rest)=>{
+			return new Promise((res,rej)=>{
+				api.check(action, rest).then(r=>{
+					api._proclaim(action, rest);
+					if(fn && undo)
+						api._history.push({action,fn,undo,rest});
+					if(api._history.length > api.ct)
+						api._history.shift();
+					if(fn)
+						fn(...rest);
+					res(r);
+				}).catch(e=>{
+					console.log(e);
+					rej(e);
+				});	
+			})
+		},
+		undo: ()=>{
+			var item = api._history.pop();
+			if(item){
+				item.undo(...item.rest);
+				api._proclaim(item.action+'.undo', item.rest);
+				api._future.push(item);
+			}
+		},
+		redo: ()=>{
+			var item = api._future.pop();
+			if(item){
+				item.fn(...item.rest);
+				api._proclaim(item.action+'.redo', item.rest);
+				api._history.push(item);
+			}
+		},
+		check: (action, rest)=>{
+			if(api._checks[action]){
+				return Promise.all(api._checks[action].map(checkFn=>{
+						return checkFn(...rest);
+					})
+				)
+			}else{
+				return Promise.resolve();
+			}
+		},
+		limit: (action, checkFn)=>{ //register will pass: (location,element,fn) to the limit check fn
+			api._checks[action] = api._checks[action] || [];
+			api._checks[action].push(checkFn);
+		},
+		register: (location, element, fn)=>{
+			// register needs to consider as reference: user preferences
+			// this could include: 'hide' & 'order' for registered elements.
+			api.broadcast(`api.register`, location, element, fn);
+			if(typeof location == 'object'){
+				location.forEach(key=>{
+					api._elements[key] = [];
+				})
+			}else{
+				if(element){
+					api.check('api.register', location, element, fn).then(r=>{
+						if(!api._elements[location])
+							api._elements[location] = [];
+						element.fn = element.fn || fn;
+						if(element.template)
+							element.template = $sce.trustAsResourceUrl(element.template);
+						api._elements[location].push(element)
+						api.waitCheck();
+					}).catch(e=>{
+						if(!api._unElems[location])
+							api._unElems[location] = [];
+						element.fn = fn;
+						api._unElems[location].push(element)
+					})
+				}
+			}
+		},
+		waitCheck: ()=>{
+			for(var i = api._waiters.length-1; i>=0; i--){
+				let w = api._waiters[i];
+				let elemLoc = pathValue(api, `_elements.${w.location}`) || [];
+				let elem = elemLoc.find(e=>e.name == w.name);
+				if(elem){
+					api._waiters.splice(i, 1);
+					w.fn(elem);
+				}
+			}
+		},
+		wait: (location, name, fn)=>{
+			api._waiters.push({location, name, fn});
+			api.waitCheck();
+		},
+		on: (action, fn)=>{
+			api._listeners.push({action, fn});
+			if(api._events[action]) //This already occurred at least once.
+				fn(...api._events[action].rest);
+		}
+	}
 
 	Mousetrap.bind('ctrl+z', (e)=>{
 		e.preventDefault();
