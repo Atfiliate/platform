@@ -208,7 +208,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						var js;
 						eval('js = $scope.js = '+page.js)
 						if(js.init)
-							js.init(api);
+							js.init(window.api);
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
