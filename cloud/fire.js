@@ -8,4 +8,5 @@ if(process.env.config){
 		// credential: firebase.credential.cert(JSON.parse(fs.readFileSync('./cloud/service.json', 'utf8')))
 		credential: firebase.credential.cert(JSON.parse(process.env.googleJson))
 	});
+	firebase.firestore().settings({ignoreUndefinedProperties:true});
 }
