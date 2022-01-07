@@ -1273,6 +1273,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				addon.installedBy	= $scope.user.uid;
 				addon.createdBy		= addon.createdBy || $scope.user.uid;
 				tools.addon._list.push(addon);
+				tools.addon.load(addon);
 				api.broadcast('addon.install', addon);
 			},
 			uninstall: addon=>{
