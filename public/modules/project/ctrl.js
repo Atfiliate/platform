@@ -1154,7 +1154,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					let signature = manifest.signature || '';
 					let cleanManifest = tools.addon.encoded(manifest);
 					tools.validate.verify(cleanManifest, signature, publicKey).then(isValid=>{
-						if(isValid){
+						if(isValid || manifest.$verified){
 							res(manifest);
 						}else{
 							rej(manifest);
@@ -1284,6 +1284,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			dev: {
 				init: ()=>{
 					api.act('addon.dev', ()=>{
+						$mdDialog.hide();
 						tools.dialog(tools.addon.dialogs.dev)
 					})
 				},
@@ -1298,7 +1299,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						if(addon.meta && !addon.meta.signature)
 							addon.meta.title = `**${addon.meta.title}** (DEV)`;
 						addon.meta.url = url;
-						tools.addon.view(addon);
+						tools.addon.view(addon.meta);
 					})
 				},
 			},
