@@ -1287,23 +1287,19 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					})
 				},
 				load: (url)=>{
-					tools.addon._url = url;
 					$http.get(url).then(r=>{
-						tools.addon._preview = r.data;
+						let addon = r.data;
+						if(typeof addon == 'string')
+							addon = (function(str){
+								return eval(str)
+							})(addon)
+						
+						if(addon.meta && !addon.meta.signature)
+							addon.meta.title = `**${addon.meta.title}** (DEV)`;
+						addon.meta.url = url;
+						tools.addon.view(addon);
 					})
 				},
-				compile: ()=>{
-					let addon = tools.addon._preview;
-					if(typeof addon == 'string')
-						addon = (function(str){
-							return eval(str)
-						})(addon)
-					
-					if(addon.meta && !addon.meta.signature)
-						addon.meta.title = `**${addon.meta.title}** (DEV)`;
-					addon.meta.url = tools.addon._url;
-					tools.addon.view(addon);
-				}
 			},
 		},
 		validate: {
