@@ -1262,18 +1262,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					option.$installed = $scope.service.addons.find(a=>a.url == option.url);
 				})
 			},
-			dev: ()=>{ //require full manifest to install
-				api.act('addon.dev', ()=>{
-					tools.dialog(tools.addon.dialogs.dev)
-				})
+			view: (addon)=>{
+				$scope.addon = addon;
+				tools.dialog(tools.addon.dialogs.view);
 			},
-			preview: manifest=>{
-				if(typeof manifest == 'string')
-					manifest = JSON.parse(manifest);
-				tools.addon._preview = manifest;
-				tools.dialog(tools.addon.dialogs.preview)
-			},
-			
 			install: addon=>{
 				addon.$installed	= true;
 				addon.installId 	= addon.installId || tools.addon.genId(addon);
@@ -1287,6 +1279,30 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				let idx = tools.addon._list.indexOf(addon);
 				tools.addon._list.splice(idx, 1);
 				api.broadcast('addon.uninstall', addon);
+			},
+			dev: {
+				init: ()=>{
+					api.act('addon.dev', ()=>{
+						tools.dialog(tools.addon.dialogs.dev)
+					})
+				},
+				load: (url)=>{
+					$http.get(url).then(r=>{
+						tools.addon._preview = r.data;
+					})
+				},
+				compile: ()=>{
+					let addon = tools.addon._preview;
+					if(typeof r.data == 'string')
+						addon = (function(str){
+							return eval(str)
+						})(addon)
+					
+					if(addon.meta && !addon.meta.signature)
+						addon.meta.title = `**${addon.meta.title}** (DEV)`;
+					addon.meta.url = url;
+					tools.addon.view(addon);
+				}
 			},
 		},
 		validate: {
