@@ -1293,7 +1293,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				},
 				compile: ()=>{
 					let addon = tools.addon._preview;
-					if(typeof r.data == 'string')
+					if(typeof addon == 'string')
 						addon = (function(str){
 							return eval(str)
 						})(addon)
