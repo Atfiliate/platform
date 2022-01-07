@@ -1134,7 +1134,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				dev:		'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-dev.dialog',
 				preview:	'https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;addon-preview.dialog'
 			},
-			init: (list=[])=>{
+			init: (list)=>{
+				tools.addon._list = list;
 				tools.addon._invalidList = [];
 				$scope.addon = $scope.addon || {};
 				list.forEach(m=>{
@@ -1279,11 +1280,14 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				addon.installedOn	= new Date();
 				addon.installedBy	= $scope.user.uid;
 				addon.createdBy		= addon.createdBy || $scope.user.uid;
-				api.broadcast('addon.install', addon);
+				tools.addon._list.push(addon);
+				api.broadcast('addon.install');
 			},
-			// uninstall: addon=>{
-			// 	api.broadcast('addon.uninstall', addon);
-			// },
+			uninstall: addon=>{
+				let idx = tools.addon._list.indexOf(addon);
+				tools.addon._list.splice(idx, 1);
+				api.broadcast('addon.uninstall', addon);
+			},
 		},
 		validate: {
 			keys: {
