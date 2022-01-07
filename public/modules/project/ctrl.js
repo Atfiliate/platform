@@ -1287,6 +1287,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					})
 				},
 				load: (url)=>{
+					tools.addon._url = url;
 					$http.get(url).then(r=>{
 						tools.addon._preview = r.data;
 					})
@@ -1300,7 +1301,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					
 					if(addon.meta && !addon.meta.signature)
 						addon.meta.title = `**${addon.meta.title}** (DEV)`;
-					addon.meta.url = url;
+					addon.meta.url = tools.addon._url;
 					tools.addon.view(addon);
 				}
 			},
