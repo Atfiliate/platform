@@ -1263,7 +1263,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				})
 			},
 			view: (addon)=>{
-				$scope.addon = addon;
+				tools.addon._focus = addon;
 				tools.dialog(tools.addon.dialogs.view);
 			},
 			install: addon=>{
