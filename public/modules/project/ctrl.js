@@ -1148,7 +1148,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 					})
 				})
 			},
-			verify: manifest=>{
+			verify: manifest=>{ //verifies addon integrity (signature) before running.
 				return new Promise((res, rej)=>{
 					let publicKey = pathValue($scope, 'page.publicKey') || tools.validate._publicKey;
 					let signature = manifest.signature || '';
@@ -1288,7 +1288,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						tools.dialog(tools.addon.dialogs.dev)
 					})
 				},
-				load: (url)=>{
+				install: (url)=>{
 					$http.get(url).then(r=>{
 						let addon = r.data;
 						if(typeof addon == 'string')
@@ -1299,7 +1299,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						if(addon.meta && !addon.meta.signature)
 							addon.meta.title = `**${addon.meta.title}** (DEV)`;
 						addon.meta.url = url;
-						tools.addon.view(addon.meta);
+						tools.addon.install(addon.meta);
 					})
 				},
 			},
