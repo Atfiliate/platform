@@ -1299,6 +1299,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						if(addon.meta && !addon.meta.signature)
 							addon.meta.title = `**${addon.meta.title}** (DEV)`;
 						addon.meta.url = url;
+						$mdDialog.hide();
 						tools.addon.install(addon.meta);
 					})
 				},
