@@ -1139,13 +1139,15 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.addon._invalidList = [];
 				$scope.addon = $scope.addon || {};
 				list.forEach(m=>{
-					tools.addon.verify(m).then(r=>{
-						tools.addon.load(r);
-					}).catch(e=>{
-						if(tools.addon._invalidList.length == 0)
-							tools.dialog(tools.addon.dialogs.validate)
-						tools.addon._invalidList.push(m);
-					})
+					if(!addon.$ignore){
+						tools.addon.verify(m).then(r=>{
+							tools.addon.load(r);
+						}).catch(e=>{
+							if(tools.addon._invalidList.length == 0)
+								tools.dialog(tools.addon.dialogs.validate)
+							tools.addon._invalidList.push(m);
+						})
+					}
 				})
 			},
 			verify: manifest=>{ //verifies addon integrity (signature) before running.
@@ -1258,9 +1260,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			browse: (list)=>{
 				tools.addon._browseList = list;
 				tools.dialog(tools.addon.dialogs.browse);
-				list.forEach(option=>{
-					option.$installed = $scope.service.addons.find(a=>a.url == option.url);
-				})
 			},
 			view: (addon)=>{
 				tools.addon._focus = addon;
@@ -1272,13 +1271,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				addon.installedOn	= new Date();
 				addon.installedBy	= $scope.user.uid;
 				addon.createdBy		= addon.createdBy || $scope.user.uid;
-				tools.addon._list.push(addon);
 				tools.addon.load(addon);
 				api.broadcast('addon.install', addon);
 			},
 			uninstall: addon=>{
-				let idx = tools.addon._list.indexOf(addon);
-				tools.addon._list.splice(idx, 1);
 				api.broadcast('addon.uninstall', addon);
 			},
 			dev: {
