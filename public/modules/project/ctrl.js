@@ -1139,7 +1139,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 				tools.addon._invalidList = [];
 				$scope.addon = $scope.addon || {};
 				list.forEach(m=>{
-					if(!addon.$ignore){
+					if(!m.$ignore){
 						tools.addon.verify(m).then(r=>{
 							tools.addon.load(r);
 						}).catch(e=>{
