@@ -336,6 +336,7 @@ app.factory('Fire', function($q){
 							fire.list.push(obj);
 						deferred.resolve(obj);
 					}).catch(e=>{
+						console.error(e);
 						item.id = r.id;
 						item.$status = 'saved';
 						item.$fire = 'Item saved but not read.';
