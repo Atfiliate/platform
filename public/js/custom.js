@@ -133,7 +133,7 @@ function pathValue(obj, path, val){
 				obj[attr] = {};
 				pathValue(obj[attr], path, val)
 			}
-		}else if(val == '_delete_'){
+		}else if(val == '_delete_' || val === null || val === ''){
 			delete obj[attr];
 		}else{
 			 obj[attr] = val;
