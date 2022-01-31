@@ -164,8 +164,8 @@ app.factory('Fire', function($q){
 				update: function(attrObj){
 					Fire.ct.write++;
 					Object.keys(attrObj).forEach(function(k){
-						if(attrObj[k] == undefined){
-							delete attrObj[k];
+						if(attrObj[k] == undefined || attrObj[k] == '_delete_'){
+							attrObj[k] = firebase.firestore.FieldValue.delete();
 							pathValue(d, k, null);
 						}
 						pathValue(d, k, attrObj[k]);
