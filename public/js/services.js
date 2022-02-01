@@ -166,9 +166,10 @@ app.factory('Fire', function($q){
 					Object.keys(attrObj).forEach(function(k){
 						if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
 							attrObj[k] = firebase.firestore.FieldValue.delete();
-							pathValue(d, k, null);
+							pathValue(d, k, '_delete_');
+						}else{
+							pathValue(d, k, attrObj[k]);
 						}
-						pathValue(d, k, attrObj[k]);
 					})
 					attrObj.updatedOn = new Date();
 					return d.$fire.ref.update(attrObj);
