@@ -114,7 +114,7 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
             let rows = keys.map(k=>{
 	            return `<tr>
 	            	<td>${k}</td>
-	            	<td data-path="${path}.${k}" class="value">${jsonToTable(obj[k], `${path}.${k}`, $sanitize)}</td>
+	            	<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`, $sanitize)}</td>
 	            </tr>`
             }).join('');
             html = `<table>${rows}</table>`;
