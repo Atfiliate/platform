@@ -86,39 +86,76 @@ String.prototype.compile = function(scope){
 }
 
 
-
-function jsonToTable(obj, path){
-	var html = ``;
-	if(obj && typeof obj == 'object'){
-		if(obj.length){ // is array
-			if(typeof obj[0] == 'object'){ //array of objects
-				var keys = obj.allKeys();
-				var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
-				rows += obj.map(function(row, i){
-					return `<tr>${keys.map(function(k){
-						var p2 = `${path}[${i}].${k}`
-						return `<td data-path="${p2}">${jsonToTable(row[k], p2)}</td>`}).join('')
-					}</tr>`;
-				}).join('')
-				html = `<table>${rows}</table>`;
-			}else{ // regular array
-				var rows = ``;
-				obj.forEach(function(row, i){
-					rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`)}</td></tr>`;
-				})
-				html = `<table>${rows}</table>`;
-			}
-		}else{ // is object
-			var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
-			var rows = `<tr>${keys.map(function(k){ return `<th>${k}</th>` }).join('')}</tr>`;
-				rows += `<tr>${keys.map(function(k){ return `<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`)}`}).join('')}</td></tr>`;
-			html = `<table>${rows}</table>`;
-		}
-	}else{ // is other
-		html = `${obj}`;
-	}
-	return html;
+function jsonToTable(obj, path='item', $sanitize=(str)=>str){
+    var html = ``;
+    if(obj && typeof obj == 'object'){
+        if(obj.length){ // is array
+            if(typeof obj[0] == 'object'){ //array of objects
+                var keys = obj.allKeys();
+                var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
+                rows += obj.map(function(row, i){
+                    return `<tr>${keys.map(function(k){
+                        var p2 = `${path}[${i}].${k}`
+                        return `<td data-path="${p2}">${jsonToTable(row[k], p2, $sanitize)}</td>`}).join('')
+                    }</tr>`;
+                }).join('')
+                html = `<table>${rows}</table>`;
+            }else{ // regular array
+                var rows = ``;
+                obj.forEach(function(row, i){
+                    rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`, $sanitize)}</td></tr>`;
+                })
+                html = `<table>${rows}</table>`;
+            }
+        }else if(obj.toISOString){
+        	html = moment(obj).format('MMM DD YYYY H:mm')
+    	}else{ // is object
+            var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
+            let rows = keys.map(k=>{
+	            return `<tr>
+	            	<td>${k}</td>
+	            	<td data-path="${path}.${k}" class="value">${jsonToTable(obj[k], `${path}.${k}`, $sanitize)}</td>
+	            </tr>`
+            }).join('');
+            html = `<table>${rows}</table>`;
+        }
+    }else{ // is other
+        html = $sanitize(`${obj}`);
+    }
+    return html;
 }
+// function jsonToTable(obj, path){
+// 	var html = ``;
+// 	if(obj && typeof obj == 'object'){
+// 		if(obj.length){ // is array
+// 			if(typeof obj[0] == 'object'){ //array of objects
+// 				var keys = obj.allKeys();
+// 				var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
+// 				rows += obj.map(function(row, i){
+// 					return `<tr>${keys.map(function(k){
+// 						var p2 = `${path}[${i}].${k}`
+// 						return `<td data-path="${p2}">${jsonToTable(row[k], p2)}</td>`}).join('')
+// 					}</tr>`;
+// 				}).join('')
+// 				html = `<table>${rows}</table>`;
+// 			}else{ // regular array
+// 				var rows = ``;
+// 				obj.forEach(function(row, i){
+// 					rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`)}</td></tr>`;
+// 				})
+// 				html = `<table>${rows}</table>`;
+// 			}
+// 		}else{ // is object
+// 			var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
+// 			var rows = `<tr>${keys.map(function(k){ return `<th>${k}</th>` }).join('')}</tr>`;
+// 				rows += `<tr>${keys.map(function(k){ return `<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`)}`}).join('')}</td></tr>`;
+// 			html = `<table>${rows}</table>`;
+// 		}
+// 	}else{ // is other
+// 		html = `${obj}`;
+// 	}
+// 	return html;
+// }
 
 function pathValue(obj, path, val){
 	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
