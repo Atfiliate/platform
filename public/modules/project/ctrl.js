@@ -45,8 +45,12 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 						res(r);
 					}, 0);
 				}).catch(e=>{
-					console.log(e);
-					rej(e);
+					if(typeof e == 'string'){
+						tools.alert(e);
+					}else if(e){	
+						console.log(e);
+						rej(e);
+					}
 				});	
 			})
 		},
