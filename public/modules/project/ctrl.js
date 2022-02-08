@@ -32,23 +32,23 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $firebaseObj
 			api._proclaim(action, rest)	
 		},
 		act: (action, fn, undo, ...rest)=>{
-			let defer = $q.defer();
 			return new Promise((res,rej)=>{
 				api.check(action, rest).then(r=>{
-					api._proclaim(action, rest);
-					if(fn && undo)
-						api._history.push({action,fn,undo,rest});
-					if(api._history.length > api.ct)
-						api._history.shift();
-					if(fn)
-						fn(...rest);
-					defer.resolve(r);
+					$timeout(()=>{
+						api._proclaim(action, rest);
+						if(fn && undo)
+							api._history.push({action,fn,undo,rest});
+						if(api._history.length > api.ct)
+							api._history.shift();
+						if(fn)
+							fn(...rest);
+						res(r);
+					}, 0);
 				}).catch(e=>{
 					console.log(e);
-					defer.reject(e);
+					rej(e);
 				});	
 			})
-			return defer.promise;
 		},
 		undo: ()=>{
 			var item = api._history.pop();
