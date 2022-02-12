@@ -3,7 +3,7 @@ Array.prototype._flat = Array.prototype.flat;
 Array.prototype.flat = function(col, placeholder){
 	if(col)
 		return this.map(function(i){
-			return i[col] && i[col] === undefined ? placeholder : i[col];
+			return i ? i[col] !== undefined ? i[col] : placeholder : placeholder;
 		})
 	else
 		return this._flat();
