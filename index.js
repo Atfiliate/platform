@@ -27,7 +27,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
-	if(process.env.config)
+	if(process.env.config && !request.query.rootSetup)
 		response.render('pages/index');
 	else
 		response.render('pages/setup');
