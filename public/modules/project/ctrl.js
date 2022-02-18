@@ -546,6 +546,11 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 				})
 			},
 			analyze: (pkg1, pkg2)=>{
+				pkg1.cloud = pkg1.cloud || {};
+				pkg1.component = pkg1.component || {};
+				pkg2.cloud = pkg2.cloud || {};
+				pkg2.component = pkg2.component || {};
+				
 				let components = [];
 				components.push({
 					title:	'Html',
