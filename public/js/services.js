@@ -605,7 +605,7 @@ app.factory('Auth2', function($firebaseAuth, Fire){
 		_listenany: [],
 		on: (type, callback)=>{
 			type = type.toLowerCase();
-			Auth['listen'+type].push(callback);
+			Auth['_listen'+type].push(callback);
 			if(Auth.state !== 'pending')
 				callback(Auth);
 		}
