@@ -106,9 +106,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	
 	if(config.fire)
 		Fire.config(config.fire);
-	Auth2.on('login', ()=>{
-		$rootScope.user = Auth2.user;
-		tools.profile.init($rootScope.user);
+	Auth2.on('login', (user)=>{
+		$rootScope.user = user;
+		tools.profile.init(user);
 	})
 	// $firebaseAuth().$onAuthStateChanged(function(user) {
 	// 	if(user){
