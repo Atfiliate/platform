@@ -565,7 +565,9 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 	}
 })
 app.factory('Auth', function($firebaseAuth, Fire){
-	$firebaseAuth().$onAuthStateChanged(function(user){
+	firebase.auth().onAuthStateChanged(function(user){
+		console.log({ast:'true', user})
+	// $firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
 			new Fire(`roles/${user.uid}`).get().then(r=>{
 				user.roles = r;
