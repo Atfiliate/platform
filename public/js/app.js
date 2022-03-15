@@ -155,9 +155,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		}
 	}]
 
-	
-	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
+	$scope.$on('$routeChangeStart', ($event, next, current)=>{
 		Auth.reset();
+	});
+	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
 		if($rootScope.$device && $rootScope.profile){
 			$rootScope.profile.$fire.update({
 				'stats.page': 				window.location.href,
