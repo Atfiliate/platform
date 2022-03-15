@@ -152,10 +152,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 	window._mfq = window._mfq || [];
 	window._mfq.push(["newPageView", `project/${$routeParams.view}/${$routeParams.id}`]);
 	
-	Auth2.on('any', ()=>{
-		$scope.user = Auth2.user;
-		tools.init();
-	})
 	// Auth().then(function(user){
 	// 	$scope.user = user;
 	// 	tools.init();
@@ -1427,5 +1423,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 		}
 	}
 
+	Auth2.on('any', ()=>{
+		$scope.user = Auth2.user;
+		tools.init();
+	})
 	it.ProjCtrl = $scope;
 });
