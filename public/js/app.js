@@ -96,7 +96,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Auth2, Fire){
 	$rootScope.config = config;
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
@@ -106,13 +106,17 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	
 	if(config.fire)
 		Fire.config(config.fire);
-	$firebaseAuth().$onAuthStateChanged(function(user) {
-		if(user){
-			$rootScope.user = user;
-			tools.profile.init(user);
-			// tools.profile.gapi(user);
-		}
-	});
+	Auth2.on('login', ()=>{
+		$rootScope.user = Auth2.user;
+		tools.profile.init($rootScope.user);
+	})
+	// $firebaseAuth().$onAuthStateChanged(function(user) {
+	// 	if(user){
+	// 		$rootScope.user = user;
+	// 		tools.profile.init(user);
+	// 		// tools.profile.gapi(user);
+	// 	}
+	// });
 	
 	$rootScope.loginMethods = [{
 		title: 	'Google',
@@ -226,6 +230,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 		profile: {
 			init: function(user){
+				console.log({a:'setup profile', user})
 				if(window.gtag)
 					gtag('set', {user_id: user.uid});
 				if(!$rootScope.profile){
