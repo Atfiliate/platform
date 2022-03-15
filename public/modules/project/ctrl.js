@@ -1,6 +1,6 @@
 /*global angular, app, firebase, Mousetrap, moment, whois*/
 app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $firebaseObject, $firebaseArray, $mdMedia, $mdDialog, 
-	$mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, $sanitize, $compile, Auth, Auth2, Fire, Cloudinary, Stripe, Form, config){
+	$mdSidenav, $mdBottomSheet, $mdToast, $routeParams, $http, $sce, $q, $location, $sanitize, $compile, Auth, Fire, Cloudinary, Stripe, Form, config){
 	$scope.$mdDialog	= $mdDialog;
 	$scope.cloudinary	= Cloudinary;
 	$scope.moment		= moment;
@@ -151,13 +151,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 	var page,pageRef,templateRef,historyRef,snapshotRef,db;
 	window._mfq = window._mfq || [];
 	window._mfq.push(["newPageView", `project/${$routeParams.view}/${$routeParams.id}`]);
-	
-	// Auth().then(function(user){
-	// 	$scope.user = user;
-	// 	tools.init();
-	// }).catch(e=>{
-	// 	tools.init();
-	// })
 	
 	var tools = $scope.tools = {
 		init: function(){
@@ -1423,9 +1416,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 		}
 	}
 
-	Auth2.on('any', ()=>{
-		$scope.user = Auth2.user;
-		tools.init();
+	Auth.on('any', (user)=>{
+		$scope.user = user;
+		tools.init(Auth.status);
 	})
 	it.ProjCtrl = $scope;
 });
