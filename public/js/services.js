@@ -581,20 +581,20 @@ app.factory('Auth2', function($firebaseAuth, Fire){
 				Auth.state = 'auth';
 				Auth.user = user;
 				Auth._listenlogin.forEach(loginCb=>{
-					loginCb(Auth);
+					loginCb(user);
 				})
 				Auth._listenany.forEach(anyCb=>{
-					anyCb(Auth);
+					anyCb(user);
 				})
 			})
 		}else{
 			Auth.state = 'guest';
 			delete Auth.user;
 			Auth._listenlogout.forEach(logoutCb=>{
-				logoutCb(Auth);
+				logoutCb();
 			})
 			Auth._listenany.forEach(anyCb=>{
-				anyCb(Auth);
+				anyCb();
 			})
 		}
 	})
