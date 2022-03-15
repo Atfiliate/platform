@@ -155,7 +155,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		}
 	}]
 
-	$scope.$on('$routeChangeStart', ($event, next, current)=>{
+	$rootScope.$on('$routeChangeStart', ($event, next, current)=>{
 		Auth.reset();
 	});
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
