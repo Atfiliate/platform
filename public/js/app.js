@@ -157,11 +157,12 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 
 	
 	$rootScope.$on('$routeChangeSuccess', ($event, cur, pre)=>{
+		Auth.reset();
 		if($rootScope.$device && $rootScope.profile){
 			$rootScope.profile.$fire.update({
 				'stats.page': 				window.location.href,
 				'stats.currentDevice': 		$rootScope.$device.id,
-				'stats.updatedOn': 		new Date()
+				'stats.updatedOn': 			new Date()
 			});
 			
 			if($rootScope.session){
