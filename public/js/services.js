@@ -580,21 +580,21 @@ app.factory('Auth', function($firebaseAuth, Fire){
 				}
 				Auth.state = 'auth';
 				Auth.user = user;
-				Auth._listenlogin.forEach(loginCb=>{
-					loginCb(user);
+				Auth._listenlogin.forEach(login=>{
+					login.callback(user);
 				})
-				Auth._listenany.forEach(anyCb=>{
-					anyCb(user);
+				Auth._listenany.forEach(any=>{
+					any.callback(user);
 				})
 			})
 		}else{
 			Auth.state = 'guest';
 			delete Auth.user;
-			Auth._listenlogout.forEach(logoutCb=>{
-				logoutCb();
+			Auth._listenlogout.forEach(logout=>{
+				logout.callback();
 			})
-			Auth._listenany.forEach(anyCb=>{
-				anyCb();
+			Auth._listenany.forEach(any=>{
+				any.callback();
 			})
 		}
 	})
@@ -603,16 +603,16 @@ app.factory('Auth', function($firebaseAuth, Fire){
 		_listenlogin: [],
 		_listenlogout: [],
 		_listenany: [],
-		on: (type, callback)=>{
+		on: (type, callback, persist)=>{
 			type = type.toLowerCase();
-			Auth['_listen'+type].push(callback);
+			Auth['_listen'+type].push({callback, persist});
 			if(Auth.state !== 'pending')
 				callback(Auth);
 		},
 		reset: ()=>{
-			Auth._listenlogin = [];
-			Auth._listenlogout = [];
-			Auth._listenany = [];
+			Auth._listenlogin = Auth._listenlogin.filter(cb=>cb.persist);
+			Auth._listenlogout = Auth._listenlogout.filter(cb=>cb.persist);
+			Auth._listenany = Auth._listenany.filter(cb=>cb.persist);
 		}
 	}
 	return Auth;
