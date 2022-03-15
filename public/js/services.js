@@ -579,7 +579,7 @@ app.factory('Auth', function($firebaseAuth, Fire){
 					return firebase.auth().currentUser.getToken(true)
 				}
 				Auth.state = 'auth';
-				Auth.user = user;
+				Auth.user = Auth.$scope.user = user;
 				Auth._listenlogin.forEach(login=>{
 					login.callback(user);
 				})
@@ -603,6 +603,11 @@ app.factory('Auth', function($firebaseAuth, Fire){
 		_listenlogin: [],
 		_listenlogout: [],
 		_listenany: [],
+		init: ($scope, onLogin, onLogout)=>{
+			Auth.$scope = $scope;
+			onLogin && Auth.on('login', onLogin, true);
+			onLogout && Auth.on('logout', onLogout, true);
+		},
 		on: (type, callback, persist)=>{
 			type = type.toLowerCase();
 			Auth['_listen'+type].push({callback, persist});
