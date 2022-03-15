@@ -583,6 +583,9 @@ app.factory('Auth2', function($firebaseAuth, Fire){
 				Auth._listenlogin.forEach(loginCb=>{
 					loginCb(Auth);
 				})
+				Auth._listenany.forEach(anyCb=>{
+					anyCb(Auth);
+				})
 			})
 		}else{
 			Auth.state = 'guest';
@@ -590,12 +593,16 @@ app.factory('Auth2', function($firebaseAuth, Fire){
 			Auth._listenlogout.forEach(logoutCb=>{
 				logoutCb(Auth);
 			})
+			Auth._listenany.forEach(anyCb=>{
+				anyCb(Auth);
+			})
 		}
 	})
 	let Auth = {
 		state: 'pending', //auth,guest
 		_listenlogin: [],
 		_listenlogout: [],
+		_listenany: [],
 		on: (type, callback)=>{
 			type = type.toLowerCase();
 			Auth['listen'+type].push(callback);
