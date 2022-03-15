@@ -6,7 +6,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 	$scope.moment		= moment;
 	$scope.temp 		= {};
 	
-	console.log('Proj Ctrl');
 	//we need to initialize api each time so it doesn't retain leftovers from a previous view.
 	let api = window.api = $scope.api = {
 		_ct:		25, //history count
