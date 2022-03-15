@@ -608,6 +608,11 @@ app.factory('Auth', function($firebaseAuth, Fire){
 			Auth['_listen'+type].push(callback);
 			if(Auth.state !== 'pending')
 				callback(Auth);
+		},
+		reset: ()=>{
+			Auth._listenlogin = [];
+			Auth._listenlogout = [];
+			Auth._listenany = [];
 		}
 	}
 	return Auth;
