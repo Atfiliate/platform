@@ -564,6 +564,47 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 		return {};
 	}
 })
+app.factory('Auth2', function($firebaseAuth, Fire){
+	$firebaseAuth().$onAuthStateChanged(function(user){
+		if(user){
+			new Fire(`roles/${user.uid}`).get().then(r=>{
+				user.roles = r;
+				user.is = (role)=>{ //can pass 'role.subRole'
+					if(!role || role == 'any')
+						return true;
+					else
+						return pathValue(user.roles, role);
+				}
+				user.jwt = function(){
+					return firebase.auth().currentUser.getToken(true)
+				}
+				Auth.state = 'auth';
+				Auth.user = user;
+				Auth._listenlogin.forEach(loginCb=>{
+					loginCb(Auth);
+				})
+			})
+		}else{
+			Auth.state = 'guest';
+			delete Auth.user;
+			Auth._listenlogout.forEach(logoutCb=>{
+				logoutCb(Auth);
+			})
+		}
+	})
+	let Auth = {
+		state: 'pending', //auth,guest
+		_listenlogin: [],
+		_listenlogout: [],
+		on: (type, callback)=>{
+			type = type.toLowerCase();
+			Auth['listen'+type].push(callback);
+			if(Auth.state !== 'pending')
+				callback(Auth);
+		}
+	}
+	return Auth;
+})
 app.factory('Auth', function($q, $firebaseAuth, $firebaseObject, Fire){
 	var signin = $q.defer();
 	var authState = $q.defer();
