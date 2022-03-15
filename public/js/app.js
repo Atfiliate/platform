@@ -96,7 +96,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
-app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Auth2, Fire){
+app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Auth, Fire){
 	$rootScope.config = config;
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
@@ -106,7 +106,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	
 	if(config.fire)
 		Fire.config(config.fire);
-	Auth2.on('login', (user)=>{
+	Auth.on('login', (user)=>{
 		$rootScope.user = user;
 		tools.profile.init(user);
 	})
@@ -233,7 +233,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				console.log({a:'setup profile', user})
 				if(window.gtag)
 					gtag('set', {user_id: user.uid});
-				if(!$rootScope.profile){
+				if(pathValue($rootScope, 'profile.id') != user.uid){
 					$rootScope.profile = {status:'pending'}
 					new Fire(`profile/${user.uid}`).get().then(profile=>{
 						$rootScope.profile = profile;
