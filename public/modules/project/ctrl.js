@@ -1417,7 +1417,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 	}
 
 	Auth.on('any', (user)=>{
-		$scope.user = user;
 		tools.init(Auth.status);
 	})
 	it.ProjCtrl = $scope;
