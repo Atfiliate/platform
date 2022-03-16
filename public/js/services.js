@@ -565,9 +565,7 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 	}
 })
 app.factory('Auth', function($firebaseAuth, Fire){
-	firebase.auth().onAuthStateChanged(function(user){
-		console.log({ast:'true', user})
-	// $firebaseAuth().$onAuthStateChanged(function(user){
+	$firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
 			new Fire(`roles/${user.uid}`).get().then(r=>{
 				user.roles = r;
@@ -613,8 +611,12 @@ app.factory('Auth', function($firebaseAuth, Fire){
 		on: (type, callback, persist)=>{
 			type = type.toLowerCase();
 			Auth['_listen'+type].push({callback, persist});
-			if(Auth.state !== 'pending')
-				callback(Auth);
+			if(Auth.state !== 'pending'){
+				if(type == 'logout' &&  Auth.state == 'guest')
+					callback(Auth);
+				else if(type == 'login' && Auth.state == 'auth')
+					callback(Auth);
+			}
 		},
 		reset: ()=>{
 			Auth._listenlogin = Auth._listenlogin.filter(cb=>cb.persist);
