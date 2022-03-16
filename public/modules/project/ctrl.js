@@ -645,7 +645,8 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			import: ()=>{
 				let oldPkg = $scope.diff.oldPkg;
-				oldPkg.page.local = oldPkg.page.local || newPkg.page.local || {}; //we do not update local here if already set.
+				if(!oldPkg.page.local || prompt('Would you like to overwrite local page vars?'))
+					oldPkg.page.local = newPkg.page.local || null; //we do not update local here if already set.
 				$scope.diff.components.forEach(item=>{
 					if(item.approved){
 						if(item.change == 'change')
