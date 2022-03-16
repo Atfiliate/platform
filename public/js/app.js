@@ -225,7 +225,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		logout: function(){
 			firebase.auth().signOut().then(function() {
 				localStorage.clear();
-				window.location.reload();
+				// window.location.reload();
 			}, function(error) {
 			// An error happened.
 			});
