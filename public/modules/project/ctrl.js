@@ -214,7 +214,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					}catch(e){
 						$http.post('cloud/log', {
 							url:		window.location.href,
-							userId:		($scope.user && $scope.user.uid),
+							userId:		pathValue($scope, 'user.uid') || 'guest',
 							deviceId:	JSON.parse(localStorage.device || '{}').id,
 							createdOn:	new Date().toISOString(),
 							name:		e.name,
@@ -1416,8 +1416,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 		}
 	}
 
-	Auth.on('any', (user)=>{
-		tools.init(Auth.status);
-	})
+	tools.init();
 	it.ProjCtrl = $scope;
 });
