@@ -109,6 +109,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	
 	Auth.init($rootScope, (user)=>{
 		tools.profile.init(user);
+	}, ()=>{
+		localStorage.clear();
+		delete $rootScope.user;
+		delete $rootScope.profile;
+		delete $rootScope.myDevices;
+		delete $rootScope.$device;
+		delete $rootScope.session;
 	})
 	// $firebaseAuth().$onAuthStateChanged(function(user) {
 	// 	if(user){
@@ -223,12 +230,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}
 		},
 		logout: function(){
-			firebase.auth().signOut().then(function() {
-				localStorage.clear();
-				window.location.reload();
-			}, function(error) {
-			// An error happened.
-			});
+			firebase.auth();
 		},
 		profile: {
 			init: function(user){
