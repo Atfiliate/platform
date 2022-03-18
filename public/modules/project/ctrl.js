@@ -571,9 +571,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					type: 	'page',
 					path:	'page.local',
 					id: 	'js',
-					p1: 	pkg1.page.local,
+					p1: 	pkg1.page.local || '',
 					p2: 	pkg2.page.local,
-					v1: 	pkg1.page.local,
+					v1: 	pkg1.page.local || '',
 					v2: 	pkg2.page.local,
 					change: (pkg1.page.local != pkg2.page.local) ? 'change' : 'none'
 				})
