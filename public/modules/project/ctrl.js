@@ -566,16 +566,21 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					v2: 	pkg2.page.js,
 					change: (pkg1.page.js != pkg2.page.js) ? 'change' : 'none'
 				})
+				let l1 = JSON.stringify(pkg1.page.local || {})
+				let l2 = JSON.stringify(pkg2.page.local || {})
 				components.push({
 					title:	'Local Config',
 					type: 	'page',
 					path:	'page.local',
 					id: 	'js',
-					p1: 	pkg1.page.local || '',
-					p2: 	pkg2.page.local,
-					v1: 	pkg1.page.local || '',
-					v2: 	pkg2.page.local,
-					change: (pkg1.page.local != pkg2.page.local) ? 'change' : 'none'
+					p1: 	l1,
+					p2: 	l2,
+					v1: 	l1,
+					v2: 	l2,
+					change: (l1 != l2) ? 'change' : 'none',
+					cout:	(str)=>{
+						return JSON.parse(str);
+					}
 				})
 				Object.keys({...pkg1.component, ...pkg2.component}).forEach(key=>{
 					let canAdd = !pathValue(pkg1, `component.${key}.code`) && !!pathValue(pkg2, `component.${key}.code`);
@@ -659,7 +664,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 				$scope.diff.components.forEach(item=>{
 					if(item.approved){
 						if(item.change == 'change')
-							pathValue(oldPkg, item.path, (item.rev || item.v2));
+							pathValue(oldPkg, item.path, (item.cout ? item.cout(item.rev || item.v2) : (item.rev || item.v2)))
 						else if(item.change == 'add')
 							oldPkg[item.type][item.id] = item.p2;
 						else if(item.change == 'remove')
