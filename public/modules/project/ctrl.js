@@ -1170,7 +1170,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			verify: manifest=>{ //verifies addon integrity (signature) before running.
 				return new Promise((res, rej)=>{
-					let publicKey = pathValue($scope, 'page.publicKey') || tools.validate._publicKey;
+					let publicKey = pathValue($scope, 'page.publicKey') || config.publicKey || tools.validate._publicKey;
 					let signature = manifest.signature || '';
 					let cleanManifest = tools.addon.encoded(manifest);
 					tools.validate.verify(cleanManifest, signature, publicKey).then(isValid=>{
