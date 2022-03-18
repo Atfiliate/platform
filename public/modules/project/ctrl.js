@@ -566,6 +566,17 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					v2: 	pkg2.page.js,
 					change: (pkg1.page.js != pkg2.page.js) ? 'change' : 'none'
 				})
+				components.push({
+					title:	'Local Config',
+					type: 	'page',
+					path:	'page.local',
+					id: 	'js',
+					p1: 	pkg1.page.local,
+					p2: 	pkg2.page.local,
+					v1: 	pkg1.page.local,
+					v2: 	pkg2.page.local,
+					change: (pkg1.page.local != pkg2.page.local) ? 'change' : 'none'
+				})
 				Object.keys({...pkg1.component, ...pkg2.component}).forEach(key=>{
 					let canAdd = !pathValue(pkg1, `component.${key}.code`) && !!pathValue(pkg2, `component.${key}.code`);
 					let canRemove = !!pathValue(pkg1, `component.${key}.code`) && !pathValue(pkg2, `component.${key}.code`);
@@ -645,8 +656,6 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			import: ()=>{
 				let oldPkg = $scope.diff.oldPkg;
-				if(!oldPkg.page.local || prompt('Would you like to overwrite local page vars?'))
-					oldPkg.page.local = newPkg.page.local || null; //we do not update local here if already set.
 				$scope.diff.components.forEach(item=>{
 					if(item.approved){
 						if(item.change == 'change')
