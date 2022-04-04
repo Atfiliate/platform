@@ -1204,7 +1204,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 							}
 							return addon;
 						}else{
-							console.info(`The addon at: ${url} could not be loaded.`)
+							console.info(`The addon at: ${manifest.url} could not be loaded.`)
 						}
 					})
 				}catch(e){
