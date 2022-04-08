@@ -110,7 +110,7 @@ app.factory('Fire', function($q){
 			}
 			return obj;
 		}
-		fire._prepare = function(obj){ //prepare is called with local data in prep to send to the DB
+		Fire._prepare = fire._prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 			if(obj){
 				Object.keys(obj).forEach(function(k){
 					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
