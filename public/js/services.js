@@ -110,21 +110,7 @@ app.factory('Fire', function($q){
 			}
 			return obj;
 		}
-		Fire.prepare = fire._prepare = function(obj){ //prepare is called with local data in prep to send to the DB
-			if(obj){
-				Object.keys(obj).forEach(function(k){
-					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
-						delete obj[k];
-					}else if(Array.isArray(obj[k])){
-						obj[k] = obj[k].map(fire._prepare)
-					}else if(typeof obj[k] == 'object'){
-						obj[k] = fire._prepare(obj[k])
-					}
-				})
-// 				obj.$hash = JSON.stringify(obj).hashCode(); //this becomes outdated when a user 'updates' a document.
-			}
-			return obj;
-		}
+		fire._prepare = Fire.prepare;
 		fire._become = function(ds){
 			Fire.ct.read++;
 			var data = ds.data();
@@ -377,6 +363,21 @@ app.factory('Fire', function($q){
 			return deferred.promise;
 		}
 	}
+	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
+		if(obj){
+			Object.keys(obj).forEach(function(k){
+				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
+					delete obj[k];
+				}else if(Array.isArray(obj[k])){
+					obj[k] = obj[k].map(fire._prepare)
+				}else if(typeof obj[k] == 'object'){
+					obj[k] = fire._prepare(obj[k])
+				}
+			})
+		}
+		return obj;
+	}
+	
 	if(localStorage.debug)
 		console.info('Debug enabled: delete localStorage.debug')
 	Fire.instances = [];
