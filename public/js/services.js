@@ -369,9 +369,9 @@ app.factory('Fire', function($q){
 				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
 					delete obj[k];
 				}else if(Array.isArray(obj[k])){
-					obj[k] = obj[k].map(fire._prepare)
+					obj[k] = obj[k].map(Fire.prepare)
 				}else if(typeof obj[k] == 'object'){
-					obj[k] = fire._prepare(obj[k])
+					obj[k] = Fire.prepare(obj[k])
 				}
 			})
 		}
