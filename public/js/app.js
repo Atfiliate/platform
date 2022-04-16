@@ -232,7 +232,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			delete $rootScope.myDevices;
 			delete $rootScope.$device;
 			delete $rootScope.session;
-			$firebaseAuth().logout();
+			$firebaseAuth().$signOut();
 		},
 		profile: {
 			init: function(user){
