@@ -1195,12 +1195,11 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 							addon.meta.url = manifest.url;
 						}
 						if(addon){
-							if(!$scope.addon[addon.meta.name]){
+							let install = !$scope.addon[addon.meta.name] || confirm(`A(n) ${addon.meta.name} already exists.  Do you want to replace it?`);
+							if(install){
 								$scope.addon[addon.meta.name] = addon;
 								$scope.addon[addon.meta.name].init && $scope.addon[addon.meta.name].init(api);
 								manifest.$installed = true;
-							}else{
-								console.error(`Addon with the name: ${addon.meta.name} already exists.`)
 							}
 							return addon;
 						}else{
