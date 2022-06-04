@@ -383,7 +383,7 @@ module.exports = {
 			console.log('--PAGE--')
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-				response.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
+				response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			}
 
