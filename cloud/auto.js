@@ -377,7 +377,7 @@ module.exports = {
 					}
 				});
 			}
-		}else{
+		}else if(request.params.projId){
 			console.log('get project page')
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
