@@ -378,16 +378,17 @@ module.exports = {
 				});
 			}
 		}else{
+			console.log('get project page')
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 				response.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
 				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			}
 
-			var cachePath = `project/${request.params.projId}`;
-			var code = mcache.get(cachePath)
-			if(code){
-				response.send(code);
+			var cachePath = `project/${request.params.projId}/page`;
+			var page = mcache.get(cachePath)
+			if(page){
+				response.send(page);
 			}else{
 				console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
 				var ref = firebase.database().ref('project/'+request.params.projId+'/page');
