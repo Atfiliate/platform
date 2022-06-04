@@ -377,6 +377,33 @@ module.exports = {
 					}
 				});
 			}
+		}else{
+			if(request.headers.origin){
+				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
+				response.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
+				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
+			}
+
+			var cachePath = `project/${request.params.projId}`;
+			var code = mcache.get(cachePath)
+			if(code){
+				response.send(code);
+			}else{
+				console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
+				var ref = firebase.database().ref('project/'+request.params.projId+'/page');
+
+				ref.once('value', function(snapshot){
+					var page = snapshot.val();
+					try{
+						if(page.cache){
+							mcache.put(cachePath, JSON.stringify(page), Number(page.cache));
+						}
+						response.send(page);
+					}catch(e){
+						response.send(e);
+					}
+				});
+			}
 		}
 	},
 	package: function(request, response){
