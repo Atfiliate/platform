@@ -378,5 +378,18 @@ module.exports = {
 				});
 			}
 		}
+	},
+	template: function(request, response){
+		db.doc('admin/settings').get().then(s=>{
+			let settings = s.data();
+			if(pathValue(settings, 'plan.id') == 'openSource' || pathValue(settings, 'templateKey') == request.body.templateKey){
+				let path = `project/${request.params.id}`;
+				var ref = firebase.database().ref(path);
+				ref.once('value', function(snap){
+					var pkg = snap.val();
+						response.send(pkg);
+				})	
+			}
+		})
 	}
 }
