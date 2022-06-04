@@ -289,6 +289,7 @@ module.exports = {
 		if(firebase.apps.length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
+			console.log('--COMPONENT--')
 			var path = request.params.component;
 				path = path.split('.').join('_');
 
@@ -329,6 +330,7 @@ module.exports = {
 				});
 			}
 		}else if(request.params.cloud){
+			console.log('--CLOUD--')
 			var path = request.params.cloud;
 				path = path.split('.').join('_');
 
@@ -377,8 +379,8 @@ module.exports = {
 					}
 				});
 			}
-		}else if(request.params.projId){
-			console.log('get project page')
+		}else{
+			console.log('--PAGE--')
 			if(request.headers.origin){
 				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 				response.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -391,7 +393,7 @@ module.exports = {
 				response.send(page);
 			}else{
 				console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
-				var ref = firebase.database().ref('project/'+request.params.projId+'/page');
+				var ref = firebase.database().ref(`project/${request.params.projId}/page`);
 
 				ref.once('value', function(snapshot){
 					var page = snapshot.val();
@@ -405,8 +407,6 @@ module.exports = {
 					}
 				});
 			}
-		}else{
-			response.send('unknown')
 		}
 	},
 	package: function(request, response){
