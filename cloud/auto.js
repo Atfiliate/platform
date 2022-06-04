@@ -379,10 +379,12 @@ module.exports = {
 			}
 		}
 	},
-	template: function(request, response){
+	package: function(request, response){
 		db.doc('admin/settings').get().then(s=>{
 			let settings = s.data();
-			if(pathValue(settings, 'plan.id') == 'openSource' || pathValue(settings, 'templateKey') == request.body.templateKey){
+			let origin = request.get('origin');
+			let pair = (settings.sites || []).find(s=>s.domain == origin);
+			if(pathValue(settings, 'plan.id') == 'openSource' || (pair && pair.key == request.body.pairKey)){
 				let path = `project/${request.params.id}`;
 				var ref = firebase.database().ref(path);
 				ref.once('value', function(snap){
