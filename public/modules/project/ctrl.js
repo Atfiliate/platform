@@ -154,28 +154,48 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 	
 	var tools = $scope.tools = {
 		init: function(){
-			pageRef 		= firebase.database().ref('project/'+projectId).child('page');
-			templateRef 	= firebase.database().ref("site/public/pageTemplates");
-			historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
-			snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
-			page 			= $firebaseObject(pageRef);
+			let ab = JSON.parse(localStorage.getItem('ab'));
+			let v = pathValue(ab, $routeParams.view) || $scope.params.v;
+			// if(v === 'personal'){
+			// 	pageRef = firebase.database().ref(`project/${projectId}/snapshots/${v}`);
+			// }else if(v){
+			// 	pageRef = firebase.database().ref(`project/${projectId}/snapshots/${v}`);
+			// }else{
+			// 	pageRef = firebase.database().ref('project/'+projectId).child('page');
+			// }
+			
+			// pageRef 		= firebase.database().ref('project/'+projectId).child('page');
+			// templateRef 	= firebase.database().ref("site/public/pageTemplates");
+			// historyRef		= firebase.database().ref('project/'+projectId+'/historicPages');
+			// snapshotRef 	= firebase.database().ref('project/'+projectId+'/snapshots');
+			
+			// page 			= $firebaseObject(pageRef);
+			
+			$http.post(`/project/${projectId}?v=${v}`).then(page=>{
+				$scope.page = page;
+				if(page.title)
+					document.title = page.title;
+				tools.render(page)
+			})
 
 			Mousetrap.bind('ctrl+e', function(e){
 				e.preventDefault();
-				if($scope.user.is('developer'))
+				if($scope.user.is('developer')){
 					tools.edit.init();
-			})
-			Mousetrap.bind('ctrl+s', function(e){
-				e.preventDefault();
-				tools.edit.save();
+					
+					Mousetrap.bind('ctrl+s', function(e){
+						e.preventDefault();
+						tools.edit.save();
+					})
+				}
 			})
 
-			page.$bindTo($scope, "page");
-			page.$loaded(function(page){
-				tools.render(page)
-				if(page.title)
-					document.title = page.title;
-			})
+			// page.$bindTo($scope, "page");
+			// page.$loaded(function(page){
+			// 	tools.render(page)
+			// 	if(page.title)
+			// 		document.title = page.title;
+			// })
 		},
 		render: function(page){
 			var promises = [];
@@ -388,7 +408,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 		},
 		history: {
 			init: function(){
-				$scope.history = $firebaseArray(historyRef);
+				// $scope.history = $firebaseArray(historyRef);
 			},
 			add: function(historicPage){
 				historicPage.archivedBy = $scope.user.uid;
@@ -410,7 +430,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 		},
 		snapshot: {
 			init: function(){
-				$scope.snapshots = $firebaseArray(snapshotRef);
+				// $scope.snapshots = $firebaseArray(snapshotRef);
 			},
 			add: function(){
 				var snapPage = angular.copy($scope.page);
@@ -465,7 +485,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			init: function(){
 				// var page = $firebaseObject(pageRef);
 				// 	page.$bindTo($scope, "page");
-				$scope.templates = $firebaseArray(templateRef);
+				// $scope.templates = $firebaseArray(templateRef);
 			},
 			add: function(){
 				$scope.temp.page.title = prompt('Enter Template Name')
@@ -519,6 +539,10 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					})
 					tools.package.load(pkg);
 				})
+			},
+			fromPair: ()=>{
+				
+				//https://my.latterday.works/project/admin/cloud/package
 			},
 			load: function(newPkg){
 				$scope.diff = {newPkg};
