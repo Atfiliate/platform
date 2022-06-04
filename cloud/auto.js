@@ -382,9 +382,7 @@ module.exports = {
 	package: function(request, response){
 		db.doc('admin/settings').get().then(s=>{
 			let settings = s.data();
-			let origin = request.get('origin');
-			let pair = (settings.sites || []).find(s=>s.domain == origin);
-			if(pathValue(settings, 'plan.id') == 'openSource' || (pair && pair.key == request.body.pairKey)){
+			if(pathValue(settings, 'plan.id') == 'openSource'){
 				let path = `project/${request.params.id}`;
 				var ref = firebase.database().ref(path);
 				ref.once('value', function(snap){
