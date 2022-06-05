@@ -171,7 +171,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			
 			// page 			= $firebaseObject(pageRef);
 			
-			$http.post(`/project/${projectId}?v=${v}`).then(page=>{
+			$http.get(`/project/${projectId}?v=${v}`).then(page=>{
 				$scope.page = page;
 				if(page.title)
 					document.title = page.title;
