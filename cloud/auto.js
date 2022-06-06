@@ -308,8 +308,6 @@ module.exports = {
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
 			var path = request.params.component;
-			// 	path = path.split('.').join('_');
-
 			// if(request.headers.origin){
 			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			// 	response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -333,31 +331,6 @@ module.exports = {
 			}catch(e){
 				response.send(e)
 			}
-			
-			// console.log('root component - - - -', request.params.root)
-			// var cachePath = request.params.projId+'/'+path;
-			// var cache = mcache.get(cachePath)
-			// if(cache){
-			// 	response.send(cache);
-			// }else{
-			// 	console.log('NOTFROMCACHE-project-component----------> '+request.params.projId+'/'+path);
-			// 	if(request.params.projId)
-			// 		var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
-			// 	else
-			// 		var ref = firebase.database().ref('project/private/component').child(path);
-
-			// 	ref.once('value', function(snapshot){
-			// 		var component = snapshot.val();
-			// 		try{
-			// 			if(component.cache){
-			// 				mcache.put(cachePath, component.code, Number(component.cache));
-			// 			}
-			// 			response.send(component.code)
-			// 		}catch(e){
-			// 			response.send(e);
-			// 		}
-			// 	});
-			// }
 		}else if(request.params.cloud){
 			let cloud;
 			if(request.query.v)
@@ -375,55 +348,6 @@ module.exports = {
 			}catch(e){
 				response.send(e)
 			}
-			
-			// var path = request.params.cloud;
-			// 	path = path.split('.').join('_');
-
-			// if(request.headers.origin){
-			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-			// 	response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-			// 	response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
-			// }
-
-			// var cachePath = request.params.projId+'/cloud/'+path;
-			// var code = mcache.get(cachePath)
-			// if(code){
-			// 	try{
-			// 		var js; eval('js = '+code)
-			// 		if(js && js.init){
-			// 			js.init(request, response)
-			// 		}else{
-			// 			response.send('No path found.')
-			// 		}
-			// 	}catch(e){
-			// 		response.send(e);
-			// 	}
-			// }else{
-			// 	console.log('NOTFROMCACHE-project-cloud----------> '+request.params.projId+'/'+path);
-			// 	if(request.params.projId)
-			// 		var ref = firebase.database().ref('project/'+request.params.projId+'/cloud').child(path);
-			// 	else
-			// 		var ref = firebase.database().ref('project/private/cloud').child(path);
-
-			// 	ref.once('value', function(snapshot){
-			// 		var cloud = snapshot.val();
-			// 		try{
-			// 			var code = cloud.code;
-			// 			if(cloud.cache){
-			// 				mcache.put(cachePath, cloud.code, Number(cloud.cache));
-			// 			}
-
-			// 			var js; eval('js = '+code);
-			// 			if(js && js.init){
-			// 				js.init(request, response)
-			// 			}else{
-			// 				response.send('No path found.')
-			// 			}
-			// 		}catch(e){
-			// 			response.send(e);
-			// 		}
-			// 	});
-			// }
 		}else{
 			let page;
 			if(request.query.v)
