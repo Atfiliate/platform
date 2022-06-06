@@ -4,6 +4,7 @@ var http		= require('request-promise');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment');
 var mcache		= require('memory-cache');
+let filecache	= {};
 
 if(firebase.apps.length)
 	var db 		= firebase.firestore();
@@ -132,6 +133,22 @@ module.exports = {
 				})
 			});
 		}
+	},
+
+	cache: ()=>{
+		const query = db.collectionGroup('dev').where('stage','==','prod');
+		const observer = query.onSnapshot(qs => {
+			qs.docChanges().forEach(change=>{
+				let doc = change.doc.data();
+					doc.id = change.doc.id;
+				let proj = pathValue(filecache, doc.projectId) || {default: null, docs:{}};
+					proj.docs[doc.id] = doc;
+					if(doc.state == 'prod' && doc.default)
+						proj.default = doc;
+			})
+		}, err => {
+			console.log(`Encountered error: ${err}`);
+		});
 	},
 	cloud: function(request, response){
 		if(request.headers.origin){
@@ -289,7 +306,6 @@ module.exports = {
 		if(firebase.apps.length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
-			console.log('--COMPONENT--')
 			var path = request.params.component;
 				path = path.split('.').join('_');
 
@@ -330,7 +346,6 @@ module.exports = {
 				});
 			}
 		}else if(request.params.cloud){
-			console.log('--CLOUD--')
 			var path = request.params.cloud;
 				path = path.split('.').join('_');
 
@@ -380,33 +395,40 @@ module.exports = {
 				});
 			}
 		}else{
-			console.log('--PAGE--')
-			if(request.headers.origin){
-				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-				response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
-			}
+			let doc;
+			if(request.query.v)
+				doc = pathValue(filecache, `${request.params.projId}.${v}`);
+			doc = doc || pathValue(filecache, `${request.params.projId}.default`);
+			response.send(doc);
+			
+			
+			// if(request.headers.origin){
+			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
+			// 	response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+			// 	response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
+			// }
 
-			var cachePath = `project/${request.params.projId}/page`;
-			var page = mcache.get(cachePath)
-			if(page){
-				response.send(page);
-			}else{
-				console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
-				var ref = firebase.database().ref(`project/${request.params.projId}/page`);
-
-				ref.once('value', function(snapshot){
-					var page = snapshot.val();
-					try{
-						if(page.cache){
-							mcache.put(cachePath, JSON.stringify(page), Number(page.cache));
-						}
-						response.send(page);
-					}catch(e){
-						response.send(e);
-					}
-				});
-			}
+			// var cachePath = `project/${request.params.projId}/page`;
+			// var page = mcache.get(cachePath)
+			// if(page){
+			// 	response.send(page);
+			// }else{
+			// 	console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
+			// 	var ref = db.doc(``)
+				
+			// 	var ref = firebase.database().ref(`project/${request.params.projId}/page`);
+			// 	ref.once('value', function(snapshot){
+			// 		var page = snapshot.val();
+			// 		try{
+			// 			if(page.cache){
+			// 				mcache.put(cachePath, JSON.stringify(page), Number(page.cache));
+			// 			}
+			// 			response.send(page);
+			// 		}catch(e){
+			// 			response.send(e);
+			// 		}
+			// 	});
+			// }
 		}
 	},
 	package: function(request, response){
