@@ -397,7 +397,7 @@ module.exports = {
 		}else{
 			let doc;
 			if(request.query.v)
-				doc = pathValue(filecache, `${request.params.projId}.${v}`);
+				doc = pathValue(filecache, `${request.params.projId}.${request.query.v}`);
 			doc = doc || pathValue(filecache, `${request.params.projId}.default`);
 			response.send(doc);
 			
