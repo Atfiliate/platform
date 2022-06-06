@@ -141,8 +141,8 @@ module.exports = {
 			qs.docChanges().forEach(change=>{
 				let doc = change.doc.data();
 					doc.id = change.doc.id;
-				let proj = pathValue(filecache, doc.projectId) || {default: null, docs:{}};
-					proj.docs[doc.id] = doc;
+				let proj = pathValue(filecache, doc.projectId) || {default: null, snaps:{}};
+					proj.snaps[doc.id] = doc;
 					if(doc.stage == 'prod' && doc.default)
 						proj.default = doc;
 					pathValue(filecache, doc.projectId, proj);
@@ -308,128 +308,130 @@ module.exports = {
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
 			var path = request.params.component;
-				path = path.split('.').join('_');
+			// 	path = path.split('.').join('_');
 
-			if(request.headers.origin){
-				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-				response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
-			}
-
-			if(path.indexOf('_js') != -1)
-				response.setHeader("Content-Type", 'application/javascript');
-			else if(path.indexOf('_css') != -1)
-				response.setHeader("Content-Type", 'text/css');
-			else if(path.indexOf('_json') != -1)
-				response.setHeader("Content-Type", 'application/json');
-
-			var cachePath = request.params.projId+'/'+path;
-			var cache = mcache.get(cachePath)
-			if(cache){
-				response.send(cache);
-			}else{
-				console.log('NOTFROMCACHE-project-component----------> '+request.params.projId+'/'+path);
-				if(request.params.projId)
-					var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
-				else
-					var ref = firebase.database().ref('project/private/component').child(path);
-
-				ref.once('value', function(snapshot){
-					var component = snapshot.val();
-					try{
-						if(component.cache){
-							mcache.put(cachePath, component.code, Number(component.cache));
-						}
-						response.send(component.code)
-					}catch(e){
-						response.send(e);
-					}
-				});
-			}
-		}else if(request.params.cloud){
-			var path = request.params.cloud;
-				path = path.split('.').join('_');
-
-			if(request.headers.origin){
-				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-				response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
-			}
-
-			var cachePath = request.params.projId+'/cloud/'+path;
-			var code = mcache.get(cachePath)
-			if(code){
-				try{
-					var js; eval('js = '+code)
-					if(js && js.init){
-						js.init(request, response)
-					}else{
-						response.send('No path found.')
-					}
-				}catch(e){
-					response.send(e);
-				}
-			}else{
-				console.log('NOTFROMCACHE-project-cloud----------> '+request.params.projId+'/'+path);
-				if(request.params.projId)
-					var ref = firebase.database().ref('project/'+request.params.projId+'/cloud').child(path);
-				else
-					var ref = firebase.database().ref('project/private/cloud').child(path);
-
-				ref.once('value', function(snapshot){
-					var cloud = snapshot.val();
-					try{
-						var code = cloud.code;
-						if(cloud.cache){
-							mcache.put(cachePath, cloud.code, Number(cloud.cache));
-						}
-
-						var js; eval('js = '+code);
-						if(js && js.init){
-							js.init(request, response)
-						}else{
-							response.send('No path found.')
-						}
-					}catch(e){
-						response.send(e);
-					}
-				});
-			}
-		}else{
-			let doc;
-			if(request.query.v)
-				doc = pathValue(filecache, `${request.params.projId}.${request.query.v}`);
-			doc = doc || pathValue(filecache, `${request.params.projId}.default`);
-			response.send(doc);
-			
-			
 			// if(request.headers.origin){
 			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-			// 	response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+			// 	response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 			// 	response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			// }
 
-			// var cachePath = `project/${request.params.projId}/page`;
-			// var page = mcache.get(cachePath)
-			// if(page){
-			// 	response.send(page);
-			// }else{
-			// 	console.log('NOTFROMCACHE-project-page----------> '+request.params.projId);
-			// 	var ref = db.doc(``)
+			if(!request.params.root){
+				let component;
+				if(request.query.v)
+					component = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.component.${request.query.component}`);
+				component = component || pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
 				
-			// 	var ref = firebase.database().ref(`project/${request.params.projId}/page`);
+				if(path.indexOf('_js') != -1 || path.indexOf('.js') != -1)
+					response.setHeader("Content-Type", 'application/javascript');
+				else if(path.indexOf('_css') != -1 || path.indexOf('.css') != -1)
+					response.setHeader("Content-Type", 'text/css');
+				else if(path.indexOf('_json') != -1 || path.indexOf('.json') != -1)
+					response.setHeader("Content-Type", 'application/json');
+	
+				try{
+					response.send(component.code);
+				}catch(e){
+					response.send(e)
+				}
+			}else{
+				console.log('root component - - - -', request.params.root)
+				var cachePath = request.params.projId+'/'+path;
+				var cache = mcache.get(cachePath)
+				if(cache){
+					response.send(cache);
+				}else{
+					console.log('NOTFROMCACHE-project-component----------> '+request.params.projId+'/'+path);
+					if(request.params.projId)
+						var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
+					else
+						var ref = firebase.database().ref('project/private/component').child(path);
+	
+					ref.once('value', function(snapshot){
+						var component = snapshot.val();
+						try{
+							if(component.cache){
+								mcache.put(cachePath, component.code, Number(component.cache));
+							}
+							response.send(component.code)
+						}catch(e){
+							response.send(e);
+						}
+					});
+				}
+			}
+		}else if(request.params.cloud){
+			let cloud;
+			if(request.query.v)
+				cloud = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.cloud.${request.query.cloud}`);
+			cloud = cloud || pathValue(filecache, `${request.params.projId}.default.cloud.${request.query.cloud}`);
+			
+			try{
+				let code = cloud.code || '';
+				var js; eval('js = '+code);
+				if(js && js.init){
+					js.init(request, response)
+				}else{
+					response.send('No path found.')
+				}
+			}catch(e){
+				response.send(e)
+			}
+			
+			// var path = request.params.cloud;
+			// 	path = path.split('.').join('_');
+
+			// if(request.headers.origin){
+			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
+			// 	response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+			// 	response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
+			// }
+
+			// var cachePath = request.params.projId+'/cloud/'+path;
+			// var code = mcache.get(cachePath)
+			// if(code){
+			// 	try{
+			// 		var js; eval('js = '+code)
+			// 		if(js && js.init){
+			// 			js.init(request, response)
+			// 		}else{
+			// 			response.send('No path found.')
+			// 		}
+			// 	}catch(e){
+			// 		response.send(e);
+			// 	}
+			// }else{
+			// 	console.log('NOTFROMCACHE-project-cloud----------> '+request.params.projId+'/'+path);
+			// 	if(request.params.projId)
+			// 		var ref = firebase.database().ref('project/'+request.params.projId+'/cloud').child(path);
+			// 	else
+			// 		var ref = firebase.database().ref('project/private/cloud').child(path);
+
 			// 	ref.once('value', function(snapshot){
-			// 		var page = snapshot.val();
+			// 		var cloud = snapshot.val();
 			// 		try{
-			// 			if(page.cache){
-			// 				mcache.put(cachePath, JSON.stringify(page), Number(page.cache));
+			// 			var code = cloud.code;
+			// 			if(cloud.cache){
+			// 				mcache.put(cachePath, cloud.code, Number(cloud.cache));
 			// 			}
-			// 			response.send(page);
+
+			// 			var js; eval('js = '+code);
+			// 			if(js && js.init){
+			// 				js.init(request, response)
+			// 			}else{
+			// 				response.send('No path found.')
+			// 			}
 			// 		}catch(e){
 			// 			response.send(e);
 			// 		}
 			// 	});
 			// }
+		}else{
+			let page;
+			if(request.query.v)
+				page = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.page`);
+			page = page || pathValue(filecache, `${request.params.projId}.default.page`);
+			response.send(page);
 		}
 	},
 	package: function(request, response){
