@@ -195,6 +195,7 @@ module.exports = {
 			});
 		}
 	},
+	// this (home) is used for project/code...
 	homeUpdate: (request, response)=>{
 		module.exports.home(request, response);
 	},
