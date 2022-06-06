@@ -4,7 +4,7 @@ var http		= require('request-promise');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment');
 var mcache		= require('memory-cache');
-let filecache	= {};
+let filecache	= {v:1.2};
 
 if(firebase.apps.length)
 	var db 		= firebase.firestore();
@@ -145,6 +145,7 @@ module.exports = {
 					proj.docs[doc.id] = doc;
 					if(doc.state == 'prod' && doc.default)
 						proj.default = doc;
+					pathValue(filecache, doc.projectId, proj);
 			})
 		}, err => {
 			console.log(`Encountered error: ${err}`);
