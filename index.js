@@ -9,6 +9,7 @@ var compression = require('compression');
 var multer = require('multer');
 
 auto.startup();
+auto.cache();
 
 var app = express();
 
