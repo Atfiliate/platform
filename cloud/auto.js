@@ -316,50 +316,48 @@ module.exports = {
 			// 	response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 			// }
 
-			if(!request.params.root){
-				let component;
-				if(request.query.v)
-					component = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.component.${request.query.component}`);
-				component = component || pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
-				
-				if(path.indexOf('_js') != -1 || path.indexOf('.js') != -1)
-					response.setHeader("Content-Type", 'application/javascript');
-				else if(path.indexOf('_css') != -1 || path.indexOf('.css') != -1)
-					response.setHeader("Content-Type", 'text/css');
-				else if(path.indexOf('_json') != -1 || path.indexOf('.json') != -1)
-					response.setHeader("Content-Type", 'application/json');
-	
-				try{
-					response.send(component.code);
-				}catch(e){
-					response.send(e)
-				}
-			}else{
-				console.log('root component - - - -', request.params.root)
-				var cachePath = request.params.projId+'/'+path;
-				var cache = mcache.get(cachePath)
-				if(cache){
-					response.send(cache);
-				}else{
-					console.log('NOTFROMCACHE-project-component----------> '+request.params.projId+'/'+path);
-					if(request.params.projId)
-						var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
-					else
-						var ref = firebase.database().ref('project/private/component').child(path);
-	
-					ref.once('value', function(snapshot){
-						var component = snapshot.val();
-						try{
-							if(component.cache){
-								mcache.put(cachePath, component.code, Number(component.cache));
-							}
-							response.send(component.code)
-						}catch(e){
-							response.send(e);
-						}
-					});
-				}
+			let component;
+			if(request.query.v)
+				component = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.component.${request.query.component}`);
+			component = component || pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
+			
+			if(path.indexOf('_js') != -1 || path.indexOf('.js') != -1)
+				response.setHeader("Content-Type", 'application/javascript');
+			else if(path.indexOf('_css') != -1 || path.indexOf('.css') != -1)
+				response.setHeader("Content-Type", 'text/css');
+			else if(path.indexOf('_json') != -1 || path.indexOf('.json') != -1)
+				response.setHeader("Content-Type", 'application/json');
+
+			try{
+				response.send(component.code);
+			}catch(e){
+				response.send(e)
 			}
+			
+			// console.log('root component - - - -', request.params.root)
+			// var cachePath = request.params.projId+'/'+path;
+			// var cache = mcache.get(cachePath)
+			// if(cache){
+			// 	response.send(cache);
+			// }else{
+			// 	console.log('NOTFROMCACHE-project-component----------> '+request.params.projId+'/'+path);
+			// 	if(request.params.projId)
+			// 		var ref = firebase.database().ref('project/'+request.params.projId+'/component').child(path);
+			// 	else
+			// 		var ref = firebase.database().ref('project/private/component').child(path);
+
+			// 	ref.once('value', function(snapshot){
+			// 		var component = snapshot.val();
+			// 		try{
+			// 			if(component.cache){
+			// 				mcache.put(cachePath, component.code, Number(component.cache));
+			// 			}
+			// 			response.send(component.code)
+			// 		}catch(e){
+			// 			response.send(e);
+			// 		}
+			// 	});
+			// }
 		}else if(request.params.cloud){
 			let cloud;
 			if(request.query.v)
