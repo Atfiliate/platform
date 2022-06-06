@@ -38,7 +38,7 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 			var deferred = $q.defer();
 			var module = window.location.hash.split('/')[1];
 			var dependencies = [
-				'modules/'+module+'/ctrl.js',
+				`https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;${module}-ctrl.js`
 			];
 			$script(dependencies, function() {
 				deferred.resolve();
