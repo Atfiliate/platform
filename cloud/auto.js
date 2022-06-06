@@ -143,7 +143,7 @@ module.exports = {
 					doc.id = change.doc.id;
 				let proj = pathValue(filecache, doc.projectId) || {default: null, docs:{}};
 					proj.docs[doc.id] = doc;
-					if(doc.state == 'prod' && doc.default)
+					if(doc.stage == 'prod' && doc.default)
 						proj.default = doc;
 					pathValue(filecache, doc.projectId, proj);
 			})
