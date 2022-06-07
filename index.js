@@ -34,11 +34,11 @@ app.get('/', function(request, response){
 		response.render('pages/setup');
 });
 
-app.get('/home', auto.home)
-app.get('/home/:path', auto.home)
+// app.get('/home', auto.home)
+// app.get('/home/:path', auto.home)
 
-app.options('/home/:path/update', auto.options)
-app.get('/home/:path/update', auto.homeUpdate)
+// app.options('/home/:path/update', auto.options)
+// app.get('/home/:path/update', auto.homeUpdate)
 
 app.get('/:root', auto.project)
 app.post('/stripe/customer', stripe.customer)
