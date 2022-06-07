@@ -308,7 +308,7 @@ module.exports = {
 		if(firebase.apps.length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
-			var path = request.params.component;
+			var cid = request.params.component;
 			// if(request.headers.origin){
 			// 	response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			// 	response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -316,22 +316,23 @@ module.exports = {
 			// }
 
 			let component;
-			if(request.query.v)
-				component = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.component.${request.query.component}`);
-			else
-				component = pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
+			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
+			if(proj && proj.component)
+				component = proj.component[cid];
 			
-			if(path.indexOf('_js') != -1 || path.indexOf('.js') != -1)
-				response.setHeader("Content-Type", 'application/javascript');
-			else if(path.indexOf('_css') != -1 || path.indexOf('.css') != -1)
-				response.setHeader("Content-Type", 'text/css');
-			else if(path.indexOf('_json') != -1 || path.indexOf('.json') != -1)
-				response.setHeader("Content-Type", 'application/json');
-
-			try{
-				response.send(component.code);
-			}catch(e){
-				response.send(e)
+			if(component){	
+				if(cid.indexOf('_js') != -1 || cid.indexOf('.js') != -1)
+					response.setHeader("Content-Type", 'application/javascript');
+				else if(cid.indexOf('_css') != -1 || cid.indexOf('.css') != -1)
+					response.setHeader("Content-Type", 'text/css');
+				else if(cid.indexOf('_json') != -1 || cid.indexOf('.json') != -1)
+					response.setHeader("Content-Type", 'application/json');
+	
+				try{
+					response.send(component.code);
+				}catch(e){
+					response.send(e)
+				}
 			}
 		}else if(request.params.cloud){
 			let cloud;
