@@ -200,67 +200,82 @@ module.exports = {
 		module.exports.home(request, response);
 	},
 	home: (request, response)=>{
-		var mkdir = require('mkdirp');
-		var fs = require('fs');
-		var gid = process.env.a_gid || 'iZTQIVnPzPW7b2CzNUmO';
-		var pid = process.env.a_pid || 'LIJGdBKzktXHntCWjoln';
-		var cid = request.params.path || 'index.html';
-
-		function hashIt(s){
-			return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
-		}
-		function send(code){
-			if(request.body.update){
-				response.send('Cache Updated')
-			}else if(cid){
-				if(cid.indexOf('.js') != -1)
-					response.setHeader("Content-Type", 'application/javascript');
-				else if(cid.indexOf('.htm') != -1)
-					response.setHeader("Content-Type", 'text/html');
-				else if(cid.indexOf('.css') != -1)
-					response.setHeader("Content-Type", 'text/css');
-				response.send(code)
-			}else{
-				response.send('');
+		let code = pathValue(filecache, 'code.default.cloud.code.code');
+		if(code){
+			try{
+				var js; eval('js = '+code);
+				if(js && js.init){
+					js.init(request, response)
+				}else{
+					response.send('No path found.')
+				}
+			}catch(e){
+				response.send(e)
 			}
 		}
+			
+		// filecache.code.default.cloud.code
+		// var mkdir = require('mkdirp');
+		// var fs = require('fs');
+		// var gid = process.env.a_gid || 'iZTQIVnPzPW7b2CzNUmO';
+		// var pid = process.env.a_pid || 'LIJGdBKzktXHntCWjoln';
+		// var cid = request.params.path || 'index.html';
 
-		var path = `home/${gid}/${pid}/${cid}`;
-		var hashPath = 'temp/component'+hashIt(path);
-		mkdir('temp');
+		// function hashIt(s){
+		// 	return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+		// }
+		// function send(code){
+		// 	if(request.body.update){
+		// 		response.send('Cache Updated')
+		// 	}else if(cid){
+		// 		if(cid.indexOf('.js') != -1)
+		// 			response.setHeader("Content-Type", 'application/javascript');
+		// 		else if(cid.indexOf('.htm') != -1)
+		// 			response.setHeader("Content-Type", 'text/html');
+		// 		else if(cid.indexOf('.css') != -1)
+		// 			response.setHeader("Content-Type", 'text/css');
+		// 		response.send(code)
+		// 	}else{
+		// 		response.send('');
+		// 	}
+		// }
 
-		var record = mcache.get(path);
-		if(record && request.query.update != process.env.a_key){
-			fs.readFile(hashPath, 'utf8', (e,d)=>{
-				if(e){
-					console.log(e)
-					send('404')
-				}else{
-					console.log('sending cached version', hashPath)
-					send(d)
-				}
-			})
-		}else{
-			http({
-				method: 'POST',
-				uri: 'https://a.alphabetize.us/project/code/cloud/site',
-				body: {gid,pid,cid},
-				json: true
-			}).then(component=>{
-				var code = component && component.code || '';
-				var time = component && component.cache || 360000;
-				fs.writeFile(hashPath, code, (e)=>{
-					if(e){
-						console.log('sending error - could not write file.')
-						send(e)
-					}else{
-						console.log('update local and send live code')
-						mcache.put(path, 'loaded', time);
-						send(code)
-					}
-				})
-			})
-		}
+		// var path = `home/${gid}/${pid}/${cid}`;
+		// var hashPath = 'temp/component'+hashIt(path);
+		// mkdir('temp');
+
+		// var record = mcache.get(path);
+		// if(record && request.query.update != process.env.a_key){
+		// 	fs.readFile(hashPath, 'utf8', (e,d)=>{
+		// 		if(e){
+		// 			console.log(e)
+		// 			send('404')
+		// 		}else{
+		// 			console.log('sending cached version', hashPath)
+		// 			send(d)
+		// 		}
+		// 	})
+		// }else{
+		// 	http({
+		// 		method: 'POST',
+		// 		uri: 'https://a.alphabetize.us/project/code/cloud/site',
+		// 		body: {gid,pid,cid},
+		// 		json: true
+		// 	}).then(component=>{
+		// 		var code = component && component.code || '';
+		// 		var time = component && component.cache || 360000;
+		// 		fs.writeFile(hashPath, code, (e)=>{
+		// 			if(e){
+		// 				console.log('sending error - could not write file.')
+		// 				send(e)
+		// 			}else{
+		// 				console.log('update local and send live code')
+		// 				mcache.put(path, 'loaded', time);
+		// 				send(code)
+		// 			}
+		// 		})
+		// 	})
+		// }
 	},
 	component: function(request, response){
 		var path = request.params.path;
