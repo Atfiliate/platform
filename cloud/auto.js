@@ -335,7 +335,7 @@ module.exports = {
 				}
 			}
 		}else if(request.params.cloud){
-			var cid = request.params.component;
+			var cid = request.params.cloud;
 			
 			let cloud;
 			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
