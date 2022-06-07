@@ -318,7 +318,8 @@ module.exports = {
 			let component;
 			if(request.query.v)
 				component = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.component.${request.query.component}`);
-			component = component || pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
+			else
+				component = pathValue(filecache, `${request.params.projId}.default.component.${request.query.component}`);
 			
 			if(path.indexOf('_js') != -1 || path.indexOf('.js') != -1)
 				response.setHeader("Content-Type", 'application/javascript');
@@ -336,7 +337,8 @@ module.exports = {
 			let cloud;
 			if(request.query.v)
 				cloud = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.cloud.${request.query.cloud}`);
-			cloud = cloud || pathValue(filecache, `${request.params.projId}.default.cloud.${request.query.cloud}`);
+			else
+				cloud = pathValue(filecache, `${request.params.projId}.default.cloud.${request.query.cloud}`);
 			
 			try{
 				let code = cloud.code || '';
