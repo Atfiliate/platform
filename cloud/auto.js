@@ -335,22 +335,27 @@ module.exports = {
 				}
 			}
 		}else if(request.params.cloud){
-			let cloud;
-			if(request.query.v)
-				cloud = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}.cloud.${request.query.cloud}`);
-			else
-				cloud = pathValue(filecache, `${request.params.projId}.default.cloud.${request.query.cloud}`);
+			var cid = request.params.component;
 			
-			try{
-				let code = cloud.code || '';
-				var js; eval('js = '+code);
-				if(js && js.init){
-					js.init(request, response)
-				}else{
-					response.send('No path found.')
+			let cloud;
+			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
+			if(proj && proj.cloud)
+				cloud = proj.cloud[cid];
+			
+			if(cloud){
+				try{
+					let code = cloud.code || '';
+					var js; eval('js = '+code);
+					if(js && js.init){
+						js.init(request, response)
+					}else{
+						response.send('No path found.')
+					}
+				}catch(e){
+					response.send(e)
 				}
-			}catch(e){
-				response.send(e)
+			}else{
+				response.send('error');
 			}
 		}else{
 			let proj;
