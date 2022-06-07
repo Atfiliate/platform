@@ -238,15 +238,15 @@ module.exports = {
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
 		}
+		if(request.headers.origin){
+			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
+			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
+		}
 		if(firebase.apps.length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
 			var cid = request.params.component;
-			if(request.headers.origin){
-				response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-				response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-				response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
-			}
 
 			let component;
 			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
