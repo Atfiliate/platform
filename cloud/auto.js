@@ -154,7 +154,7 @@ module.exports = {
 	cloud: function(request, response){
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
-			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 
@@ -291,13 +291,24 @@ module.exports = {
 				response.send('error');
 			}
 		}else{
-			let proj;
+			let proj, page;
 			if(request.query.v)
 				proj = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`);
-			proj = proj || pathValue(filecache, `${request.params.projId}.default`);
-			let page = proj.page = proj.page || {};
+			else
+				proj = pathValue(filecache, `${request.params.projId}.default`);
+			if(!proj){
+				db.collection('dev').doc(request.query.v).get().then(r=>{
+					proj = r.data();
+					proj.id = r.id;
+					page = proj.page = proj.page || {};
+					page.vid = proj.id;
+					response.send(page);
+				})
+			}else{
+				page = proj.page = proj.page || {};
 				page.vid = proj.id;
-			response.send(page);
+				response.send(page);
+			}
 		}
 	},
 	package: function(request, response){
