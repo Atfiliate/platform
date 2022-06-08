@@ -574,7 +574,7 @@ app.factory('Auth', function($firebaseAuth, Fire){
 					if(!role || role == 'any')
 						return true;
 					else
-						return pathValue(user.roles, role);
+						return pathValue(user.roles, role) || pathValue(user.roles, `${role.split('.')[0]}.all`);
 				}
 				user.jwt = function(){
 					return firebase.auth().currentUser.getToken(true)
