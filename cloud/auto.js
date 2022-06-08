@@ -298,11 +298,18 @@ module.exports = {
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
 				db.collection('dev').doc(request.query.v).get().then(r=>{
-					proj = r.data();
-					proj.id = r.id;
-					page = proj.page = proj.page || {};
-					page.vid = proj.id;
-					response.send(page);
+					if(r.exists){
+						proj = r.data();
+						proj.id = r.id;
+						page = proj.page = proj.page || {};
+						page.vid = proj.id;
+						response.send(page);
+					}else{
+						proj = pathValue(filecache, `${request.params.projId}.default`);
+						page = proj.page = proj.page || {};
+						page.vid = proj.id;
+						response.send(page);
+					}
 				})
 			}else{
 				page = proj.page = proj.page || {};
