@@ -59,6 +59,10 @@ app.get('/project/:projId/component/:component', auto.project)
 app.get('/project/component/:component', auto.project)
 
 
+app.options('/project/:projId/cloud/:cloud', auto.options)
+app.options('/project/:projId/cloud/:cloud/:id', auto.options)
+app.options('/project/cloud/:cloud', auto.options)
+
 app.get('/project/:projId/cloud/:cloud', auto.project)
 app.post('/project/:projId/cloud/:cloud', auto.project)
 app.get('/project/:projId/cloud/:cloud/:id', auto.project)
