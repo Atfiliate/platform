@@ -141,6 +141,7 @@ module.exports = {
 			qs.docChanges().forEach(change=>{
 				let doc = change.doc.data();
 					doc.id = change.doc.id;
+					console.log(`Doc updated: ${doc.projectId} (${doc.id})`)
 				let proj = pathValue(filecache, doc.projectId) || {default: null, snaps:{}};
 					proj.snaps[doc.id] = doc;
 					if(doc.stage == 'prod' && doc.default)
