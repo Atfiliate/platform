@@ -275,6 +275,7 @@ module.exports = {
 			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
 			if(proj && proj.cloud)
 				cloud = proj.cloud[cid];
+			console.log({proj, q: request.query, p: request.params, cloud})
 			
 			if(cloud){
 				try{
