@@ -5,9 +5,9 @@ var cloudinary	= require('cloudinary');
 var moment		= require('moment');
 var mcache		= require('memory-cache');
 let filecache	= {v:1.2};
-
+let db			= false;
 if(firebase.apps.length)
-	var db 		= firebase.firestore();
+	db			= firebase.firestore();
 
 if(process.env.cloudinaryName)
 	cloudinary.config({
@@ -114,7 +114,7 @@ module.exports = {
 		}
 	},
 	startup: ()=>{
-		if(firebase.apps.length !== 0){
+		if(db){
 			console.log('STARTUP-F(N)S----------> ');
 			var ref = firebase.database().ref('site/private/startupfns');
 			ref.once('value', function(snapshot){
@@ -136,21 +136,23 @@ module.exports = {
 	},
 
 	cache: ()=>{
-		const query = db.collection('dev').where('stage','==','prod');
-		const observer = query.onSnapshot(qs => {
-			qs.docChanges().forEach(change=>{
-				let doc = change.doc.data();
-					doc.id = change.doc.id;
-					console.log(`Doc updated: ${doc.projectId} (${doc.id})`)
-				let proj = pathValue(filecache, doc.projectId) || {default: null, snaps:{}};
-					proj.snaps[doc.id] = doc;
-					if(doc.stage == 'prod' && doc.default)
-						proj.default = doc;
-					pathValue(filecache, doc.projectId, proj);
-			})
-		}, err => {
-			console.log(`Encountered error: ${err}`);
-		});
+		if(db){
+			const query = db.collection('dev').where('stage','==','prod');
+			const observer = query.onSnapshot(qs => {
+				qs.docChanges().forEach(change=>{
+					let doc = change.doc.data();
+						doc.id = change.doc.id;
+						console.log(`Doc updated: ${doc.projectId} (${doc.id})`)
+					let proj = pathValue(filecache, doc.projectId) || {default: null, snaps:{}};
+						proj.snaps[doc.id] = doc;
+						if(doc.stage == 'prod' && doc.default)
+							proj.default = doc;
+						pathValue(filecache, doc.projectId, proj);
+				})
+			}, err => {
+				console.log(`Encountered error: ${err}`);
+			});
+		}
 	},
 	cloud: function(request, response){
 		if(request.headers.origin){
