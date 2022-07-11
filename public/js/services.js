@@ -614,9 +614,9 @@ app.factory('Auth', function($firebaseAuth, Fire){
 			Auth['_listen'+type].push({callback, persist});
 			if(Auth.state !== 'pending'){
 				if(type == 'logout' &&  Auth.state == 'guest')
-					callback(Auth);
+					callback();
 				else if(type == 'login' && Auth.state == 'auth')
-					callback(Auth);
+					callback(Auth.user);
 			}
 		},
 		reset: ()=>{
