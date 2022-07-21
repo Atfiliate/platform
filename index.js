@@ -28,9 +28,10 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
-	if(process.env.config && !request.query.rootSetup)
-		response.render('pages/index');
-	else
+	if(process.env.config && !request.query.rootSetup){
+		let config = JSON.parse(process.env.config);
+		response.render('pages/index', {config});
+	}else
 		response.render('pages/setup');
 });
 
