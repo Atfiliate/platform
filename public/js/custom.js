@@ -87,10 +87,12 @@ String.prototype.compile = function(scope){
 
 
 function jsonToTable(obj, path='item', $sanitize=(str)=>str){
+	if(localStorage.debug)
+		console.log({obj, path, $sanitize})
     var html = ``;
     if(obj && typeof obj == 'object'){
         if(obj.length){ // is array
-            if(typeof obj[0] == 'object'){ //array of objects
+            if(obj[0] && typeof obj[0] == 'object'){ //array of objects
                 var keys = obj.allKeys();
                 var rows = `<tr>${keys.map(function(k){return `<th>${k}</th>`}).join('')}</tr>`;
                 rows += obj.map(function(row, i){
@@ -100,7 +102,7 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
                     }</tr>`;
                 }).join('')
                 html = `<table>${rows}</table>`;
-            }else{ // regular array
+            }else if(obj[0]){ // regular array
                 var rows = ``;
                 obj.forEach(function(row, i){
                     rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`, $sanitize)}</td></tr>`;
