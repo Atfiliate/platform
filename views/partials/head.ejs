@@ -10,8 +10,8 @@
 <% } %>
 
 
-<% if(process.env.config.favicon){ %>
-	<link rel="shortcut icon" href="<%= process.env.config.favicon %>">
+<%- if(JSON.parse(process.env.config).favicon){ %>
+	<link rel="shortcut icon" href="<%- JSON.parse(process.env.config).favicon %>">
 <% }else{ %>
 	<link rel="shortcut icon" href="https://res.cloudinary.com/easybusiness/image/upload/v1658346170/favicon/favicon_ooxjx2.ico">
 <% } %>
