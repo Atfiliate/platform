@@ -119,7 +119,7 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
             }).join('');
             html = `<table>${rows}</table>`;
         }
-    }else{ // is other
+    }else if(obj){ // is other
         html = $sanitize(`${obj}`);
     }
     return html;
