@@ -114,6 +114,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	}, ()=>{
 		//handle guests...
 	}, (profile)=>{
+		$rootScope.profile = profile;
 		tools.device.init(profile);
 	})
 	
