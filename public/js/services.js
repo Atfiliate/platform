@@ -640,7 +640,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 		_listenprofile: [],
 		_listenlogout: [],
 		_listenany: [],
-		init: ($scope, onLogin, onLogout)=>{
+		init: ($scope, onLogin, onLogout, onProfile)=>{
 			Auth.$scope = $scope;
 			onLogin && Auth.on('login', onLogin, true);
 			onLogout && Auth.on('logout', onLogout, true);
