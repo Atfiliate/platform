@@ -566,6 +566,7 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 	}
 })
 app.factory('Auth', function($firebaseAuth, Fire, $http){
+	let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
 	$firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
 			new Fire(`roles/${user.uid}`).get().then(r=>{
@@ -609,7 +610,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 									profile.$fire.save();
 								})
 							}else{
-								profile.img = defaultImg;
+								profile.avatar = defaultImg;
 							}
 						}else{
 							profile.$fire.save()
