@@ -590,6 +590,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 				})
 				
 				new Fire(`profile/${user.uid}`).get().then(profile=>{
+					console.log({profile})
 					Auth.profile = profile;
 					let version = 2.1;
 					if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
