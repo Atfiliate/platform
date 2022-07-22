@@ -587,6 +587,13 @@ app.factory('Auth', function($firebaseAuth, Fire){
 				Auth._listenany.forEach(any=>{
 					any.callback(user);
 				})
+				
+				new Fire(`profile/${user.uid}`).get().then(profile=>{
+					Auth.profile = profile;
+					Auth._listenprofile.forEach(login=>{
+						login.callback(profile);
+					})
+				})
 			})
 		}else{
 			Auth.state = 'guest';
