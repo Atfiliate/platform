@@ -565,7 +565,7 @@ app.factory('Stripe', function($q, $http, $mdDialog, Auth, config){
 		return {};
 	}
 })
-app.factory('Auth', function($firebaseAuth, Fire){
+app.factory('Auth', function($firebaseAuth, Fire, $http){
 	$firebaseAuth().$onAuthStateChanged(function(user){
 		if(user){
 			new Fire(`roles/${user.uid}`).get().then(r=>{
@@ -590,6 +590,32 @@ app.factory('Auth', function($firebaseAuth, Fire){
 				
 				new Fire(`profile/${user.uid}`).get().then(profile=>{
 					Auth.profile = profile;
+					let version = 2.1;
+					if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
+						profile.version = version;
+						profile.displayName = profile.displayName || user.displayName || ' ';
+						profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
+						profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName, '');
+						profile.authEmail 	= user.email;
+						profile.email 		= profile.email || user.email;
+						profile.createdOn 	= profile.createdOn || new Date();
+						profile.updatedOn	= new Date();
+						if(!profile.avatar){
+							if(user.photoURL){
+								let imgUrl = user.photoURL;
+								$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
+									let clImg = result.data.secure_url || defaultImg;
+									profile.avatar = clImg;
+									profile.$fire.save();
+								})
+							}else{
+								profile.img = defaultImg;
+							}
+						}else{
+							profile.$fire.save()
+						}
+					}
+					
 					Auth._listenprofile.forEach(login=>{
 						login.callback(profile);
 					})
