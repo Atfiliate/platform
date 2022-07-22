@@ -96,7 +96,9 @@ app.config(function($routeProvider, $locationProvider, $controllerProvider, $pro
 		.accentPalette('customSecondary');
 })
 
+
 app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebaseObject, $routeParams, $sce, $http, $mdDialog, $mdMedia, $mdSidenav, $mdToast, $q, config, Auth, Fire){
+	$rootScope.version = 2.1;
 	$rootScope.config = config;
 	$rootScope.params = $routeParams;
 	$rootScope.$mdMedia = $mdMedia;
@@ -108,9 +110,11 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		Fire.config(config.fire);
 	
 	Auth.init($rootScope, (user)=>{
-		tools.profile.init(user);
+		// tools.profile.init(user);
 	}, ()=>{
 		//handle guests...
+	}, (profile)=>{
+		tools.device.init(profile);
 	})
 	
 	// $firebaseAuth().$onAuthStateChanged(function(user) {
@@ -235,25 +239,25 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			$firebaseAuth().$signOut();
 		},
 		profile: {
-			init: function(user){
-				console.log({a:'setup profile', user})
-				if(window.gtag)
-					gtag('set', {user_id: user.uid});
-				if(pathValue($rootScope, 'profile.id') != user.uid){
-					$rootScope.profile = {status:'pending'}
-					new Fire(`profile/${user.uid}`).get().then(profile=>{
-						$rootScope.profile = profile;
-						tools.profile.sync(profile, [{
-							title: 	'Display Name',
-							path: 	'displayName'
-						}, {
-							title: 	'Email',
-							path: 	'email'
-						}]);
-						tools.device.init(profile);
-					})
-				}
-			},
+			// init: function(user){
+			// 	console.log({a:'setup profile', user})
+			// 	if(window.gtag)
+			// 		gtag('set', {user_id: user.uid});
+			// 	if(pathValue($rootScope, 'profile.id') != user.uid){
+			// 		$rootScope.profile = {status:'pending'}
+			// 		new Fire(`profile/${user.uid}`).get().then(profile=>{
+			// 			$rootScope.profile = profile;
+			// 			tools.profile.sync(profile, [{
+			// 				title: 	'Display Name',
+			// 				path: 	'displayName'
+			// 			}, {
+			// 				title: 	'Email',
+			// 				path: 	'email'
+			// 			}]);
+						// tools.device.init(profile);
+			// 		})
+			// 	}
+			// },
 			// gapi: function(user){
 			// 	gapi.load('client', function(){
 			// 		gapi.client.init({
@@ -268,41 +272,41 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			// 		})
 			// 	});
 			// },
-			contactChoice: (choice)=>{
-				if(choice == 'PUSH')
-					tools.device.register();
-			},
-			sync: (profile)=>{
-				let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
-				let version = 1.03;
-				if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
-					profile.version = version;
-					profile.displayName = profile.displayName || $rootScope.user.displayName || ' ';
-					profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
-					profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName, '');
-					profile.authEmail 	= $rootScope.user.email;
-					profile.email 		= profile.email || $rootScope.user.email;
-					profile.createdOn 	= profile.createdOn || new Date();
-					profile.updatedOn	= new Date();
-					if(!profile.img || profile.img.indexOf('cloudinary') == -1){
-						if($rootScope.user.photoURL){
-							let imgUrl = $rootScope.user.photoURL;
-							$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
-								profile.img = result.data.secure_url || defaultImg;
-								profile.picture = profile.picture || {
-									img_url: 		profile.img,
-									secure_url: 	profile.img
-								}
-								profile.$fire.save();
-							})
-						}else{
-							profile.img = defaultImg;
-						}
-					}else{
-						profile.$fire.save()
-					}
-				}
-			}
+			// contactChoice: (choice)=>{
+			// 	if(choice == 'PUSH')
+			// 		tools.device.register();
+			// },
+			// sync: (profile)=>{
+			// 	let defaultImg = 'https://res.cloudinary.com/ldsplus/image/upload/v1576258469/pixel/blank-profile-picture-973460_640.png';
+			// 	let version = 1.03;
+			// 	if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
+			// 		profile.version = version;
+			// 		profile.displayName = profile.displayName || $rootScope.user.displayName || ' ';
+			// 		profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
+			// 		profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName, '');
+			// 		profile.authEmail 	= $rootScope.user.email;
+			// 		profile.email 		= profile.email || $rootScope.user.email;
+			// 		profile.createdOn 	= profile.createdOn || new Date();
+			// 		profile.updatedOn	= new Date();
+			// 		if(!profile.img || profile.img.indexOf('cloudinary') == -1){
+			// 			if($rootScope.user.photoURL){
+			// 				let imgUrl = $rootScope.user.photoURL;
+			// 				$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
+			// 					profile.img = result.data.secure_url || defaultImg;
+			// 					profile.picture = profile.picture || {
+			// 						img_url: 		profile.img,
+			// 						secure_url: 	profile.img
+			// 					}
+			// 					profile.$fire.save();
+			// 				})
+			// 			}else{
+			// 				profile.img = defaultImg;
+			// 			}
+			// 		}else{
+			// 			profile.$fire.save()
+			// 		}
+			// 	}
+			// }
 		},
 
 		device: {
