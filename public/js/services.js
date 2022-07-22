@@ -636,6 +636,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 	let Auth = {
 		state: 'pending', //auth,guest
 		_listenlogin: [],
+		_listenprofile: [],
 		_listenlogout: [],
 		_listenany: [],
 		init: ($scope, onLogin, onLogout)=>{
