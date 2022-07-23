@@ -580,18 +580,10 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 				user.jwt = function(){
 					return firebase.auth().currentUser.getToken(true)
 				}
-				Auth.state = 'auth';
 				Auth.user = Auth.$scope.user = user;
-				Auth._listenlogin.forEach(login=>{
-					login.callback(user);
-				})
-				Auth._listenany.forEach(any=>{
-					any.callback(user);
-				})
 				
 				new Fire(`profile/${user.uid}`).get().then(profile=>{
 					Auth.profile = profile;
-					Auth.state = 'profile';
 					let version = 2.1;
 					if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
 						profile.version = version;
@@ -617,9 +609,12 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 							profile.$fire.save()
 						}
 					}
-					
-					Auth._listenprofile.forEach(login=>{
-						login.callback(profile);
+					Auth.state = 'auth';
+					Auth._listenlogin.forEach(login=>{
+						login.callback(user);
+					})
+					Auth._listenany.forEach(any=>{
+						any.callback(user);
 					})
 				})
 			})
@@ -637,30 +632,27 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 	let Auth = {
 		state: 'pending', //auth,guest
 		_listenlogin: [],
-		_listenprofile: [],
 		_listenlogout: [],
 		_listenany: [],
-		init: ($scope, onLogin, onLogout, onProfile)=>{
+		init: ($scope, onLogin, onLogout)=>{
 			Auth.$scope = $scope;
 			onLogin && Auth.on('login', onLogin, true);
 			onLogout && Auth.on('logout', onLogout, true);
-			onProfile && Auth.on('profile', onProfile, true);
 		},
 		on: (type, callback, persist)=>{
 			type = type.toLowerCase();
+			if(!['login','logout','any'].includes(type))
+				type = 'login';
 			Auth['_listen'+type].push({callback, persist});
 			if(Auth.state !== 'pending'){
 				if(type == 'logout' &&  Auth.state == 'guest')
 					callback();
 				else if(type == 'login' && Auth.state == 'auth' || Auth.state == 'profile')
 					callback(Auth.user);
-				else if(type == 'profile' && Auth.state == 'profile')
-					callback(Auth.profile);
 			}
 		},
 		reset: ()=>{
 			Auth._listenlogin = Auth._listenlogin.filter(cb=>cb.persist);
-			Auth._listenprofile = Auth._listenprofile.filter(cb=>cb.persist);
 			Auth._listenlogout = Auth._listenlogout.filter(cb=>cb.persist);
 			Auth._listenany = Auth._listenany.filter(cb=>cb.persist);
 		}
