@@ -109,13 +109,13 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 	if(config.fire)
 		Fire.config(config.fire);
 	
-	Auth.init($rootScope, (user)=>{
+	Auth.init($rootScope, (user, profile)=>{
+		$rootScope.profile = user;
+		$rootScope.profile = profile;
+		tools.device.init(profile);
 		// tools.profile.init(user);
 	}, ()=>{
 		//handle guests...
-	}, (profile)=>{
-		$rootScope.profile = profile;
-		tools.device.init(profile);
 	})
 	
 	// $firebaseAuth().$onAuthStateChanged(function(user) {
