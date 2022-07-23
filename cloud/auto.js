@@ -301,7 +301,7 @@ module.exports = {
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
 				console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
-				console.log(Object.keys((pathValue(filecache, request.params.projId)||{})))
+				console.log(Object.keys((pathValue(filecache, request.params.projId)||{})), Object.keys((pathValue(filecache, request.params.projId+'.snaps')||{})))
 				db.collection('dev').doc(request.query.v).get().then(r=>{
 					if(r.exists){
 						proj = r.data();
