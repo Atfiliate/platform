@@ -583,6 +583,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 				Auth.user = Auth.$scope.user = user;
 				
 				new Fire(`profile/${user.uid}`).get().then(profile=>{
+					Auth.state = 'auth';
 					Auth.profile = profile;
 					let version = 2.1;
 					if(!profile.version || profile.version < version){ //first time and if we update the version we will run this to re-calculate the values...
@@ -609,9 +610,8 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 							profile.$fire.save()
 						}
 					}
-					Auth.state = 'auth';
 					Auth._listenlogin.forEach(login=>{
-						login.callback(user);
+						login.callback(user, profile);
 					})
 					Auth._listenany.forEach(any=>{
 						any.callback(user);
