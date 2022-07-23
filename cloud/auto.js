@@ -300,7 +300,7 @@ module.exports = {
 			else
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
-				console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projectId} FROM DB ***********************************************************`)
+				console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
 				db.collection('dev').doc(request.query.v).get().then(r=>{
 					if(r.exists){
 						proj = r.data();
