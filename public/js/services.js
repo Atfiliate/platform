@@ -652,7 +652,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 			if(Auth.state !== 'pending'){
 				if(type == 'logout' &&  Auth.state == 'guest')
 					callback();
-				else if(type == 'login' && Auth.state == 'auth')
+				else if(type == 'login' && Auth.state == 'auth' || auth.state == 'profile')
 					callback(Auth.user);
 				else if(type == 'profile' && Auth.state == 'profile')
 					callback(Auth.profile);
