@@ -237,7 +237,6 @@ module.exports = {
 		}
 	},
 	project: function(request, response){
-		console.log('project request', request.originalUrl);
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -247,6 +246,7 @@ module.exports = {
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
 		}
+		
 		if(firebase.apps.length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
@@ -270,6 +270,8 @@ module.exports = {
 				}catch(e){
 					response.send(e)
 				}
+			}else{
+				response.send(`Component not found.`)
 			}
 		}else if(request.params.cloud){
 			var cid = request.params.cloud;
@@ -286,13 +288,13 @@ module.exports = {
 					if(js && js.init){
 						js.init(request, response)
 					}else{
-						response.send('No path found.')
+						response.send('Init not found.')
 					}
 				}catch(e){
 					response.send(e)
 				}
 			}else{
-				response.send('error');
+				response.send('Cloud not found.')
 			}
 		}else{
 			let proj, page;
