@@ -295,7 +295,7 @@ module.exports = {
 			}
 		}else{
 			let proj, page;
-			if(request.query.v && request.query.v != 'default')
+			if(request.query.v && request.query.v != 'default' && request.query.v != 'undefined')
 				proj = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`);
 			else
 				proj = pathValue(filecache, `${request.params.projId}.default`);
