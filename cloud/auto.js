@@ -294,6 +294,7 @@ module.exports = {
 				response.send('error');
 			}
 		}else{
+			console.log(request.originalUrl);
 			let proj, page;
 			if(request.query.v && request.query.v != 'default' && request.query.v != 'undefined')
 				proj = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`);
