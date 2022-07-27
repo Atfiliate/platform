@@ -300,22 +300,26 @@ module.exports = {
 			else
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
-				console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
-				console.log(Object.keys((pathValue(filecache, request.params.projId)||{})), Object.keys((pathValue(filecache, request.params.projId+'.snaps')||{})))
-				db.collection('dev').doc(request.query.v).get().then(r=>{
-					if(r.exists){
-						proj = r.data();
-						proj.id = r.id;
-						page = proj.page = proj.page || {};
-						page.vid = proj.id;
-						response.send(page);
-					}else{
-						proj = pathValue(filecache, `${request.params.projId}.default`) || {};
-						page = proj.page = proj.page || {id: `${request.params.projId}Default`};
-						page.vid = proj.id;
-						response.send(page);
-					}
-				})
+				if(request.params.projId && request.query.v){
+					console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
+					console.log(Object.keys((pathValue(filecache, request.params.projId)||{})), Object.keys((pathValue(filecache, request.params.projId+'.snaps')||{})))
+					db.collection('dev').doc(request.query.v).get().then(r=>{
+						if(r.exists){
+							proj = r.data();
+							proj.id = r.id;
+							page = proj.page = proj.page || {};
+							page.vid = proj.id;
+							response.send(page);
+						}else{
+							proj = pathValue(filecache, `${request.params.projId}.default`) || {};
+							page = proj.page = proj.page || {id: `${request.params.projId}Default`};
+							page.vid = proj.id;
+							response.send(page);
+						}
+					})
+				}else{
+					response.send('Invalid URL');
+				}
 			}else{
 				page = proj.page = proj.page || {};
 				page.vid = proj.id;
