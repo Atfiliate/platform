@@ -237,6 +237,7 @@ module.exports = {
 		}
 	},
 	project: function(request, response){
+		console.log('project request', request.originalUrl);
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -294,7 +295,6 @@ module.exports = {
 				response.send('error');
 			}
 		}else{
-			console.log(request.originalUrl);
 			let proj, page;
 			if(request.query.v && request.query.v != 'default' && request.query.v != 'undefined')
 				proj = pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`);
