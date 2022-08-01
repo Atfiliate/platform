@@ -312,7 +312,6 @@ module.exports = {
 							proj.id = r.id;
 							page = proj.page = proj.page || {};
 							page.vid = proj.id;
-							pathValue(fileCache, `${request.params.projId}.snaps.${request.query.v}`, proj);
 							response.send(page);
 						}else{
 							proj = pathValue(filecache, `${request.params.projId}.default`) || {};
