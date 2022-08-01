@@ -137,7 +137,7 @@ module.exports = {
 
 	cache: ()=>{
 		if(db){
-			const query = db.collection('dev').where('stage','==','prod');
+			const query = db.collection('dev');
 			const observer = query.onSnapshot(qs => {
 				qs.docChanges().forEach(change=>{
 					let doc = change.doc.data();
