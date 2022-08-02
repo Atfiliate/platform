@@ -122,12 +122,8 @@ app.factory('Fire', function($q){
 					return new Promise((res, rej)=>{
 						Fire.ct.write++;
 						d.$status = 'saving';
-						let $fire = d.$fire;
-						delete d.$fire;
-						let copy = angular.copy(d);
-						d.$fire = $fire;
-						copy = fire._prepare(copy);
-						copy.updatedOn = new Date();
+						let copy = fire._prepare(d);
+							copy.updatedOn = new Date();
 						d.$fire.ref.set(copy).then(function(r){
 							d.$status = 'saved';
 							res(r);
@@ -326,7 +322,8 @@ app.factory('Fire', function($q){
 						console.error(e);
 						item.id = r.id;
 						item.$status = 'saved';
-						item.$fire = 'Item saved but not read.';
+						item.$msg = 'Item saved but not read.';
+						item.$fire = false;
 						if(fire.list && !fire._listen)
 							fire.list.push(item);
 						deferred.resolve(item);
@@ -345,12 +342,14 @@ app.factory('Fire', function($q){
 			item.$status = 'saving';
 			var id = item.id;
 			delete item.id;
-			item = fire._prepare(item);
+			let copy = fire._prepare(item);
 			let ref =  fire._cd == 'doc' ? fire._ref : fire._ref.doc(id);
-			ref.set(item).then(r=>{
+			ref.set(copy).then(r=>{
 				ref.get().then(doc=>{
 					var obj = fire._become(doc);
 						obj.$status = 'saved';
+					item.$status = 'saved';
+					item.$dbv = obj;
 					if(fire.list)
 						fire.list.push(obj);
 					deferred.resolve(obj);
@@ -365,6 +364,7 @@ app.factory('Fire', function($q){
 	}
 	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 		if(obj){
+			obj = {...obj}
 			Object.keys(obj).forEach(function(k){
 				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
 					delete obj[k];
@@ -399,6 +399,7 @@ app.factory('Fire', function($q){
 		fire._qref = fire._ref;
 		fire._cleanForDb = (obj)=>{
 			if(obj){
+				obj = {...obj};
 				var keys = Object.keys(obj);
 				keys.forEach(k=>{
 					if(obj[k] == undefined){
