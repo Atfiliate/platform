@@ -364,17 +364,18 @@ app.factory('Fire', function($q){
 	}
 	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 		if(obj){
-			if(!(obj instanceof Array))
+			if(!Array.isArray(obj)){
 				obj = {...obj}
-			Object.keys(obj).forEach(function(k){
-				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
-					delete obj[k];
-				}else if(Array.isArray(obj[k])){
-					obj[k] = obj[k].map(Fire.prepare)
-				}else if(typeof obj[k] == 'object'){
-					obj[k] = Fire.prepare(obj[k])
-				}
-			})
+				Object.keys(obj).forEach(function(k){
+					if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
+						delete obj[k];
+					}else if(Array.isArray(obj[k])){
+						obj[k] = obj[k].map(Fire.prepare)
+					}else if(typeof obj[k] == 'object'){
+						obj[k] = Fire.prepare(obj[k])
+					}
+				})
+			}
 		}
 		return obj;
 	}
