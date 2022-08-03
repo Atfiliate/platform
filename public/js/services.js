@@ -364,7 +364,8 @@ app.factory('Fire', function($q){
 	}
 	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 		if(obj){
-			obj = {...obj}
+			if(!(obj instanceof Array))
+				obj = {...obj}
 			Object.keys(obj).forEach(function(k){
 				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
 					delete obj[k];
