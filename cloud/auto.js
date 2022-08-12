@@ -17,11 +17,27 @@ if(process.env.cloudinaryName)
 	});
 
 
+
 function pathValue(obj, path, val){
-	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
-	var attr = path && path.shift();
-	if(attr && attr.indexOf(']') != -1)
-		attr = attr.replace('[', '').replace(']', '');
+    let parts, attr;
+	if(path[0] == '['){
+        parts = path.split(']')
+        attr = parts.shift().replace('[','');
+        path = parts.join(']')
+    }else{
+    	parts = path.split('.');
+        if(parts[0].includes('[')){
+            path = parts.join('.')
+            parts = path.split('[');
+            attr = parts.shift();
+            path = '['+parts.join('[')
+        }else{
+        	attr = parts.shift();
+            path = parts.join('.')
+        }
+    }
+    if(path[0] == '.')
+        path = path.substring(1);
 	if(val !== undefined){
 		if(path.length){
 			if(obj[attr]){
@@ -30,7 +46,7 @@ function pathValue(obj, path, val){
 				obj[attr] = {};
 				pathValue(obj[attr], path, val)
 			}
-		}else if(val == '_delete_'){
+		}else if(val == '_delete_' || val === null || val === ''){
 			delete obj[attr];
 		}else{
 			 obj[attr] = val;
