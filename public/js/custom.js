@@ -160,10 +160,23 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
 // }
 
 function pathValue(obj, path, val){
-	path = typeof path == 'string' ? path.split('[').join('.').split('.') : path;
-	var attr = path && path.shift();
-	if(attr && attr.indexOf(']') != -1)
-		attr = attr.replace('[', '').replace(']', '');
+    let parts, attr;
+	if(path[0] == '['){
+        parts = path.split(']')
+        attr = parts.shift().replace('[','');
+        path = parts.join('[')
+    }else{
+    	parts = path.split('.');
+        if(parts[0].includes('[')){
+            path = parts.join('.')
+            parts = path.split('[');
+            attr = parts.shift();
+            path = '['+parts.join('[')
+        }else{
+        	attr = parts.shift();
+            path = parts.join('.')
+        }
+    }
 	if(val !== undefined){
 		if(path.length){
 			if(obj[attr]){
