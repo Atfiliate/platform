@@ -159,12 +159,13 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
 // 	return html;
 // }
 
+
 function pathValue(obj, path, val){
     let parts, attr;
 	if(path[0] == '['){
         parts = path.split(']')
         attr = parts.shift().replace('[','');
-        path = parts.join('[')
+        path = parts.join(']')
     }else{
     	parts = path.split('.');
         if(parts[0].includes('[')){
@@ -177,6 +178,8 @@ function pathValue(obj, path, val){
             path = parts.join('.')
         }
     }
+    if(path[0] == '.')
+        path = path.substring(1);
 	if(val !== undefined){
 		if(path.length){
 			if(obj[attr]){
