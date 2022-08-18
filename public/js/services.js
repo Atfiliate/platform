@@ -591,7 +591,7 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 						profile.version = version;
 						profile.displayName = profile.displayName || user.displayName || ' ';
 						profile.firstName 	= profile.firstName || profile.displayName.split(' ')[0];
-						profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName, '');
+						profile.lastName 	= profile.lastName || profile.displayName.replace(profile.firstName+' ', '');
 						profile.authEmail 	= user.email;
 						profile.email 		= profile.email || user.email;
 						profile.createdOn 	= profile.createdOn || new Date();
