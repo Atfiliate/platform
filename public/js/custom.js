@@ -4,7 +4,7 @@ Array.prototype.flat = function(path, placeholder){
 	if(path)
 		return this.map(function(i){
 			let val = pathValue(i, path);
-			return i ? placeholder ? val === null ? placeholder : val : val : undefined;
+			return i ? placeholder ? val === null ? placeholder : val : val : null;
 		})
 	else
 		return this._flat();
