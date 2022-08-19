@@ -27,12 +27,12 @@ Array.prototype.unique = function(path){
     this.forEach(i=>{
         if(path){
             let val = pathValue(i, path);
-            if(val && !u.includes(val)){
+            if(typeof val !== 'undefined'  && !u.includes(val)){
                 u.push(val);
                 a.push(i)
             }
         }else{
-            if(!a.includes(i))
+            if(typeof i !== 'undefined' && !a.includes(i))
                 a.push(i);
         }
     })
