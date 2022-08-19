@@ -1,13 +1,15 @@
 Array.prototype._flat = Array.prototype.flat;
 //fix because someone added a 'flat' to arrays in standards :S
-Array.prototype.flat = function(col, placeholder){
-	if(col)
+Array.prototype.flat = function(path, placeholder){
+	if(path)
 		return this.map(function(i){
-			return i ? i[col] !== undefined ? i[col] : placeholder : placeholder;
+			let val = pathValue(i, path);
+			return i ? placeholder ? val === null ? placeholder : val : val : undefined;
 		})
 	else
 		return this._flat();
 }
+//Depricating getUnique. not sure where this is used outside of an old unique fn. which is no longer calling this.
 Array.prototype.getUnique = function() {
 	var u = {undefined:1},
 		a = [];
@@ -19,11 +21,22 @@ Array.prototype.getUnique = function() {
 	}
 	return a;
 }
-Array.prototype.unique = function(col){
-	if(col)
-		return this.flat(col).getUnique();
-	else
-		return this.getUnique();
+Array.prototype.unique = function(path){
+	var u = [],
+		a = [];
+    this.forEach(i=>{
+        if(path){
+            let val = pathValue(i, path);
+            if(val && !u.includes(val)){
+                u.push(val);
+                a.push(i)
+            }
+        }else{
+            if(!a.includes(i))
+                a.push(i);
+        }
+    })
+    return a;
 }
 
 Array.prototype.shuffle = function() {
