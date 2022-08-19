@@ -27,7 +27,7 @@ Array.prototype.unique = function(path){
     this.forEach(i=>{
         if(path){
             let val = pathValue(i, path);
-            if(typeof val !== 'undefined'  && !u.includes(val)){
+            if(typeof val !== 'undefined' && !u.includes(val)){
                 u.push(val);
                 a.push(i)
             }
