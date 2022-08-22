@@ -34,7 +34,7 @@ app.factory('Form', function($mdDialog, $mdToast, config){
 
 	return function(formId, params='', event){
 		if(typeof params == 'string'){
-			params += '&headless=true';
+			let qp = `${params}&headless=true`;
 		}else{
 			params.headless = true;
 			if(params)
