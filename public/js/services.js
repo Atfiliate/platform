@@ -32,11 +32,16 @@ app.factory('Form', function($mdDialog, $mdToast, config){
 		}
 	}, false);
 
-	return function(formId, params={}, event){
-		params.headless = true;
-		let qp = Object.keys(params).map(k=>{
-			return `${k}=${params[k]}`
-		}).join('&');
+	return function(formId, params='', event){
+		if(typeof params == 'string'){
+			params += '&headless=true';
+		}else{
+			params.headless = true;
+			if(params)
+			let qp = Object.keys(params).map(k=>{
+				return `${k}=${params[k]}`
+			}).join('&');
+		}
 		let src = `${config.origin}/#/project/forms/${formId}?${qp}`;
 		console.log('form', src);
 		var options = {
