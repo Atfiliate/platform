@@ -370,6 +370,25 @@ app.factory('Fire', function($q){
 			})
 			return deferred.promise;
 		}
+		fire.update = function(attrObj){
+			if(fire._cd == 'doc'){
+				Fire.ct.write++;
+				Object.keys(attrObj).forEach(function(k){
+					if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
+						attrObj[k] = firebase.firestore.FieldValue.delete();
+						pathValue(d, k, '_delete_');
+					}else{
+						pathValue(d, k, attrObj[k]);
+					}
+				})
+				attrObj.updatedOn = new Date();
+				if(localStorage.debug)
+					console.info('Update', {d, attrObj})
+				return fire._ref.update(attrObj);
+			}else{
+				return Promise.reject('You can only update a docuemnt.');
+			}
+		}
 	}
 	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 		if(obj && obj.constructor && obj.constructor.name==='Object'){
