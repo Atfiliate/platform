@@ -620,6 +620,9 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 						profile.authEmail 	= user.email;
 						profile.email 		= profile.email || user.email;
 						profile.createdOn 	= profile.createdOn || new Date();
+						profile.stats		= {
+							updatedOn:		new Date()
+						}
 						profile.updatedOn	= new Date();
 						if(!profile.avatar){
 							if(user.photoURL){
