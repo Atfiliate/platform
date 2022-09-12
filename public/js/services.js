@@ -208,6 +208,7 @@ app.factory('Fire', function($q){
 							})
 							deferred.resolve(fire.list);
 						}).catch(e=>{
+							fire.$error = e;
 							console.log(`There was a DB error: `, fire, ref);
 							deferred.reject(e);
 						})
@@ -220,6 +221,7 @@ app.factory('Fire', function($q){
 							fire.obj = fire._become(doc);
 							deferred.resolve(fire.obj);
 						}).catch(e=>{
+							fire.$error = e;
 							console.log(`There was a DB error: `, fire, ref);
 							deferred.reject(e);
 						})
