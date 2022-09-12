@@ -192,35 +192,40 @@ app.factory('Fire', function($q){
 		fire.get = function(ref, force){
 			ref = ref || fire._qref;
 			var deferred = $q.defer();
-			if(fire._cd == 'collection' || fire._cd == 'collectionGroup'){
-				if(fire.list && !force){
-					deferred.resolve(fire.list);
-				}else{
-					ref.get()
-					.then(function(qs){
-						function List(){};
-						List.prototype = new Array;
-						List.prototype.$fire = fire;
-						fire.list = new List();
-						qs.forEach(doc=>{
-							fire.list.push(fire._become(doc));
-						})
+			try{
+				if(fire._cd == 'collection' || fire._cd == 'collectionGroup'){
+					if(fire.list && !force){
 						deferred.resolve(fire.list);
-					}).catch(e=>{
-						deferred.reject(e);
-					})
-				}
-			}else{
-				if(fire.obj)
-					deferred.resolve(fire.obj);
-				else{
-					fire._qref.get().then(doc=>{
-						fire.obj = fire._become(doc);
+					}else{
+						ref.get()
+						.then(function(qs){
+							function List(){};
+							List.prototype = new Array;
+							List.prototype.$fire = fire;
+							fire.list = new List();
+							qs.forEach(doc=>{
+								fire.list.push(fire._become(doc));
+							})
+							deferred.resolve(fire.list);
+						}).catch(e=>{
+							deferred.reject(e);
+						})
+					}
+				}else{
+					if(fire.obj)
 						deferred.resolve(fire.obj);
-					}).catch(e=>{
-						deferred.reject(e);
-					})
+					else{
+						fire._qref.get().then(doc=>{
+							fire.obj = fire._become(doc);
+							deferred.resolve(fire.obj);
+						}).catch(e=>{
+							deferred.reject(e);
+						})
+					}
 				}
+			}catch(e){
+				console.error(e);
+				console.log(`There was a DB error: `, fire, ref);
 			}
 			return deferred.promise;
 		}
