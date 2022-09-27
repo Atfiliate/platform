@@ -308,10 +308,37 @@ img.stretch, img.fill{
 		width: 100%;
 		padding: 0px;
 	}
-	.simple .title h1{
-		padding-left: 0px;
-		font-size: 24px;
-		text-align: center;
+	.simple > header {
+	    position: relative;
+	    height: 150px;
+	    min-height: 150px;
+	    overflow: hidden;
+	}
+	.simple > section > .title.layout-row {
+	    height: 46px;
+	    line-height: 46px;
+	}
+	.simple > section > .title h1, .simple > section > .title .t2 {
+	    margin: 0px;
+	    font-weight: 300;
+	    font-size: 22px;
+	    line-height: 30px;
+	}
+	.simple > section > .title .icon {
+	    display: block;
+	    width: 30px;
+	    height: 30px;
+	    line-height: 30px;
+	    background: #ffffff80;
+	    border-radius: 5px;
+	    margin: 0px 2px;
+	    flex-shrink: 0;
+	}
+	.simple > section > .title .icon.md-menu a {
+	    display: block;
+	    width: 30px;
+	    height: 30px;
+	    line-height: 30px;
 	}
 }
 
