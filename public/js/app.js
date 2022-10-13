@@ -2,7 +2,7 @@
 	global app, angular, firebase, gapi, $script, localStorage, navigator
 	Load even w/out whois.
 */
-
+window.test = 123;
 var it = {};
 // (function() {
 // 	'use strict';
