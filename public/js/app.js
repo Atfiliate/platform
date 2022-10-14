@@ -209,7 +209,6 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		},
 		login: function(method){
 			return new Promise(res=>{
-				tools._loginRes = res;
 				$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
 					if($rootScope.config.login)
 						return $rootScope.config.login.indexOf(m.title) != -1;
@@ -229,8 +228,10 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 						}
 					}
 				}else if($rootScope.loginMethods.length == 1){
+					tools._loginRes = res;
 					tools.login($rootScope.loginMethods[0])
 				}else{
+					tools._loginRes = res;
 					tools.dialog('login');
 				}
 			})
