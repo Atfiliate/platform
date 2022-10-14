@@ -113,6 +113,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		$rootScope.profile = user;
 		$rootScope.profile = profile;
 		tools.device.init(profile);
+		if(tools._loginRes)
+			tools._loginRes(user);
 		// tools.profile.init(user);
 	}, ()=>{
 		//handle guests...
@@ -206,29 +208,32 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}
 		},
 		login: function(method){
-			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
-				if($rootScope.config.login)
-					return $rootScope.config.login.indexOf(m.title) != -1;
-				else
-					return true;
-			})
-
-			if(method){
-				if(method.provider){
-					let provider = method.provider || $rootScope.loginMethods[0].provider;
-					$firebaseAuth().$signInWithPopup(provider);
-					$mdDialog.hide();
-				}else{
-					$rootScope.loginMethod = method;
-					$rootScope.loginMethod.clear = ()=>{
-						delete $rootScope.loginMethod;
+			return new Promise(res=>{
+				tools._loginRes = res;
+				$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
+					if($rootScope.config.login)
+						return $rootScope.config.login.indexOf(m.title) != -1;
+					else
+						return true;
+				})
+	
+				if(method){
+					if(method.provider){
+						let provider = method.provider || $rootScope.loginMethods[0].provider;
+						$firebaseAuth().$signInWithPopup(provider);
+						$mdDialog.hide();
+					}else{
+						$rootScope.loginMethod = method;
+						$rootScope.loginMethod.clear = ()=>{
+							delete $rootScope.loginMethod;
+						}
 					}
+				}else if($rootScope.loginMethods.length == 1){
+					tools.login($rootScope.loginMethods[0])
+				}else{
+					tools.dialog('login');
 				}
-			}else if($rootScope.loginMethods.length == 1){
-				tools.login($rootScope.loginMethods[0])
-			}else{
-				tools.dialog('login');
-			}
+			})
 		},
 		logout: function(){
 			localStorage.clear();
