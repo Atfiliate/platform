@@ -232,7 +232,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					tools.login($rootScope.loginMethods[0])
 				}else{
 					tools._loginRes = res;
-					tools.dialog('login');
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
 				}
 			})
 		},
