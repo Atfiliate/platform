@@ -220,7 +220,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					if(method.provider){
 						let provider = method.provider || $rootScope.loginMethods[0].provider;
 						$firebaseAuth().$signInWithPopup(provider);
-						$mdDialog.hide();
+						return Promise.resolve();
 					}else{
 						$rootScope.loginMethod = method;
 						$rootScope.loginMethod.clear = ()=>{
