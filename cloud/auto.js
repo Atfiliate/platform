@@ -205,7 +205,7 @@ let Fire = function(path, cdg){
 		var data = ds.data();
 		var d = (ds.exists ? fire._clean(data) : {});
 		d.id = ds.id;
-		d.$prepare Fire.prepare;
+		d.$prepare = Fire.prepare;
 		d.$fire = {
 			ref: ds.ref,
 			save: function(){
