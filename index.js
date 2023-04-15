@@ -21,10 +21,12 @@ app.use((req, res, next)=>{
 	res.send = data=>{
 		if((data && data.$fire) || (data && data[0] && data[0].$fire)){
 			data = Fire.prepare(data);
+			
+		    res.setHeader('Content-Type', 'application/json');
 			origSend.call(res, data)
 		}
-		next();
 	}
+	next();
 })
 app.use(bodyParser.json({limit:'50mb'}));
 app.use(bodyParser.urlencoded({extended:true, limit:'50mb'}));
