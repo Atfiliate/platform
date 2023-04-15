@@ -468,6 +468,17 @@ module.exports = {
 			});
 		}
 	},
+	FireMiddleware: function(req, res, next){
+		let origSend = res.send;
+		res.send = data=>{
+			if((data && data.$fire) || (data && data[0] && data[0].$fire)){
+				data = Fire.prepare(data);
+			    res.setHeader('Content-Type', 'application/json');
+			}
+			origSend.call(res, data);
+		}
+		next();
+	},
 	cloud: function(request, response){
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
