@@ -19,12 +19,12 @@ app.use(express.static(__dirname + '/public'));
 app.use((req, res, next)=>{
 	let origSend = res.send;
 	res.send = data=>{
+		console.log({data})
 		if((data && data.$fire) || (data && data[0] && data[0].$fire)){
 			data = Fire.prepare(data);
-			
 		    res.setHeader('Content-Type', 'application/json');
-			origSend.call(res, data)
 		}
+		origSend.call(res, data);
 	}
 	next();
 })
