@@ -160,6 +160,262 @@ function pathValue(obj, path, val){
 			return obj;
 	}
 }
+function Fire(path){
+	let _config = {prefix: ''}
+	function isIsoDate(str) {
+		if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/.test(str)) return false;
+		var d = new Date(str);
+		try{
+			return d.toISOString()===str;
+		}catch(e){
+			return false;
+		}
+	}
+	var Fire = function(path, cdg){
+		var fire = this;
+		fire._path = _config.prefix+path;
+		fire._parts = path.split('/');
+		fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
+		fire._ref = db[fire._cd](fire._path);
+		fire._qref = fire._ref;
+		fire._clean = function(obj){ //clean is called when getting data from the DB for local use.
+			if(obj){
+				var keys = Object.keys(obj);
+				if(keys.indexOf('_firestoreClient') == -1){
+					keys.forEach(function(k){
+						if(obj[k]){
+							if(obj[k].toDate)
+								obj[k] = obj[k].toDate();
+							else if(obj[k].seconds)
+								obj[k] = new Date(obj[k].seconds*1000);
+							else if(obj[k]._seconds)
+								obj[k] = new Date(obj[k]._seconds*1000);
+							else if(typeof obj[k] == 'string' && isIsoDate(obj[k]))
+								obj[k] = new Date(obj[k])
+							else if(typeof obj[k] == 'object')
+								obj[k] = fire._clean(obj[k])
+						}
+					})
+				}
+			}
+			return obj;
+		}
+		fire._prepare = Fire.prepare;
+		fire._become = function(ds){
+			Fire.ct.read++;
+			var data = ds.data();
+			var d = (ds.exists ? fire._clean(data) : {});
+			d.id = ds.id;
+			d.$fire = {
+				ref: ds.ref,
+				save: function(){
+					return new Promise((res, rej)=>{
+						Fire.ct.write++;
+						d.$status = 'saving';
+						let copy = fire._prepare(d);
+							copy.updatedOn = new Date();
+						if(localStorage.debug)
+							console.info('Save', {d, copy})
+						d.$fire.ref.set(copy).then(function(r){
+							d.$status = 'saved';
+							res(r);
+						}).catch(function(e){
+							console.error(e);
+							e.$error = e;
+							d.$status = 'error';
+							rej(e);
+						})
+					})
+				},
+				delete: function(){
+					Fire.ct.write++;
+					if(fire.list && !fire._listen){
+						var idx = fire.list.indexOf(d);
+						fire.list.splice(idx, 1);
+					}
+					return d.$fire.ref.delete();
+				},
+				update: function(attrObj){
+					Fire.ct.write++;
+					Object.keys(attrObj).forEach(function(k){
+						if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
+							attrObj[k] = firebase.firestore.FieldValue.delete();
+							pathValue(d, k, '_delete_');
+						}else{
+							pathValue(d, k, attrObj[k]);
+						}
+					})
+					attrObj.updatedOn = new Date();
+					if(localStorage.debug)
+						console.info('Update', {d, attrObj})
+					return d.$fire.ref.update(attrObj);
+				},
+				listen: fire.listen,
+				// function(check, callback){
+				// 	//returns ignore function.
+				// 	return d.$fire.ref.onSnapshot({includeMetadataChanges:false}, doc=>{
+				// 		Fire.ct.read++;
+				// 		let notify = (typeof check == 'function' ? check(doc) : true);
+				// 		if(notify){
+				// 			fire.obj = fire._become(doc);
+				// 			callback && callback(fire.obj)
+				// 		}
+				// 	})
+				// },
+				doc: d,
+				ds: ds
+			}
+			return d;
+		}
+		var options = ['where','orderBy','limit','startAt','startAfter','endAt'];
+		options.forEach(o=>{
+			fire[o] = function(...query){
+				fire._qref = fire._qref[o](...query);
+				return fire;
+			}
+		})
+		fire.get = function(ref, force){
+			ref = ref || fire._qref;
+			return new Promise((res,rej)=>{
+					
+				try{
+					if(fire._cd == 'collection' || fire._cd == 'collectionGroup'){
+						if(fire.list && !force){
+							res(fire.list);
+						}else{
+							ref.get()
+							.then(function(qs){
+								function List(){};
+								List.prototype = new Array;
+								List.prototype.$fire = fire;
+								fire.list = new List();
+								qs.forEach(doc=>{
+									fire.list.push(fire._become(doc));
+								})
+								res(fire.list);
+							}).catch(e=>{
+								fire.$error = e;
+								console.log(`There was a DB error: `, fire, ref);
+								deferred.reject(e);
+							})
+						}
+					}else{
+						if(fire.obj)
+							res(fire.obj);
+						else{
+							fire._qref.get().then(doc=>{
+								fire.obj = fire._become(doc);
+								res(fire.obj);
+							}).catch(e=>{
+								fire.$error = e;
+								console.log(`There was a DB error: `, fire, ref);
+								rej(e);
+							})
+						}
+					}
+				}catch(e){
+					console.error(e);
+					console.log(`There was a DB error: `, fire, ref);
+				}
+			})
+		}
+		fire.refresh = function(){
+			return fire.get(null, true);
+		}
+		fire.add = function(item){
+			if(item.id){
+				return fire.set(item);
+			}else{
+				return new Promise((res, rej)=>{
+					item.$status = 'saving';
+					item.createdOn = new Date();
+					item.updatedOn = new Date();
+					item = fire._prepare(item);
+		
+					fire._ref.add(item).then(r=>{
+						r.get().then(doc=>{
+							var obj = fire._become(doc);
+							obj.$status = 'saved';
+							if(fire.list && !fire._listen)
+								fire.list.push(obj);
+							res(obj);
+						})
+					}).catch(e=>{
+						item.$status = 'error';
+						rej(e);
+					})
+				})
+			}
+		}
+		fire.set = function(item){
+			return new Promise((res, rej)=>{
+				item.createdOn = item.createdOn || new Date();
+				item.updatedOn = new Date();
+				item.$status = 'saving';
+				var id = item.id;
+				delete item.id;
+				let copy = fire._prepare(item);
+				let ref =  fire._cd == 'doc' ? fire._ref : fire._ref.doc(id);
+				ref.set(copy).then(r=>{
+					ref.get().then(doc=>{
+						var obj = fire._become(doc);
+							obj.$status = 'saved';
+						item.$status = 'saved';
+						item.$dbv = obj;
+						if(fire.list)
+							fire.list.push(obj);
+						res(obj);
+					}).catch(e=>{
+						rej({message: 'Set but could not get', e});
+					});
+				}).catch(e=>{
+					rej({message: 'Could not set', e});
+				})
+			})
+		}
+		fire.update = function(attrObj){
+			if(fire._cd == 'doc'){
+				Fire.ct.write++;
+				Object.keys(attrObj).forEach(function(k){
+					if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
+						attrObj[k] = firebase.firestore.FieldValue.delete();
+					}
+				})
+				attrObj.updatedOn = new Date();
+				return fire._ref.update(attrObj);
+			}else{
+				return Promise.reject('You can only update a docuemnt.');
+			}
+		}
+	}
+	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
+		if(obj && obj.constructor && obj.constructor.name==='Object'){
+			obj = {...obj}
+			Object.keys(obj).forEach(function(k){
+				if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
+					delete obj[k];
+				}else if(Array.isArray(obj[k])){
+					obj[k] = obj[k].map(Fire.prepare)
+				}else if(typeof obj[k] == 'object'){
+					obj[k] = Fire.prepare(obj[k])
+				}
+			})
+		}
+		return obj;
+	}
+	
+	Fire.instances = [];
+	Fire.ct = {
+		read: 0,
+		write: 0
+	};
+	Fire.config = function(config){
+		if(config)
+			_config = Object.assign(_config, config);
+		return _config;
+	}
+	return Fire(path);
+}
 
 module.exports = {
 	options: function(request, response){
