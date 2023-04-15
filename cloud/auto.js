@@ -388,22 +388,26 @@ let Fire = function(path, cdg){
 	}
 }
 Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
-	if(obj && obj.constructor && obj.constructor.name==='Object'){
-		obj = {...obj}
-		Object.keys(obj).forEach(function(k){
-			if(k.includes('$') || typeof obj[k] == 'undefined'){
-				console.log('$ -----', obj)
-				delete obj[k];
-			}else if(Array.isArray(obj[k])){
-				console.log('A -----', obj)
-				obj[k] = obj[k].map(Fire.prepare)
-			}else if(typeof obj[k] == 'object'){
-				console.log('O -----', obj)
-				obj[k] = Fire.prepare(obj[k])
-			}
-		})
+	try{
+		if(obj && obj.constructor && obj.constructor.name==='Object'){
+			obj = {...obj}
+			Object.keys(obj).forEach(function(k){
+				if(k.includes('$') || typeof obj[k] == 'undefined'){
+					delete obj[k];
+				}else if(Array.isArray(obj[k])){
+					obj[k] = obj[k].map(Fire.prepare)
+				}else if(typeof obj[k] == 'object'){
+					obj[k] = Fire.prepare(obj[k])
+				}else{
+				}
+			})
+		}else if(obj && obj.constructor && obj.constructor.name==='Array'){
+			obj = obj.map(Fire.prepare)
+		}
+		return obj;
+	}catch(e){
+		console.error(e)	
 	}
-	return obj;
 }
 Fire.instances = [];
 Fire.ct = {
