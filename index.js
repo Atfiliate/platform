@@ -17,11 +17,14 @@ app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/public'));
 app.use((req, res, next)=>{
-	console.log({res});
-	// if(res.body.$fire || res.body[0] && res.body[0].$fire){
-	// 	res.body = Fire.prepare(res.body);
-	// }
-	next();
+	let origSend = res.send;
+	res.send = data=>{
+		if((data && data.$fire) || (data && data[0] && data[0].$fire)){
+			data = Fire.prepare(data);
+			origSend.call(res, data)
+		}
+		next();
+	}
 })
 app.use(bodyParser.json({limit:'50mb'}));
 app.use(bodyParser.urlencoded({extended:true, limit:'50mb'}));
