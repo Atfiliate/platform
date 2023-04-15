@@ -214,8 +214,6 @@ let Fire = function(path, cdg){
 					d.$status = 'saving';
 					let copy = fire._prepare(d);
 						copy.updatedOn = new Date();
-					if(localStorage.debug)
-						console.info('Save', {d, copy})
 					d.$fire.ref.set(copy).then(function(r){
 						d.$status = 'saved';
 						res(r);
@@ -246,8 +244,6 @@ let Fire = function(path, cdg){
 					}
 				})
 				attrObj.updatedOn = new Date();
-				if(localStorage.debug)
-					console.info('Update', {d, attrObj})
 				return d.$fire.ref.update(attrObj);
 			},
 			listen: fire.listen,
