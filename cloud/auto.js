@@ -391,11 +391,14 @@ Fire.prepare = function(obj){ //prepare is called with local data in prep to sen
 	if(obj && obj.constructor && obj.constructor.name==='Object'){
 		obj = {...obj}
 		Object.keys(obj).forEach(function(k){
-			if(k.indexOf('$') != -1 || typeof obj[k] == 'undefined'){
+			if(k.includes('$') || typeof obj[k] == 'undefined'){
+				console.log('$ -----', obj)
 				delete obj[k];
 			}else if(Array.isArray(obj[k])){
+				console.log('A -----', obj)
 				obj[k] = obj[k].map(Fire.prepare)
 			}else if(typeof obj[k] == 'object'){
+				console.log('O -----', obj)
 				obj[k] = Fire.prepare(obj[k])
 			}
 		})
