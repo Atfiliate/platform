@@ -144,11 +144,13 @@ app.factory('Fire', function($q){
 				},
 				delete: function(){
 					Fire.ct.write++;
-					if(fire.list && !fire._listen){
-						var idx = fire.list.indexOf(d);
-						fire.list.splice(idx, 1);
-					}
-					return d.$fire.ref.delete();
+					return d.$fire.ref.delete().then(r=>{
+						if(fire.list && !fire._listen){
+							var idx = fire.list.indexOf(d);
+							fire.list.splice(idx, 1);
+						}
+						return r;
+					})
 				},
 				update: function(attrObj){
 					Fire.ct.write++;
