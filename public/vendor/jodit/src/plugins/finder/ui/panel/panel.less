@@ -1,0 +1,91 @@
+@import (reference) '~jodit/src/styles/variables';
+
+.jodit-ui-browser-panel {
+	position: relative;
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+
+	&,
+	* {
+		box-sizing: border-box;
+	}
+
+	&__content {
+		display: flex;
+		height: calc(100% - var(--siderbar-height));
+		flex: 1;
+	}
+
+	&__footer {
+		height: var(--siderbar-height);
+	}
+
+	font-size: 16px;
+
+	@media (max-width: @screen-xs) {
+		&,
+		&__content {
+			flex-direction: column;
+		}
+	}
+
+	--siderbar-height: 20px;
+
+	--fb-color: #000;
+	--fb-icon-size: 16px;
+
+	--files-bg: #fff;
+
+	--item-size: 160px;
+	--item-bg: #f7f7f7;
+	--item-bg-hover: var(--color-button-background-hover_opacity40);
+	--item-border-color: var(--color-border);
+	--item-border-selected-color: var(--color-background-selection);
+	--item-border-bg-selected-color: var(--color-button-background-hover);
+	--item-info-font-size: 14px;
+	--item-info-color: #000;
+	--item-info-bg: #fcfcfc;
+
+	--status-bar-height: 20px;
+
+	--sidebar-bg: #f7f7f7;
+	--sidebar-hide-btn-bg: #fcfcfc;
+	--sidebar-border-color: var(--color-border);
+	--sidebar-color: var(--fb-color);
+
+	--folder-bg: #fcfcfc;
+	--folder-border: #ccc;
+
+	--source-bg: #ccc;
+	--source-border: #ccc;
+
+	--message-bg: #f7f7f7ee;
+	--message-color: #222;
+	--message-shadow-color: #000;
+
+	&_theme_dark {
+		--fb-color: #fff;
+
+		--item-bg: #333;
+		--item-info-color: #fff;
+		--item-info-bg: #222;
+		--item-border-color: #4e4c4c;
+		--item-border-bg-selected-color: var(--item-info-bg);
+
+		--sidebar-bg: #2b2b2b;
+		--sidebar-color: #fff;
+		--sidebar-border-color: 1b1b1b;
+		--files-bg: #252525;
+		--sidebar-hide-btn-bg: #5a5a5a;
+
+		--folder-bg: #5a5a5a;
+		--folder-border: #222;
+
+		--source-border: #222;
+
+		--message-bg: #474747ee;
+		--message-color: #fef;
+		--message-shadow-color: #ffffff99;
+	}
+}

@@ -1,0 +1,56 @@
+.jodit-ui-translate-list {
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+
+	&__list {
+		overflow: auto;
+		box-sizing: border-box;
+		flex: 1;
+		flex-wrap: nowrap;
+		border: 1px solid var(--color-border);
+		cursor: pointer;
+		font-size: 14px;
+	}
+
+	&__item {
+		display: flex;
+		color: var(--color-gray-dark);
+		line-height: 16px;
+
+		&[data-active='true'],
+		&:hover {
+			background-color: var(--color-background-active);
+			color: #fff;
+		}
+
+		&:focus {
+			outline: 2px solid var(--color-background-active);
+		}
+
+		&[data-hidden='true'] {
+			display: none;
+		}
+	}
+
+	&__item-key {
+		box-sizing: border-box;
+		flex: 0 0 40px;
+		padding: 7px 5px;
+		background-color: var(--color-background-light-gray);
+		font-size: 13px;
+		pointer-events: none;
+		text-align: center;
+	}
+
+	&__item[data-active='true'] &__item-key,
+	&__item:hover &__item-key {
+		background-color: var(--color-background-active);
+	}
+
+	&__item-title {
+		flex: 1 1 auto;
+		padding: 7px;
+		pointer-events: none;
+	}
+}

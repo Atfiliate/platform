@@ -1,0 +1,81 @@
+@import (reference) '~jodit/src/styles/mixins';
+@import (reference) '../loader/loader';
+
+.jodit-ui-browser-folder {
+	display: flex;
+
+	align-items: center;
+	justify-content: space-between;
+
+	padding: calc(var(--padding-default) / 2) calc(var(--padding-default) * 1.5);
+
+	border-bottom: 1px solid transparent;
+
+	&:hover {
+		border-color: var(--folder-border);
+		background-color: var(--folder-bg);
+	}
+
+	color: var(--sidebar-color);
+	cursor: pointer;
+
+	&__arrow,
+	&__icon-wrapper {
+		.size(var(--fb-icon-size));
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		fill: var(--sidebar-color);
+	}
+
+	&__icon {
+		display: flex;
+
+		width: var(--fb-icon-size);
+
+		align-items: center;
+		justify-content: center;
+
+		margin-right: calc(var(--padding-default) / 2);
+	}
+
+	&__name {
+		overflow: hidden;
+		max-width: 100%;
+
+		flex: 1;
+
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	& &__loader {
+		display: none;
+
+		width: 12px;
+		height: 12px;
+	}
+
+	&_loading_true &__icon-wrapper {
+		display: none;
+	}
+
+	&__loader {
+		&:extend(.jodit-ui-browser-loader);
+	}
+
+	&_loading_false &__loader {
+		display: none;
+	}
+
+	&_loading_true &__loader {
+		display: block;
+	}
+
+	&_active_true,
+	&_active_true:hover {
+		background-color: var(--item-bg-hover);
+	}
+}

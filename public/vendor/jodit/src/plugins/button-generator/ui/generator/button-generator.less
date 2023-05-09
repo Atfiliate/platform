@@ -1,0 +1,28 @@
+@import (reference) '~jodit/src/styles/variables';
+
+.jodit-ui-button-generator {
+	padding: var(--padding-default);
+
+	&__generator {
+		display: flex;
+
+		@media (max-width: @screen-sm) {
+			flex-direction: column;
+		}
+	}
+
+	--form-width: 390px;
+
+	&__form {
+		width: var(--form-width);
+
+		@media (max-width: @screen-xs) {
+			width: 100%;
+		}
+	}
+
+	&__preview {
+		height: 100%;
+		flex: 1;
+	}
+}

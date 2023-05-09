@@ -1,0 +1,48 @@
+@import (reference) '~jodit/src/styles/variables';
+
+.jodit-uig-button {
+	height: 300px;
+
+	&_mode_library {
+		width: 150px;
+
+		@media (max-width: @screen-xs) {
+			width: calc(50% - 10px);
+		}
+
+		height: auto;
+		padding: 5px;
+		border-width: 0 1px 2px;
+		border-style: solid;
+		border-color: #e1e1e1;
+		margin: 5px;
+		background-color: #fff;
+	}
+
+	&__wrapper {
+		display: flex;
+		height: 100%;
+		align-items: center;
+		justify-content: center;
+	}
+
+	&_mode_library &__wrapper {
+		width: 100%;
+		padding: 15px 15px 13px;
+		background-color: #f5f5f5;
+		text-align: center;
+	}
+
+	&_mode_library &__button {
+		display: block !important;
+		width: 100%;
+		padding: 9px 10px !important;
+		font-size: 15px !important;
+	}
+
+	&:active &__button {
+		position: relative;
+		top: 1px;
+		transform: scale(0.97);
+	}
+}

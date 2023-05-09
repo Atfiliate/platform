@@ -1,0 +1,10 @@
+{
+	"extends": "./node_modules/jodit/tsconfig.json",
+	"exclude": ["build"],
+  "files": [
+    "./index.d.ts",
+    "./src/index.ts",
+    "./node_modules/jodit/index.d.ts",
+    "./src/typings.d.ts"
+  ]
+}

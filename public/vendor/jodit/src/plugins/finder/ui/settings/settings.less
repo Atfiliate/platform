@@ -1,0 +1,59 @@
+@import (reference) '~jodit/src/styles/mixins';
+
+.jodit-ui-browser-settings {
+	--title-height: 40px;
+
+	position: absolute;
+	z-index: 3;
+	top: 0;
+	right: 0;
+
+	width: 350px;
+	height: calc(100% - var(--status-bar-height));
+
+	padding: var(--padding-default);
+
+	border-left: 1px solid var(--sidebar-border-color);
+	background: var(--sidebar-bg);
+	color: var(--sidebar-color);
+
+	&__close {
+		position: absolute;
+		top: var(--padding-default);
+		right: var(--padding-default);
+		width: 16px;
+
+		cursor: pointer;
+
+		svg {
+			fill: var(--sidebar-color);
+		}
+
+		&:active {
+			svg {
+				transform: rotate(5deg);
+			}
+		}
+	}
+
+	&__title {
+		height: var(--title-height);
+		padding: var(--padding-default) 0;
+		font-size: 1.2em;
+		font-weight: bold;
+	}
+
+	&_hidden {
+		&_true {
+			display: none;
+		}
+	}
+
+	&__options {
+		overflow: auto;
+		height: calc(100% - var(--title-height));
+		padding: 0 var(--padding-default) 20px 0;
+
+		.scrollbarSlim();
+	}
+}

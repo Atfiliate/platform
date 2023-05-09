@@ -1,0 +1,18 @@
+[data-jodit-page-break] {
+	display: flex;
+	height: 24px;
+	box-sizing: border-box;
+
+	align-items: center;
+	justify-content: center;
+
+	border: 1px dashed #ccc;
+
+	font-size: 12px;
+	page-break-before: always;
+	text-transform: uppercase;
+}
+
+[data-jodit-page-break]:active {
+	border-color: #818181;
+}

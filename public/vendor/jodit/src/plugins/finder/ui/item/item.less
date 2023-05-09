@@ -1,0 +1,335 @@
+@import (reference) '~jodit/src/styles/mixins';
+
+.jodit-ui-browser-item {
+	position: relative;
+
+	box-sizing: border-box;
+	border: 0;
+	margin: var(--padding-default) 0 0 var(--padding-default);
+	background-color: var(--item-bg);
+
+	&__image {
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: contain;
+	}
+
+	&_type_folder &__image,
+	&_type_file &__image,
+	&_is-file_true &__image {
+		background-size: 70%;
+	}
+
+	&:hover {
+		background-color: var(--item-bg-hover);
+	}
+
+	background-size: contain;
+
+	cursor: pointer;
+
+	&_active_true {
+		outline: 2px solid var(--item-border-selected-color);
+		user-select: none;
+	}
+
+	&__heart {
+		.size(15%);
+
+		position: absolute;
+		top: var(--padding-default);
+		right: var(--padding-default);
+
+		display: flex;
+
+		opacity: 0.3;
+		transition: transform 0.1s ease-in;
+
+		svg {
+			fill: var(--fb-color);
+		}
+
+		&:active {
+			transform: scale(1.2, 1.2);
+		}
+	}
+
+	&:hover &__heart {
+		opacity: 0.7;
+
+		&:hover {
+			opacity: 1;
+		}
+	}
+
+	&_favorite_true &__heart {
+		svg {
+			fill: var(--color-red);
+		}
+	}
+
+	&_show-favorites_false &__heart {
+		display: none;
+	}
+
+	&__info {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+
+		overflow: visible;
+		max-width: 100%;
+		padding: 0.3em 0.6em;
+		background-color: var(--item-info-bg);
+		color: var(--item-info-color);
+		font-size: var(--item-info-font-size);
+		line-height: 1.2;
+		opacity: 0.6;
+		text-align: left;
+		transition: opacity 400ms ease;
+		white-space: normal;
+	}
+
+	&_view_tiles&_size_default:hover:not(&_type_folder):not(&_active_true)
+		&__info {
+		opacity: 0;
+	}
+
+	&__filesize,
+	&__name,
+	&__time {
+		overflow: hidden;
+		font-size: 0.75em;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__name {
+		font-size: 0.9em;
+		font-weight: bold;
+	}
+
+	&_type_folder&_view_tiles &__name {
+		text-align: center;
+	}
+
+	// Modification - list
+	&&_view_list {
+		display: flex;
+		width: auto;
+		height: auto;
+		border: 0;
+		border-bottom: 1px solid var(--item-border-color);
+		margin: 0;
+	}
+
+	&_view_list &__image {
+		.size(calc(var(--icon-size) * 2));
+		flex-shrink: 0;
+		margin-left: 5px;
+		background-size: cover;
+	}
+
+	&_view_list &__info {
+		position: static;
+		display: flex;
+		max-width: calc(100% - var(--icon-size) * 2 - 5px);
+		height: 24px;
+		flex: 1;
+		align-items: center;
+		justify-content: space-between;
+
+		padding: 0;
+
+		background-color: transparent;
+		opacity: 1;
+
+		* {
+			padding: 0 var(--padding-default);
+		}
+	}
+
+	&_view_list &__heart {
+		.size(14px);
+		top: calc(var(--padding-default) / 2);
+		right: calc(var(--padding-default) / 2);
+	}
+
+	&_view_list &__name {
+		flex: 1;
+	}
+
+	&_view_list &__filesize {
+		width: 80px;
+	}
+
+	&_view_list &__time {
+		width: 130px;
+		flex-basis: auto;
+	}
+
+	&_view_list&_active_true {
+		background-color: var(--item-border-bg-selected-color);
+	}
+
+	// Modification - compact
+	&&_view_compact {
+		display: flex;
+		height: auto;
+		background-color: transparent;
+
+		.jodit-ui-browser-item {
+			&__heart {
+				.size(14px);
+				top: calc(var(--padding-default) / 2);
+				right: calc(var(--padding-default) / 2);
+			}
+		}
+	}
+
+	&_view_compact &__info {
+		position: static;
+		display: flex;
+		height: 24px;
+		align-items: center;
+		justify-content: space-between;
+
+		padding: 0;
+
+		background-color: transparent;
+		opacity: 1;
+
+		* {
+			padding: 0 var(--padding-default) 0 calc(var(--padding-default) / 4);
+		}
+	}
+
+	&_view_compact &__image {
+		.size(calc(var(--icon-size) * 2));
+		flex-grow: 0;
+		background-size: cover;
+	}
+
+	&_view_compact &__name {
+		width: calc(var(--item-size) - var(--icon-size) * 2);
+	}
+
+	&_view_compact &__time,
+	&_view_compact &__filesize {
+		display: none;
+	}
+}
+
+// Sizes
+.jodit-ui-browser-item {
+	--item-info-top-padding: 5px;
+
+	&,
+	&__image {
+		.size(var(--item-size));
+	}
+
+	&_view_tiles&_size {
+		&_xsmall,
+		&_small {
+			--item-size: 48px;
+			--item-info-size: 20px;
+
+			width: var(--item-size);
+			height: calc(
+				var(--item-size) + var(--item-info-size) +
+					var(--item-info-top-padding)
+			);
+
+			background-color: transparent;
+			&:hover {
+				background-color: var(--item-bg-hover);
+			}
+
+			.jodit-ui-browser-item {
+				&__heart {
+					top: 0;
+					right: 0;
+					.size(25%);
+				}
+
+				&__info {
+					height: var(--item-info-size);
+				}
+
+				&__image {
+					.size(var(--item-size));
+				}
+
+				&__time,
+				&__filesize {
+					display: none;
+				}
+
+				&__name {
+					display: -webkit-box;
+					overflow: hidden;
+					-webkit-box-orient: vertical;
+					-webkit-line-clamp: 2;
+					text-align: center;
+					white-space: normal;
+					word-break: break-all;
+				}
+
+				&__info {
+					padding: 0;
+					background: unset;
+					font-size: 10px;
+				}
+			}
+		}
+
+		&_small {
+			--item-size: 72px;
+			--item-info-size: 24px;
+
+			width: var(--item-size);
+			height: calc(
+				var(--item-size) + var(--item-info-size) +
+					var(--item-info-top-padding)
+			);
+
+			.jodit-ui-browser-item {
+				&__info {
+					height: var(--item-info-size);
+				}
+
+				&__image {
+					.size(var(--item-size));
+				}
+
+				&__info {
+					font-size: 12px;
+				}
+			}
+		}
+
+		&_large {
+			--item-size: 200px;
+			.size(var(--item-size));
+
+			.jodit-ui-browser-item {
+				&__info {
+					font-size: 16px;
+				}
+			}
+		}
+
+		&_xlarge {
+			--item-size: 250px;
+			.size(var(--item-size));
+
+			.jodit-ui-browser-item {
+				&__info {
+					font-size: 18px;
+				}
+			}
+		}
+	}
+}

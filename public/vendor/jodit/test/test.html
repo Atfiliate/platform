@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport"
+				content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+	<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+	<title>Jodit Tests </title>
+	<script>
+		if (!location.host.match(/localhost/)) {
+			document.write(
+				'<' + 'link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/5.1.1/mocha.min.css" />' +
+				'<' + 'script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/6.2.2/mocha.min.js"><' + '/script>' +
+				'<' + 'script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.2.0/chai.min.js"><' + '/script>'
+			);
+		} else {
+			document.write(
+				'<' + 'link rel="stylesheet" href="../node_modules/mocha/mocha.css" />' +
+				'<' + 'script src="../node_modules/mocha/mocha.js"><' + '/script>' +
+				'<' + 'script src="../node_modules/chai/chai.js"><' + '/script>' +
+				'<' + 'script src="../node_modules/synchronous-promise/index.js"><' + '/script>'
+			);
+		}
+	</script>
+
+</head>
+<body>
+<div id="mocha"></div>
+
+<script>
+	mocha.setup({
+		ui: 'bdd',
+		bail: true,
+		inlineDiffs: true
+	});
+
+	mocha.reporter('html');
+</script>
+
+<link rel="stylesheet" href="../build/jodit.css"/>
+<script src="../build/jodit.js"></script>
+<script src="../build/plugins/autocomplete/autocomplete.js"></script>
+<script src="../build/plugins/backup/backup.js"></script>
+<script src="../build/plugins/change-case/change-case.js"></script>
+<script src="../build/plugins/color-picker/color-picker.js"></script>
+<script src="../build/plugins/emoji/emoji.js"></script>
+<script src="../build/plugins/finder/finder.js"></script>
+<script src="../build/plugins/google-search/google-search.js"></script>
+<script src="../build/plugins/paste-code/paste-code.js"></script>
+<script src="../build/plugins/show-blocks/show-blocks.js"></script>
+<script src="../config.js"></script>
+
+<script src="../node_modules/jodit/test/bootstrap.js"></script>
+<script src="./bootstrap.js"></script>
+
+<script src="./tests/acceptance/smokeTest.js"></script>
+<script src="../src/plugins/show-blocks/tests/show-blocks.test.js"></script>
+<script src="../src/plugins/emoji/tests/emoji.test.js"></script>
+<script src="../src/plugins/emoji/tests/autocomplete.test.js"></script>
+<script src="../src/plugins/autocomplete/tests/autocomplete.test.js"></script>
+<script src="../src/plugins/backup/tests/backup.test.js"></script>
+<script src="../src/plugins/color-picker/tests/color-picker.test.js"></script>
+<script src="../src/plugins/change-case/tests/change-case.test.js"></script>
+<script>
+	window.onload = function() {
+		mocha.run();
+	};
+</script>
+</body>
+</html>

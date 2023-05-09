@@ -1,0 +1,19 @@
+.jodit-autocomplete-item {
+	display: flex;
+	min-width: 6em;
+	align-items: center;
+	padding: var(--padding-default) var(--padding-default);
+	cursor: default;
+
+	&:hover {
+		background-color: var(--color-background-button-hover);
+		color: var(--color-dark);
+		cursor: pointer;
+	}
+
+	&_active_true:hover,
+	&_active_true {
+		background-color: var(--color-background-active);
+		color: var(--color-white);
+	}
+}
