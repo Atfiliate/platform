@@ -38,7 +38,8 @@
 		"elasticsearch": 		"*",
 		"node-cron": 				"*",
 		"@octokit/rest": 			"*",
-		"@google-cloud/language":			"*"
+		"@google-cloud/language":			"*",
+		"jodit":					"*"
 	},
 	"repository": {
 		"type": "git",
