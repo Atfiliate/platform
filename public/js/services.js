@@ -191,6 +191,21 @@ app.factory('Fire', function($q){
 				return fire;
 			}
 		})
+		
+		fire.delete = function(){
+			var deferred = $q.defer();
+			if(fire._cd == 'collection'){
+				deferred.reject('You can not delete an entire collection from here.');
+			}else{
+				fire._ref.delete().then(r=>{
+					deferred.resolve(r);
+				}).catch(e=>{
+					deferred.reject(e);
+				})
+			}
+			return deferred.promise;
+		})
+		
 		fire.get = function(ref, force){
 			ref = ref || fire._qref;
 			var deferred = $q.defer();
