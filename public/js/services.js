@@ -204,7 +204,7 @@ app.factory('Fire', function($q){
 				})
 			}
 			return deferred.promise;
-		})
+		}
 		
 		fire.get = function(ref, force){
 			ref = ref || fire._qref;
