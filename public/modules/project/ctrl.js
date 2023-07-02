@@ -1312,8 +1312,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 				addon.installedOn	= new Date();
 				addon.installedBy	= $scope.user.uid;
 				addon.createdBy		= addon.createdBy || $scope.user.uid;
-				tools.addon.load(addon);
-				api.broadcast('addon.install', addon);
+				tools.addon.load(addon).then(r=>{
+					api.broadcast('addon.install', addon);
+				})
 			},
 			uninstall: addon=>{
 				api.broadcast('addon.uninstall', addon);
