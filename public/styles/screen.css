@@ -36,6 +36,11 @@ form.row, .row.form{
 .md-menu .md-button{
 	display: flex;
 }
+.btn-group .md-button{
+    margin: -2px;
+    padding: 0px;
+    border: 0px;
+}
 .md-button .md-avatar{
 	margin: 0px 8px 0px 0px;
 }
