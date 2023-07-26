@@ -35,7 +35,7 @@
 		"jimp": 				"*",
 		"compression":			"*",
 		"multer": 				"*",
-		"elasticsearch": 		"*",
+		"algoliasearch":		"*",
 		"node-cron": 				"*",
 		"@octokit/rest": 			"*",
 		"@google-cloud/language":	"*",
