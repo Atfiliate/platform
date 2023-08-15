@@ -847,9 +847,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			path: function(component = {}){
 				if(component.global)
-					return config.origin+'/project/component/'+component.id;
+					return window.location.origin+'/project/component/'+component.id;
 				else
-					return config.origin+'/project/'+$routeParams.view+'/component/'+component.id;
+					return window.location.origin+'/project/'+$routeParams.view+'/component/'+component.id;
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
@@ -862,9 +862,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 					//project/:uid/component/:componentId
 					if(id.indexOf('/') != -1){
 						id = id.replace('/', '');
-						return config.origin+'/project/component/'+id+suffix;
+						return window.location.origin+'/project/component/'+id+suffix;
 					}else{
-						return config.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
+						return window.location.origin+'/project/'+$routeParams.view+'/component/'+id+suffix;
 					}
 				}
 			}
@@ -990,9 +990,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			path: function(cloud = {}){
 				if(cloud.global)
-					return config.origin+'/project/cloud/'+cloud.id;
+					return window.location.origin+'/project/cloud/'+cloud.id;
 				else
-					return config.origin+'/project/'+$routeParams.view+'/cloud/'+cloud.id;
+					return window.location.origin+'/project/'+$routeParams.view+'/cloud/'+cloud.id;
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
@@ -1002,9 +1002,9 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 				//project/:uid/cloud/:cloudId
 				if(id.indexOf('/') != -1){
 					id = id.replace('/', '');
-					return config.origin+'/project/cloud/'+id+suffix;
+					return window.location.origin+'/project/cloud/'+id+suffix;
 				}else{
-					return config.origin+'/project/'+$routeParams.view+'/cloud/'+id+suffix;
+					return window.location.origin+'/project/'+$routeParams.view+'/cloud/'+id+suffix;
 				}
 			}
 		},
