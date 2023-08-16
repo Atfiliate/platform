@@ -29,12 +29,12 @@ app.use(multer().any());
 app.use(busboy());
 app.use(compression());
 
-let fbProjectId = pathValue(config, 'firebase.projectId');
-if(fbProjectId)
+if(config && config.firebase && config.firebase.projectId){
 	app.use('/__/auth/', (req, res) => {
-	    const url = `https://${fbProjectId}.firebaseapp.com${req.url}`;
+	    const url = `https://${config.firebase.projectId}.firebaseapp.com${req.url}`;
 	    req.pipe(request(url)).pipe(res);
 	});
+}
 
 
 // views is directory for all template files
