@@ -7,11 +7,16 @@ var bodyParser = require('body-parser');
 var busboy  = require('connect-busboy');
 var compression = require('compression');
 var multer = require('multer');
+var request = require('request');
 
 auto.startup();
 auto.cache();
 
 var app = express();
+
+let config = {};
+if(process.env.config)
+	config = JSON.parse(process.env.config);
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -24,13 +29,20 @@ app.use(multer().any());
 app.use(busboy());
 app.use(compression());
 
+let fbProjectId = pathValue(config, 'firebase.projectId');
+if(fbProjectId)
+	app.use('/__/auth/', (req, res) => {
+	    const url = `https://${fbProjectId}.firebaseapp.com${req.url}`;
+	    req.pipe(request(url)).pipe(res);
+	});
+
+
 // views is directory for all template files
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
 	if(process.env.config && !request.query.rootSetup){
-		let config = JSON.parse(process.env.config);
 		response.render('pages/index', {config});
 	}else
 		response.render('pages/setup');
