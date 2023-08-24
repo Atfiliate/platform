@@ -439,6 +439,7 @@ module.exports = {
 							console.log(`JS had no init function: ${key}`);
 					}catch(e){
 						console.log(`Error running startup function: ${key}`);
+						console.log(e);
 					}
 				})
 			});
