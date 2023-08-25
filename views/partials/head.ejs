@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><%= process.env.title %></title>
+<title><%= config.title %></title>
 
 <% if(process.env.manifest){ %>
   <link rel="manifest" href="/component/manifest.json">
@@ -16,12 +16,12 @@
 	<link rel="shortcut icon" href="https://res.cloudinary.com/easybusiness/image/upload/v1658346170/favicon/favicon_ooxjx2.ico">
 <% } %>
 
-<meta name="description" content="">
+<meta name="description" content="<%= config.description %>">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Atfiliate">
-<link rel="apple-touch-icon" href="images/icons/icon-152x152.png">
-<meta name="msapplication-TileImage" content="images/icons/icon-144x144.png">
+<meta name="apple-mobile-web-app-title" content="<%= config.title %>">
+<link rel="apple-touch-icon" href="<%= config?.icons?.ico152 %>">
+<meta name="msapplication-TileImage" content="<%= config?.icons?.ico144 %>">
 <meta name="msapplication-TileColor" content="#2F3BA2">
 
 <link rel="stylesheet" media="screen" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.20/angular-material.css">
@@ -33,7 +33,7 @@
 <!-- Site Config -->
 <% if(config.css){ %>
 <style>
-	<%- config.css %>;
+	<%- config.css %>
 </style>
 <% } %>
 
