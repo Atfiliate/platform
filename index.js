@@ -10,7 +10,7 @@ var multer = require('multer');
 var request = require('request');
 
 let $settings = {subSite: {}};
-new Fire(`admin/settings`).get().then(s=>{
+new auto.Fire(`admin/settings`).get().then(s=>{
 	if(!s.subSite)
 		s.subSite = {};
 	$settings = s;
