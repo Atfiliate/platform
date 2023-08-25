@@ -55,10 +55,15 @@ app.get('/', function(request, response){
 	}else{
 		let config = {};
 		Object.assign(config, Config)
-		if($settings.subSite[request.headers.host])
-			Object.assign(config, $settings.subSite[request.headers.host])
-		console.log(request.headers.host, $settings, config)
-		response.render('pages/index', {config});
+		let settings = $settings.subSite[request.headers.host];
+		if(settings)
+			Object.assign(config, settings)
+		console.log(request.headers.host, $settings, settings, config)
+		app.render('pages/index', {config}, (e,html)=>{
+			response.send(html);
+		})
+		// response.send()
+		// response.render('pages/index', {config});
 	}
 });
 
