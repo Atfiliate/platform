@@ -37,7 +37,7 @@ app.use(busboy());
 app.use(compression());
 
 //I haven't actually seen this work properly...
-if(pathValue(Config, 'firebase.projectId')){
+if(Config && Config.firebase && Config.firebase.projectId){
 	app.use('/__/auth/', (req, res) => {
 	    const url = `https://${Config.firebase.projectId}.firebaseapp.com${req.url}`;
 	    req.pipe(request(url)).pipe(res);
