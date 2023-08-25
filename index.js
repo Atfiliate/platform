@@ -9,14 +9,21 @@ var compression = require('compression');
 var multer = require('multer');
 var request = require('request');
 
+let $settings = {subSite: {}};
+new Fire(`admin/settings`).get().then(s=>{
+	if(!s.subSite)
+		s.subSite = {};
+	$settings = s;
+})
+
 auto.startup();
 auto.cache();
 
 var app = express();
 
-let config = {};
+let Config = {};
 if(process.env.config)
-	config = JSON.parse(process.env.config);
+	Config = JSON.parse(process.env.config);
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -29,9 +36,10 @@ app.use(multer().any());
 app.use(busboy());
 app.use(compression());
 
-if(config && config.firebase && config.firebase.projectId){
+//I haven't actually seen this work properly...
+if(pathValue(Config, 'firebase.projectId')){
 	app.use('/__/auth/', (req, res) => {
-	    const url = `https://${config.firebase.projectId}.firebaseapp.com${req.url}`;
+	    const url = `https://${Config.firebase.projectId}.firebaseapp.com${req.url}`;
 	    req.pipe(request(url)).pipe(res);
 	});
 }
@@ -42,10 +50,15 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
-	if(process.env.config && !request.query.rootSetup){
-		response.render('pages/index', {config});
-	}else
+	if(!process.env.config || request.query.rootSetup){
 		response.render('pages/setup');
+	}else{
+		let config = {};
+		Object.assign(config, Config)
+		if($settings.subSite[request.headers.host])
+			Object.assign(config, $settings.subSite[request.headers.host])
+		response.render('pages/index', {config});
+	}
 });
 
 // app.get('/home', auto.home)
