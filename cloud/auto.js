@@ -413,6 +413,7 @@ Fire.ct = {
 };
 
 module.exports = {
+	Fire,
 	options: function(request, response){
 		if(request.headers.origin){
 			var headers = {};
