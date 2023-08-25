@@ -57,6 +57,7 @@ app.get('/', function(request, response){
 		Object.assign(config, Config)
 		if($settings.subSite[request.headers.host])
 			Object.assign(config, $settings.subSite[request.headers.host])
+		console.log(request.headers.host, $settings, config)
 		response.render('pages/index', {config});
 	}
 });
