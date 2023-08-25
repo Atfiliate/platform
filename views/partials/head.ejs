@@ -31,9 +31,9 @@
 <link rel="stylesheet" href="/component/site.css">
 
 <!-- Site Config -->
-<% if(process.env.config){ %>
+<% if(config){ %>
 <script>
-  window.config = <%- process.env.config %>;
+  window.config = <%- JSON.stringify(config) %>;
 </script>
 <% } %>
 
