@@ -31,6 +31,13 @@
 <link rel="stylesheet" href="/component/site.css">
 
 <!-- Site Config -->
+<% if(config.css){ %>
+<style>
+	<%- config.css %>;
+</style>
+<% } %>
+
+<!-- Site Config -->
 <% if(config){ %>
 <script>
   window.config = <%- JSON.stringify(config) %>;
