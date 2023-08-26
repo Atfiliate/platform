@@ -1,3 +1,4 @@
+var firebase = require("firebase-admin");
 var fire = require("./cloud/fire.js");
 var auto = require("./cloud/auto.js");
 var stripe = require('./cloud/stripe.js');
@@ -9,12 +10,16 @@ var compression = require('compression');
 var multer = require('multer');
 var request = require('request');
 
+let db = firebase.firestore();
 let $settings = {subSite: {}};
-new auto.Fire(`admin/settings`).get().then(s=>{
+db.collection('admin').doc('settings')
+.onSnapshot((doc)=>{
+	let s = doc.data();
 	if(!s.subSite)
 		s.subSite = {};
 	$settings = s;
-})
+});
+
 
 auto.startup();
 auto.cache();
