@@ -12,7 +12,7 @@ var request = require('request');
 
 
 let $settings = {subSite: {}};
-if(process.env.config){
+if(firebase.apps.length)
 	let db = firebase.firestore();
 	db.collection('admin').doc('settings')
 	.onSnapshot((doc)=>{
