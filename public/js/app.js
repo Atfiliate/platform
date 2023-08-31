@@ -680,16 +680,24 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 })
 
 
-
-var whoisConfig = {
-    apiKey: "AIzaSyD_3nGYh1GA2Ucds20nm8ad8HsuHFXRxbg",
-    authDomain: "atfiliate.firebaseapp.com",
-    databaseURL: "https://atfiliate.firebaseio.com",
-    projectId: "atfiliate",
-    storageBucket: "atfiliate.appspot.com",
-    messagingSenderId: "126442541687",
-    appId: "1:126442541687:web:1819721adcc2b9fe24ec72"
+var whoisConfig = = {
+    "apiKey": "AIzaSyA3te7DmhRT1pIY56j4wWI9jDQkV6NCpUI",
+    "authDomain": "homeschool-express.firebaseapp.com",
+    "databaseURL": "https://homeschool-express.firebaseio.com",
+    "projectId": "homeschool-express",
+    "storageBucket": "homeschool-express.appspot.com",
+    "messagingSenderId": "1087836177452",
+    "appId": "1:1087836177452:web:a5bee13a399dc1cbd2bd89"
 }
+// {
+//     apiKey: "AIzaSyD_3nGYh1GA2Ucds20nm8ad8HsuHFXRxbg",
+//     authDomain: "atfiliate.firebaseapp.com",
+//     databaseURL: "https://atfiliate.firebaseio.com",
+//     projectId: "atfiliate",
+//     storageBucket: "atfiliate.appspot.com",
+//     messagingSenderId: "126442541687",
+//     appId: "1:126442541687:web:1819721adcc2b9fe24ec72"
+// }
 var whois = firebase.initializeApp(whoisConfig, "whois");
 
 angular.element(function() {
