@@ -58,7 +58,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response){
-	if(!process.env.config || request.query.rootSetup){
+	if(!Config?.firebase?.databaseURL || request.query.rootSetup){
 		response.render('pages/setup');
 	}else{
 		let config = {};
