@@ -681,13 +681,13 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 
 
 var whoisConfig = {
-    "apiKey": "AIzaSyA3te7DmhRT1pIY56j4wWI9jDQkV6NCpUI",
-    "authDomain": "homeschool-express.firebaseapp.com",
-    "databaseURL": "https://homeschool-express.firebaseio.com",
-    "projectId": "homeschool-express",
-    "storageBucket": "homeschool-express.appspot.com",
-    "messagingSenderId": "1087836177452",
-    "appId": "1:1087836177452:web:a5bee13a399dc1cbd2bd89"
+	apiKey: "AIzaSyDYaLpwfUdfLXMLOkhNDhbwCDOpxLMJgRs",
+	authDomain: "testalot-7830b.firebaseapp.com",
+	databaseURL: "https://testalot-7830b.firebaseio.com",
+	projectId: "testalot-7830b",
+	storageBucket: "testalot-7830b.appspot.com",
+	messagingSenderId: "629753159663",
+	appId: "1:629753159663:web:052eedbf8f40b1b7"
 }
 // {
 //     apiKey: "AIzaSyD_3nGYh1GA2Ucds20nm8ad8HsuHFXRxbg",
