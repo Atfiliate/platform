@@ -16,7 +16,7 @@ if(firebase.apps.length){
 	let db = firebase.firestore();
 	db.collection('admin').doc('settings')
 	.onSnapshot((doc)=>{
-		let s = doc.data();
+		let s = doc.data() || {};
 		if(!s.subSite)
 			s.subSite = {};
 		$settings = s;
