@@ -680,7 +680,7 @@ app.controller('StripeCtrl', function StripeCtrl($scope, $mdDialog, Auth, $fireb
 })
 
 
-var whoisConfig = = {
+var whoisConfig = {
     "apiKey": "AIzaSyA3te7DmhRT1pIY56j4wWI9jDQkV6NCpUI",
     "authDomain": "homeschool-express.firebaseapp.com",
     "databaseURL": "https://homeschool-express.firebaseio.com",
