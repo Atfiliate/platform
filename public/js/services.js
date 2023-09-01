@@ -93,28 +93,7 @@ app.factory('Fire', function($q){
 		fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
 		fire._ref = db[fire._cd](fire._path);
 		fire._qref = fire._ref;
-		fire._clean = function(obj){ //clean is called when getting data from the DB for local use.
-			if(obj){
-				var keys = Object.keys(obj);
-				if(keys.indexOf('_firestoreClient') == -1){
-					keys.forEach(function(k){
-						if(obj[k]){
-							if(obj[k].toDate)
-								obj[k] = obj[k].toDate();
-							else if(obj[k].seconds)
-								obj[k] = new Date(obj[k].seconds*1000);
-							else if(obj[k]._seconds)
-								obj[k] = new Date(obj[k]._seconds*1000);
-							else if(typeof obj[k] == 'string' && isIsoDate(obj[k]))
-								obj[k] = new Date(obj[k])
-							else if(typeof obj[k] == 'object')
-								obj[k] = fire._clean(obj[k])
-						}
-					})
-				}
-			}
-			return obj;
-		}
+		fire._clean = Fire.clean;
 		fire._prepare = Fire.prepare;
 		fire._become = function(ds){
 			Fire.ct.read++;
@@ -412,6 +391,28 @@ app.factory('Fire', function($q){
 				return Promise.reject('You can only update a docuemnt.');
 			}
 		}
+	}
+	Fire.clean = function(obj){ //clean is called when getting data from the DB for local use.
+		if(obj){
+			var keys = Object.keys(obj);
+			if(keys.indexOf('_firestoreClient') == -1){
+				keys.forEach(function(k){
+					if(obj[k]){
+						if(obj[k].toDate)
+							obj[k] = obj[k].toDate();
+						else if(obj[k].seconds)
+							obj[k] = new Date(obj[k].seconds*1000);
+						else if(obj[k]._seconds)
+							obj[k] = new Date(obj[k]._seconds*1000);
+						else if(typeof obj[k] == 'string' && isIsoDate(obj[k]))
+							obj[k] = new Date(obj[k])
+						else if(typeof obj[k] == 'object')
+							obj[k] = fire._clean(obj[k])
+					}
+				})
+			}
+		}
+		return obj;
 	}
 	Fire.prepare = function(obj){ //prepare is called with local data in prep to send to the DB
 		if(obj && obj.constructor && obj.constructor.name==='Object'){
