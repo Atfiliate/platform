@@ -407,7 +407,7 @@ app.factory('Fire', function($q){
 						else if(typeof obj[k] == 'string' && isIsoDate(obj[k]))
 							obj[k] = new Date(obj[k])
 						else if(typeof obj[k] == 'object')
-							obj[k] = fire._clean(obj[k])
+							obj[k] = Fire.clean(obj[k])
 					}
 				})
 			}
