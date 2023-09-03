@@ -1133,21 +1133,25 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			browse: function(ev){
 				var defer = $q.defer();
-				$mdDialog.show({
-					scope: $scope,
-					preserveScope: true,
-					templateUrl: '/component/imgBrowse.html',
-					parent: angular.element(document.body),
-					targetEvent: ev,
-					clickOutsideToClose: true,
-					multiple: true,
-					onComplete: function(){
-						
-					}
-				}).then(function(imgUrl){
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;imgBrowser.dialog').then(imgUrl=>{
 					imgUrl = imgUrl.replace('https://pixabay.com/get/', 'https://res.cloudinary.com/'+config.cloudinary.cloudName+'/image/upload/pixel/')
 					defer.resolve(imgUrl);
 				})
+				// $mdDialog.show({
+				// 	scope: $scope,
+				// 	preserveScope: true,
+				// 	templateUrl: '/component/imgBrowse.html',
+				// 	parent: angular.element(document.body),
+				// 	targetEvent: ev,
+				// 	clickOutsideToClose: true,
+				// 	multiple: true,
+				// 	onComplete: function(){
+						
+				// 	}
+				// }).then(function(imgUrl){
+				// 	imgUrl = imgUrl.replace('https://pixabay.com/get/', 'https://res.cloudinary.com/'+config.cloudinary.cloudName+'/image/upload/pixel/')
+				// 	defer.resolve(imgUrl);
+				// })
 				return defer.promise;
 			},
 			search: function(term){
