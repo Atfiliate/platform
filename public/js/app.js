@@ -113,8 +113,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		$rootScope.profile = user;
 		$rootScope.profile = profile;
 		tools.device.init(profile);
-		if(tools._loginRes)
-			tools._loginRes(user);
+		if(tools._loginDefer)
+			tools._loginDefer.resolve(user);
 		// tools.profile.init(user);
 	}, ()=>{
 		//handle guests...
@@ -228,10 +228,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 					}
 				}
 			}else if($rootScope.loginMethods.length == 1){
-				tools._loginRes = tools._loginDefer.resolve;
 				tools.login($rootScope.loginMethods[0])
 			}else{
-				tools._loginRes = tools._loginDefer.resolve;
 				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
 			}
 			tools._loginDefer.promise.then(r=>{
