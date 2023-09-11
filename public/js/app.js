@@ -233,6 +233,9 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 				}else{
 					tools._loginRes = res;
 					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
+					tools._loginRes.then(r=>{
+						$mdDialog.hide();
+					})
 				}
 			})
 		},
