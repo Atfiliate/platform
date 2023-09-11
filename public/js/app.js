@@ -113,8 +113,8 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		$rootScope.profile = user;
 		$rootScope.profile = profile;
 		tools.device.init(profile);
-		if(tools._loginDefer)
-			tools._loginDefer.resolve(user);
+		if(tools._loginRes)
+			tools._loginRes(user);
 		// tools.profile.init(user);
 	}, ()=>{
 		//handle guests...
@@ -208,34 +208,37 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}
 		},
 		login: function(method){
-			tools._loginDefer = $q.defer();
-			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
-				if($rootScope.config.login)
-					return $rootScope.config.login.indexOf(m.title) != -1;
-				else
-					return true;
-			})
-
-			if(method){
-				if(method.provider){
-					let provider = method.provider || $rootScope.loginMethods[0].provider;
-					$firebaseAuth().$signInWithPopup(provider);
-					return Promise.resolve();
-				}else{
-					$rootScope.loginMethod = method;
-					$rootScope.loginMethod.clear = ()=>{
-						delete $rootScope.loginMethod;
+			tools._loginPromise = new Promise(res=>{
+				$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
+					if($rootScope.config.login)
+						return $rootScope.config.login.indexOf(m.title) != -1;
+					else
+						return true;
+				})
+	
+				if(method){
+					if(method.provider){
+						let provider = method.provider || $rootScope.loginMethods[0].provider;
+						$firebaseAuth().$signInWithPopup(provider);
+						return Promise.resolve();
+					}else{
+						$rootScope.loginMethod = method;
+						$rootScope.loginMethod.clear = ()=>{
+							delete $rootScope.loginMethod;
+						}
 					}
+				}else if($rootScope.loginMethods.length == 1){
+					tools._loginRes = res;
+					tools.login($rootScope.loginMethods[0])
+				}else{
+					tools._loginRes = res;
+					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
 				}
-			}else if($rootScope.loginMethods.length == 1){
-				tools.login($rootScope.loginMethods[0])
-			}else{
-				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
-			}
-			tools._loginDefer.promise.then(r=>{
+			})
+			tools._loginPromise.then(r=>{
 				$mdDialog.hide();
 			})
-			return tools._loginDefer.promise;
+			return tools._loginPromise;
 		},
 		logout: function(){
 			localStorage.clear();
