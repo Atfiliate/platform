@@ -208,36 +208,36 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 			}
 		},
 		login: function(method){
-			return new Promise(res=>{
-				$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
-					if($rootScope.config.login)
-						return $rootScope.config.login.indexOf(m.title) != -1;
-					else
-						return true;
-				})
-	
-				if(method){
-					if(method.provider){
-						let provider = method.provider || $rootScope.loginMethods[0].provider;
-						$firebaseAuth().$signInWithPopup(provider);
-						return Promise.resolve();
-					}else{
-						$rootScope.loginMethod = method;
-						$rootScope.loginMethod.clear = ()=>{
-							delete $rootScope.loginMethod;
-						}
-					}
-				}else if($rootScope.loginMethods.length == 1){
-					tools._loginRes = res;
-					tools.login($rootScope.loginMethods[0])
-				}else{
-					tools._loginRes = res;
-					tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
-					tools._loginRes.then(r=>{
-						$mdDialog.hide();
-					})
-				}
+			tools._loginDefer = $q.defer();
+			$rootScope.loginMethods = $rootScope.loginMethods.filter(m=>{
+				if($rootScope.config.login)
+					return $rootScope.config.login.indexOf(m.title) != -1;
+				else
+					return true;
 			})
+
+			if(method){
+				if(method.provider){
+					let provider = method.provider || $rootScope.loginMethods[0].provider;
+					$firebaseAuth().$signInWithPopup(provider);
+					return Promise.resolve();
+				}else{
+					$rootScope.loginMethod = method;
+					$rootScope.loginMethod.clear = ()=>{
+						delete $rootScope.loginMethod;
+					}
+				}
+			}else if($rootScope.loginMethods.length == 1){
+				tools._loginRes = tools._loginDefer.resolve;
+				tools.login($rootScope.loginMethods[0])
+			}else{
+				tools._loginRes = tools._loginDefer.resolve;
+				tools.dialog('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;login.dialog');
+			}
+			tools._loginDefer.promise.then(r=>{
+				$mdDialog.hide();
+			})
+			return tools._loginDefer.promise;
 		},
 		logout: function(){
 			localStorage.clear();
