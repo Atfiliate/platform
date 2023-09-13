@@ -66,7 +66,6 @@ app.get('/', function(request, response){
 		let settings = $settings.subSite[request.headers.host];
 		if(settings)
 			Object.assign(config, settings)
-		console.log(request.headers.host, $settings, settings, config)
 		app.render('pages/index', {config}, (e,html)=>{
 			response.send(html);
 		})
