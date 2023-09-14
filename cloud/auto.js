@@ -6,6 +6,12 @@ var moment		= require('moment');
 var mcache		= require('memory-cache');
 let filecache	= {v:1.2};
 let db			= false;
+
+
+let config = {};
+if(process.env.config)
+	config = JSON.parse(process.env.config);
+	
 if(firebase.apps.length)
 	db			= firebase.firestore();
 
