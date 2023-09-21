@@ -173,6 +173,17 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
 // }
 
 
+let reduce = function(obj, template) {
+    let red = {};
+    Object.keys(template).forEach(k=>{
+        if(typeof obj[k] != 'object'){
+            red[k] = obj[k];
+        }else{
+            red[k] = Reduce(obj[k], template[k])
+        }
+    })
+    return red;
+}
 function pathValue(obj, path, val){
     let parts, attr;
 	if(path[0] == '['){
