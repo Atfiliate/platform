@@ -173,7 +173,7 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
 // }
 
 
-let reduce = function(obj, template) {
+function reduce(obj, template){
     let red = {};
     Object.keys(template).forEach(k=>{
         if(typeof obj[k] != 'object'){
