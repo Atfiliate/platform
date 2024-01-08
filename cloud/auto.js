@@ -429,6 +429,12 @@ Fire.ct = {
 	write: 0
 };
 
+
+new Fire('admin/settings').get().then(r=>{
+	console.log('---------------------------------get settings------------------------');
+	$settings = r;
+})
+
 module.exports = {
 	Fire,
 	options: function(request, response){
