@@ -118,6 +118,7 @@ app.directive('compile', function($compile) {
 		restrict: 'A',
 		link: function(scope, element, attr) {
 			scope.$watch(function() {return element.attr('compile'); }, function(newValue){
+				console.log({newValue})
 				if(newValue.includes('<'))
 					element.html($compile(newValue)(scope));
 				else
