@@ -118,7 +118,10 @@ app.directive('compile', function($compile) {
 		restrict: 'A',
 		link: function(scope, element, attr) {
 			scope.$watch(function() {return element.attr('compile'); }, function(newValue){
-				element.html($compile(newValue)(scope));
+				if(newValue.includes('<'))
+					element.html($compile(newValue)(scope));
+				else
+					element.html($compile(`<div ng-include('${newValue}')></div>`)(scope));
 				// it.e = element;
 			});
 		}
