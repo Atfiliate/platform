@@ -122,7 +122,7 @@ app.directive('compile', function($compile) {
 				if(newValue.includes('<'))
 					element.html($compile(newValue)(scope));
 				else
-					element.html($compile(`<div ng-include('${newValue}')></div>`)(scope));
+					element.html($compile(`<div ng-include="${newValue}"></div>`)(scope));
 				// it.e = element;
 			});
 		}
