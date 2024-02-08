@@ -1,4 +1,5 @@
 /*global app*/
+/*NOTE: THIS IS NOW USING A MORE DYNAMIC VERSION FROM "Template Site Code" */
 
 app.directive("contenteditable", function() {
 	return {
@@ -98,39 +99,74 @@ app.directive('clSrc', function($timeout) {
 			scope.$watch('clSrc', function(val) {
 				tsrc = val.split('upload');
 				src = val;
-				if(tsrc.length > 1)
-					src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1];
+				if(tsrc.length > 1){
+					let nxtstr = tsrc[1] || '';
+					if(nxtstr.includes('w_') || nxtstr.includes('h_')){
+						asrc = nxtstr.split('/');
+						let tfrm = asrc.shift();
+							tfrm = asrc.shift();
+						src = `${tsrc[0]}upload/${tfrm}/${transform(attrs)}/${asrc.join('/')}`;
+					}else{
+						src = tsrc[0]+'upload/'+transform(attrs)+tsrc[1];
+					}
+				}
 				$(ele).attr("src", src);
 			})
-			scope.$watch('attrs', function(newVal, oldVal) {
-				// console.log('changed');
-				if(tsrc.length > 1)
-					src = tsrc[0]+'upload/'+transform(newVal)+tsrc[1];
-				$(ele).attr("src", src);
+			scope.$watch('attrs', function(newVal, oldVal){
+				if(newVal.clSrc){
+					tsrc = newVal.clSrc.split('upload');
+					src = newVal.clSrc;
+					if(tsrc.length > 1){
+						let nxtstr = tsrc[1] || '';
+						if(nxtstr.includes('w_') || nxtstr.includes('h_')){
+							asrc = nxtstr.split('/');
+							let tfrm = asrc.shift();
+								tfrm = asrc.shift();
+							src = `${tsrc[0]}upload/${tfrm}/${transform(newVal)}/${asrc.join('/')}`;
+						}else{
+							src = tsrc[0]+'upload/'+transform(newVal)+tsrc[1];
+						}
+					}
+					$(ele).attr("src", src);
+				}
 			}, true);
 		}
 	};
 });
 
+
+app.directive('dyno', function($compile, $sce) {
+    return {
+        restrict: 'A', // Element directive
+        link: function(scope, element, attrs) {
+        	// $scope = scope;
+            scope.$watch(function() {return element.attr('dyno')}, function(newValue) {
+            	// console.log({newValue, scope})
+            	if (!newValue) return;
+                if (newValue.includes('<')){
+					element.html($compile(newValue)(scope));
+                } else {
+                    scope.$url = $sce.trustAsResourceUrl(newValue);
+                    element.append($compile('<div ng-include="$url"></div>')(scope));
+                }
+            });
+        }
+    };
+});
+
 //compiles html
-app.directive('compile', function($compile, $templateRequest) {
-	window.$templateRequest = $templateRequest;
+app.directive('compile', function($compile) {
 	return {
 		restrict: 'A',
 		link: function(scope, element, attr) {
 			scope.$watch(function() {return element.attr('compile'); }, function(newValue){
-				console.log({newValue})
-				if(newValue.includes('<'))
-					element.html($compile(newValue)(scope));
-				else
-					$templateRequest(newValue).then(html=>{
-						element.html($compile(html)(scope));
-					})
+				element.html($compile(newValue)(scope));
 				// it.e = element;
 			});
 		}
 	}
 })
+
 
 //drag and drop.
 app.directive('drag', function(){
@@ -565,15 +601,19 @@ app.directive('zoom', function($interval, $timeout, $q){
 					var ratio = project.target.w / project.container.w;
 					var w1 =	Math.round(project.img.width() * ratio);
 					var h1 =	Math.round(project.img.height() * ratio);
-					var x2 =	Math.round(zoom.x * project.img.width() / project.original.w) * ratio;
-					var y2 =	Math.round(zoom.y * project.img.width() / project.original.w) * ratio;
+					var x2 =	Math.round(zoom.x * project.img.width() / project.original.w * ratio);
+					var y2 =	Math.round(zoom.y * project.img.width() / project.original.w * ratio);
 					var w2 =	Math.round(project.target.w);
 					var h2 =	Math.round(project.target.h);
 					var cl = {w1,h1,x2,y2,w2,h2};
 					var transform = '/upload/w_'+w1+',h_'+h1+',c_scale/w_'+w2+',h_'+h2+',x_'+x2+',y_'+y2+',c_crop';
 				}else{
-					var cl = {w1:zoom.w,h1:zoom.h,x1:zoom.x,y1:zoom.y};
-					var transform = '/upload/w_'+zoom.w+',h_'+zoom.h+',x_'+zoom.x+',y_'+zoom.y+',c_crop';
+					var w =	Math.round(zoom.w);
+					var h =	Math.round(zoom.h);
+					var x =	Math.round(zoom.x);
+					var y =	Math.round(zoom.y);
+					var cl = {w1:w,h1:h,x1:x,y1:y};
+					var transform = '/upload/w_'+w+',h_'+h+',x_'+x+',y_'+y+',c_crop';
 				}
 				return {
 					url: pieces[0]+transform+pieces[1],
