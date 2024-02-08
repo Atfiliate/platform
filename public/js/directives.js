@@ -113,7 +113,7 @@ app.directive('clSrc', function($timeout) {
 });
 
 //compiles html
-app.directive('compile', function($compile) {
+app.directive('compile', function($compile, $templateRequest) {
 	return {
 		restrict: 'A',
 		link: function(scope, element, attr) {
@@ -122,7 +122,9 @@ app.directive('compile', function($compile) {
 				if(newValue.includes('<'))
 					element.html($compile(newValue)(scope));
 				else
-					element.html($compile(`<div ng-include="${newValue}"></div>`)(scope));
+					$templateRequest(newValue).then(html=>{
+						element.html($compile(html)(scope));
+					})
 				// it.e = element;
 			});
 		}
