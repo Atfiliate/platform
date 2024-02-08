@@ -114,6 +114,7 @@ app.directive('clSrc', function($timeout) {
 
 //compiles html
 app.directive('compile', function($compile, $templateRequest) {
+	window.$templateRequest = $templateRequest;
 	return {
 		restrict: 'A',
 		link: function(scope, element, attr) {
