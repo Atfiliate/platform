@@ -3,7 +3,7 @@
 	"version": "2.0.1",
 	"description": "Get your projects up and running quickly with the Atfiliate Platform.",
 	"engines": {
-		"node": "20.x"
+		"node": "22.x"
 	},
 	"main": "index.js",
 	"scripts": {
