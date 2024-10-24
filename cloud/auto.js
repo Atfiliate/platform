@@ -11,6 +11,8 @@ let $settings = {};
 let config = {};
 if(process.env.config)
 	config = JSON.parse(process.env.config);
+config.email = config.email || process.env.systemEmail;
+
 
 if(firebase.apps.length)
 	db			= firebase.firestore();
