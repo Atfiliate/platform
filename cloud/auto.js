@@ -7,7 +7,7 @@ var mcache		= require('memory-cache');
 let filecache	= {v:1.2};
 let db			= false;
 
-
+let $settings = {};
 let config = {};
 if(process.env.config)
 	config = JSON.parse(process.env.config);
@@ -507,9 +507,7 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		let config = {};
-		let settings = $settings.subSite[request.headers.host] || $settings;
-		Object.assign(config, settings)
+		let settings = $settings.subSite[request.headers.host] || config;
 
 		var path = request.params.path;
 		var code = mcache.get(path)
@@ -593,9 +591,11 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		let config = {};
-		let settings = $settings.subSite[request.headers.host] || $settings;
-		Object.assign(config, settings)
+		let settings = $settings.subSite[request.headers.host] || config;
+		
+		// let config = {};
+		// let settings = $settings.subSite[request.headers.host] || $settings;
+		// Object.assign(config, settings)
 		
 		if(request.params.root){
 			request.params.component = request.params.root;
