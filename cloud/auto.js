@@ -592,6 +592,11 @@ module.exports = {
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
+		
+		let config = {};
+		let settings = $settings.subSite[request.headers.host] || $settings;
+		Object.assign(config, settings)
+		
 		if(request.params.root){
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
