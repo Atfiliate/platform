@@ -508,7 +508,8 @@ module.exports = {
 		}
 		
 		let settings = $settings.subSite[request.headers.host] || config;
-
+			settings.origin = settings.origin || settings.domain;
+			
 		var path = request.params.path;
 		var code = mcache.get(path)
 		if(code){
@@ -592,11 +593,8 @@ module.exports = {
 		}
 		
 		let settings = $settings.subSite[request.headers.host] || config;
-		
-		// let config = {};
-		// let settings = $settings.subSite[request.headers.host] || $settings;
-		// Object.assign(config, settings)
-		
+			settings.origin = settings.origin || settings.domain;
+					
 		if(request.params.root){
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
