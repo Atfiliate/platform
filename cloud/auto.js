@@ -11,7 +11,7 @@ let db			= false;
 let config = {};
 if(process.env.config)
 	config = JSON.parse(process.env.config);
-	
+
 if(firebase.apps.length)
 	db			= firebase.firestore();
 
@@ -506,6 +506,10 @@ module.exports = {
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
+		
+		let config = {};
+		let settings = $settings.subSite[request.headers.host] || $settings;
+		Object.assign(config, settings)
 
 		var path = request.params.path;
 		var code = mcache.get(path)
