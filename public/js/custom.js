@@ -111,14 +111,14 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
                 rows += obj.map(function(row, i){
                     return `<tr>${keys.map(function(k){
                         var p2 = `${path}[${i}].${k}`
-                        return `<td data-path="${p2}">${jsonToTable(row[k], p2, $sanitize)}</td>`}).join('')
+                        return `<td class="value" data-path="${p2}">${jsonToTable(row[k], p2, $sanitize)}</td>`}).join('')
                     }</tr>`;
                 }).join('')
                 html = `<table>${rows}</table>`;
             }else if(obj[0]){ // regular array
                 var rows = ``;
                 obj.forEach(function(row, i){
-                    rows += `<tr><td data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`, $sanitize)}</td></tr>`;
+                    rows += `<tr><td class="value" data-path="${path}[${i}]">${jsonToTable(row, `${path}[${i}]`, $sanitize)}</td></tr>`;
                 })
                 html = `<table>${rows}</table>`;
             }
@@ -128,8 +128,8 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
             var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
             let rows = keys.map(k=>{
 	            return `<tr>
-	            	<td>${k}</td>
-	            	<td data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`, $sanitize)}</td>
+	            	<td class="key" data-path="${path}.${k}">${k}</td>
+	            	<td class="value" data-path="${path}.${k}">${jsonToTable(obj[k], `${path}.${k}`, $sanitize)}</td>
 	            </tr>`
             }).join('');
             html = `<table>${rows}</table>`;
