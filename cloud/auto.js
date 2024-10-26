@@ -594,6 +594,7 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
+		$settings.subSite = $settings.subSite || {};
 		let settings = $settings?.subSite[request.headers.host] || config;
 			settings.origin = settings.origin || settings.domain;
 					
