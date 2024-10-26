@@ -1,5 +1,6 @@
 var firebase	= require('firebase-admin');
-var stripe		= require("stripe")(process.env.stripe);
+let stripeKey	= process.env.stripe || 'pk-test-test';
+var stripe		= require("stripe")(stripeKey);
 
 module.exports = {
 	customer: function(request, response) {
