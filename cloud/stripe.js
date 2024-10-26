@@ -2,6 +2,9 @@ var firebase	= require('firebase-admin');
 let stripeKey	= process.env.stripe || 'pk-test-test';
 var stripe		= require("stripe")(stripeKey);
 
+if(stripeKey=='pk-test-test')
+	console.log('TO USE STRIPE, YOU WILL HAVE TO AD A KEY TO settings > Config Vars > stripe (process.env.stripe)')
+
 module.exports = {
 	customer: function(request, response) {
 		firebase.auth().verifyIdToken(request.body.jwt).then(function(r){
