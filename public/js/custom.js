@@ -1,7 +1,7 @@
 Array.prototype._flat = Array.prototype.flat;
 //fix because someone added a 'flat' to arrays in standards :S
 Array.prototype.flat = function(path, placeholder){
-	if(path)
+	if(path && path !== Infinity)
 		return this.map(function(i){
 			let val = pathValue(i, path);
 			return i ? placeholder ? val === null ? placeholder : val : val : null;
