@@ -503,6 +503,7 @@ module.exports = {
 		next();
 	},
 	cloud: function(request, response){
+		request.body = request.body || {};
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
@@ -588,6 +589,7 @@ module.exports = {
 		}
 	},
 	project: function(request, response){
+		request.body = request.body || {};
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
