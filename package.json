@@ -41,7 +41,7 @@
 		"@octokit/rest": 			"*",
 		"@google-cloud/language":	"*",
 		"jodit-pro":				"*",
-		"@tuya/connector":			"*"
+		"@tuya/tuya-connector-nodejs":	"*"
 	},
 	"repository": {
 		"type": "git",
