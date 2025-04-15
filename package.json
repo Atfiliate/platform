@@ -40,7 +40,8 @@
 		"node-cron": 				"*",
 		"@octokit/rest": 			"*",
 		"@google-cloud/language":	"*",
-		"jodit-pro":				"*"
+		"jodit-pro":				"*",
+		"tuya-connector-nodejs":	"*"
 	},
 	"repository": {
 		"type": "git",
