@@ -125,7 +125,7 @@ function jsonToTable(obj, path='item', $sanitize=(str)=>str){
         }else if(obj.toISOString){
         	html = moment(obj).format('MMM DD YYYY H:mm')
     	}else{ // is object
-            var keys = Object.keys(obj).filter(function(k){return k.indexOf('$') == -1});
+            var keys = Object.keys(obj).filter(k=>k[0] !== '$');
             let rows = keys.map(k=>{
 	            return `<tr>
 	            	<td class="key" data-path="${path}.${k}">${k}</td>
