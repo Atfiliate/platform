@@ -13,6 +13,7 @@
 		"ejs":					"*",
 		"express":				"*",
 		"moment":				"*",
+		"moment-timezone":		"*",
 		"client-sessions":		"*",
 		"crypto":				"*",
 		"body-parser":			"*",
