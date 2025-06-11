@@ -24,7 +24,6 @@
 		"stripe":				"*",
 		"twilio":				"*",
 		"plivo":				"*",
-		"firebase": 			"*",
 		"firebase-admin": 		"*",
 		"cloudinary":			"*",
 		"connect-busboy":		"*",
