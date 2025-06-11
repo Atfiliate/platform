@@ -1,4 +1,5 @@
 var firebase	= require('firebase-admin');
+var { getMessaging } = require('firebase-admin/messaging');
 var request		= require('request');
 var http		= require('request-promise');
 var cloudinary	= require('cloudinary');
