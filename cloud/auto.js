@@ -617,11 +617,11 @@ module.exports = {
 				component = proj.component[cid];
 			
 			if(component){	
-				if(cid.indexOf('_js') != -1 || cid.indexOf('.js') != -1)
+				if(cid.includes('_js') || cid.includes('.js'))
 					response.setHeader("Content-Type", 'application/javascript');
-				else if(cid.indexOf('_css') != -1 || cid.indexOf('.css') != -1)
+				else if(cid.includes('_css') || cid.includes('.css'))
 					response.setHeader("Content-Type", 'text/css');
-				else if(cid.indexOf('_json') != -1 || cid.indexOf('.json') != -1)
+				else if(cid.includes('_json') || cid.includes('.json'))
 					response.setHeader("Content-Type", 'application/json');
 	
 				try{
