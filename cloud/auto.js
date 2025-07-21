@@ -192,9 +192,14 @@ function isIsoDate(str) {
 }
 let Fire = function(path, cdg){
 	var fire = this;
+	if(path[0] == '*'){
+		fire._group = true;
+		path = path.slice(1);
+	}
 	fire._path = path;
 	fire._parts = path.split('/');
-	fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
+	// fire._cd = cdg || !!(fire._parts.length % 2) ? 'collection' : 'doc';
+	fire._cd = !!(fire._parts.length % 2) ? fire._group ? 'collectionGroup' : 'collection' : 'doc';
 	fire._ref = db[fire._cd](fire._path);
 	fire._qref = fire._ref;
 	fire._clean = function(obj){ //clean is called when getting data from the DB for local use.
