@@ -38,6 +38,9 @@ Array.prototype.unique = function(path){
     })
     return a;
 }
+Array.prototype.get = function(value, path='id'){
+	return this.find(i=>pathValue(i, path)===value);
+}
 
 Array.prototype.shuffle = function() {
 	var i = this.length,
