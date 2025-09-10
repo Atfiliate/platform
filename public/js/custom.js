@@ -38,8 +38,15 @@ Array.prototype.unique = function(path){
     })
     return a;
 }
-Array.prototype.get = function(value, path='id'){
+Array.prototype.get = function(path, value){
+	if(typeof value == 'undefined'){
+		value = path;
+		path = 'id';
+	}
 	return this.find(i=>pathValue(i, path)===value);
+}
+Array.prototype.list = function(path, value){
+	return this.filter(i=>pathValue(i, path)===value);
 }
 
 Array.prototype.shuffle = function() {
