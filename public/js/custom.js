@@ -46,7 +46,13 @@ Array.prototype.get = function(path, value){
 	return this.find(i=>pathValue(i, path)===value);
 }
 Array.prototype.list = function(path, value){
-	return this.filter(i=>pathValue(i, path)===value);
+	return this.filter(i=>{
+		if(Array.isArray(pathValue(i, path))){
+			return pathValue(i, path).includes(value);
+		}else{
+			return pathValue(i, path)===value;
+		}
+	});
 }
 
 Array.prototype.shuffle = function() {
