@@ -437,6 +437,148 @@ Fire.ct = {
 	write: 0
 };
 
+let Comm = function(payload){
+	let _normalize = number=>{
+		return (number && number.length == 10) ? `1${number}` : number;
+	};
+
+	let _plivo = requestObj=>{
+		let plivoKey = btoa(`${process.env.plivoId}:${process.env.plivoToken}`);
+		let req = {
+			method: requestObj.method,
+			url: `https://api.plivo.com/v1/Account/${process.env.plivoId}${requestObj.url}`,
+			json: true,
+			headers: {
+				'Authorization': `Basic ${plivoKey}`,
+				...(requestObj.headers || {})
+			}
+		};
+		if(requestObj.body)
+			req.body = requestObj.body;
+		return http(req);
+	};
+
+	let cleanDevice = $device=>{
+		return $device.$fire.update({
+			subscribe: null,
+			token: null,
+			status: 'Unregistered'
+		});
+	};
+
+	let push = (payload, $profile)=>{
+		return new Promise((res, rej)=>{
+			new Fire(`profile/${$profile.id}/devices`).where('subscribe', '==', true).get().then($devices=>{
+				$devices = ($devices || []).filter(d=>d.token);
+
+				if(!$devices.length)
+					return rej({status:'error', type:'PUSH', message:'No Valid Devices'});
+
+				Promise.all($devices.map($device=>{
+					return getMessaging().send({
+						notification: {
+							title: payload.subject,
+							body: `${pathValue(payload,'message.text')||''} - ${pathValue(payload,'sender.name')||payload.from||'System'}`
+						},
+						webpush: {fcm_options:{link: payload.link}},
+						token: $device.token
+					}).then(r=>{
+						return {device:$device.title, r};
+					}).catch(e=>{
+						cleanDevice($device);
+						return {device:$device.title, e};
+					});
+				})).then(recipients=>{
+					res({status:'success', type:'PUSH', recipients});
+				}).catch(e=>{
+					rej({status:'error', type:'PUSH', error:e?.message||e});
+				});
+			}).catch(e=>{
+				rej({status:'error', type:'PUSH', error:e?.message||e});
+			});
+		});
+	};
+
+	let sms = (payload, $profile)=>{
+		return new Promise((res, rej)=>{
+			let From = $settings.serviceNumber;
+			let To = _normalize(pathValue($profile,'phone'));
+			let tenDLC = `\n\nreply "STOP" to quit receiving messages.`;
+
+			_plivo({
+				method:'POST',
+				url:`/Message/`,
+				headers:{'Content-Type':'application/json'},
+				body:{
+					src:From,
+					dst:To,
+					text:`${payload.subject}: \n${pathValue(payload,'message.text')||''} \n~ ${pathValue(payload,'sender.name')||payload.from||'System'}${tenDLC}`
+				}
+			}).then(result=>{
+				res({status:'success', type:'SMS', recipient:To, result});
+			}).catch(e=>{
+				rej({status:'error', type:'SMS', error:e?.message||e});
+			});
+		});
+	};
+
+	let email = (payload, $profile)=>{
+		return new Promise((res, rej)=>{
+			new Fire(payload.email).get().then($template=>{
+				if(!$template?.key)
+					return rej(new Error('Missing email template key.'));
+				if(!$template?.from)
+					return rej(new Error('Template email must specify a from address.'));
+
+				return http({
+					method:'POST',
+					uri:`${settings.origin}/project/groups/cloud/_comm`,
+					headers:{'Content-Type':'application/json'},
+					body:{
+						action:'email.send',
+						path:payload.email,
+						key:$template.key,
+						from:$template.from,
+						to:$profile.email,
+						subject:payload.subject,
+						params:payload
+					},
+					json:true
+				}).then(result=>{
+					res({status:'success', type:'EMAIL', recipient:$profile.email, result});
+				});
+			}).catch(e=>{
+				rej({status:'error', type:'EMAIL', error:e?.message||e});
+			});
+		});
+	};
+
+	let sendToProfile = ($profile)=>{
+		let method = payload.force || $profile.contactChoice;
+
+		if(method == 'PUSH'){
+			return push(payload, $profile).catch(e=>{
+				if(payload.force == 'PUSH')
+					throw e;
+				return email(payload, $profile);
+			});
+		}
+
+		if(method == 'SMS')
+			return sms(payload, $profile);
+
+		if(method == 'NONE')
+			return Promise.reject({message:'Has opted for no contact.'});
+
+		return email(payload, $profile);
+	};
+
+	return Promise.all((payload.to||[]).map(uid=>{
+		return new Fire(`profile/${uid}`).get().then($profile=>{
+			return sendToProfile($profile);
+		});
+	}));
+};
 
 new Fire('admin/settings').get().then(r=>{
 	console.log('---------------------------------get settings------------------------');
