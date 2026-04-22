@@ -532,7 +532,7 @@ let Comm = function(payload){
 
 				return http({
 					method:'POST',
-					uri:`${settings.origin}/project/groups/cloud/_comm`,
+					uri:`${$settings.domain}/project/groups/cloud/_comm`,
 					headers:{'Content-Type':'application/json'},
 					body:{
 						action:'email.send',
