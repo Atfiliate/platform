@@ -30,7 +30,7 @@ app.use(busboy());
 app.use(compression());
 
 if(setupMode){
-	app.get('*', function(req, res){
+	app.use(function(req, res){
 		res.render('pages/setup');
 	});
 }else{
