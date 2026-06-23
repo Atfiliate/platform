@@ -252,7 +252,8 @@ img.stretch, img.fill{
 }
 .simple > section > .title{
 	background: rgba(255,255,255,.5);
-	height: 59px;
+	height: auto;
+	min-height: 59px;
 	line-height: 59px;
 	text-align: center;
 }
