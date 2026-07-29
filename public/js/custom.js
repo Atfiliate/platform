@@ -195,7 +195,10 @@ function reduce(obj, template){
         if(typeof obj[k] != 'object'){
             red[k] = obj[k] ?? null;
         }else{
-            red[k] = reduce(obj[k], template[k])
+        	if(template[k]===1)
+        		return obj[k];
+        	else
+	            red[k] = reduce(obj[k], template[k])
         }
     })
     return red;
