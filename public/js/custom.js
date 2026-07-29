@@ -277,7 +277,7 @@ function elementPath(el) {
 	return names.join(" > ");
 }
 
-function waitForElement(selector, callback)=>{
+function waitForElement(selector, callback){
   const el = document.querySelector(selector);
   if (el) return callback(el);
   const observer = new MutationObserver(() => {
