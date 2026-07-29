@@ -193,9 +193,9 @@ function reduce(obj, template){
     let red = {};
     Object.keys(template).forEach(k=>{
         if(typeof obj[k] != 'object'){
-            red[k] = obj[k] || null;
+            red[k] = obj[k] ?? null;
         }else{
-            red[k] = Reduce(obj[k], template[k])
+            red[k] = reduce(obj[k], template[k])
         }
     })
     return red;
