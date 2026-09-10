@@ -33,7 +33,7 @@
 		"moment": "2.30.1",
 		"moment-timezone": "0.6.3",
 		"mongodb": "7.5.0",
-		"multer": "2.0.2",
+		"multer": "2.3.0",
 		"node-cron": "4.6.0",
 		"phaxio": "1.0.0",
 		"plivo": "4.79.0",
