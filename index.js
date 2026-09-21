@@ -142,8 +142,8 @@ if(setupMode){
 	app.post('/project/cloud/:cloud', auto.project);
 	
 	app.get('/', renderApp);
-	app.get('/:view', clientRedirect);
-	app.get('/:view/:id', clientRedirect);
+	app.get('/:view', renderApp);
+	app.get('/:view/:id', renderApp);
 }
 
 app.listen(app.get('port'), function(){
