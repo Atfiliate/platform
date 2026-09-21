@@ -61,27 +61,57 @@ if(setupMode){
 		const url = `https://${Config.firebase.projectId}.firebaseapp.com${req.url}`;
 		req.pipe(request(url)).pipe(res);
 	});
-
-	app.get('/', function(request, response){
+	
+	function renderApp(request, response){
 		if(request.query.rootSetup){
 			response.render('pages/setup');
 		}else{
 			let config = {};
 			Object.assign(config, Config);
-
 			let settings = $settings.subSite[request.headers.host];
 			if(settings)
 				Object.assign(config, settings);
-
 			app.render('pages/index', {config}, (e, html)=>{
 				if(e)
 					return response.status(500).send(e.message || e);
 				response.send(html);
 			});
 		}
-	});
+	}
+	function clientRedirect(req, res){
+		let path = '/#/project/' + encodeURIComponent(req.params.view);
+	
+		if(req.params.id)
+			path += '/' + encodeURIComponent(req.params.id);
+	
+		let query = new URLSearchParams(req.query).toString();
+	
+		if(query)
+			path += '?' + query;
+	
+		res.redirect(path);
+	}
 
-	app.get('/:root', auto.project);
+	// app.get('/', function(request, response){
+	// 	if(request.query.rootSetup){
+	// 		response.render('pages/setup');
+	// 	}else{
+	// 		let config = {};
+	// 		Object.assign(config, Config);
+
+	// 		let settings = $settings.subSite[request.headers.host];
+	// 		if(settings)
+	// 			Object.assign(config, settings);
+
+	// 		app.render('pages/index', {config}, (e, html)=>{
+	// 			if(e)
+	// 				return response.status(500).send(e.message || e);
+	// 			response.send(html);
+	// 		});
+	// 	}
+	// });
+
+	// app.get('/:root', auto.project);
 
 	app.post('/stripe/customer', stripe.customer);
 	app.post('/stripe/checkout', stripe.checkout);
@@ -110,6 +140,10 @@ if(setupMode){
 	app.post('/project/:projId/cloud/:cloud/:id', auto.project);
 	app.get('/project/cloud/:cloud', auto.project);
 	app.post('/project/cloud/:cloud', auto.project);
+	
+	app.get('/', renderApp);
+	app.get('/:view', clientRedirect);
+	app.get('/:view/:id', clientRedirect);
 }
 
 app.listen(app.get('port'), function(){
