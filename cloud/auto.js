@@ -736,6 +736,11 @@ module.exports = {
 			});
 		}
 	},
+	getProject: function(projId, vid){
+		if(vid && vid != 'default' && vid != 'undefined')
+			return pathValue(filecache, `${projId}.snaps.${vid}`);
+		return pathValue(filecache, `${projId}.default`);
+	},
 	project: function(request, response){
 		request.body = request.body || {};
 		if(request.headers.origin){
