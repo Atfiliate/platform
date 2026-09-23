@@ -71,6 +71,14 @@ if(setupMode){
 			let settings = $settings.subSite[request.headers.host];
 			if(settings)
 				Object.assign(config, settings);
+				
+			let project = auto.getProject(request.params.view, request.query.v);
+			if(project?.page?.title)
+				config.title = project.page.title;
+			if(project?.page?.description)
+				config.description = project.page.description;
+			
+			
 			app.render('pages/index', {config}, (e, html)=>{
 				if(e)
 					return response.status(500).send(e.message || e);
