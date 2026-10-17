@@ -19,7 +19,7 @@
 		"cheerio": "1.2.0",
 		"client-sessions": "0.8.0",
 		"cloudinary": "2.10.0",
-		"compression": "1.8.1",
+		"compression": "1.8.2",
 		"connect-busboy": "1.0.0",
 		"crypto": "1.0.1",
 		"ejs": "6.0.1",
