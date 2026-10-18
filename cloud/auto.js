@@ -437,6 +437,26 @@ Fire.ct = {
 	write: 0
 };
 
+/*
+	Comm(payload): platform notifier (PUSH / SMS / EMAIL), chosen per recipient by
+	payload.force || profile.contactChoice.
+
+	Changes vs comm-original.js (2026-10-18):
+	 1. Device cleanup only runs on permanent token errors: messaging/registration-token-not-registered,
+	    messaging/invalid-registration-token, or messaging/invalid-argument when the message is about the token
+	    (checks e.code and e.errorInfo.code). Temporary errors leave the device alone.
+	 2. push() succeeds only when at least one device send succeeds. If every send fails it rejects,
+	    so PUSH falls back to email (unless force == 'PUSH').
+	 3. Recipients are settled with Promise.allSettled. Comm() always resolves to
+	    [{uid, status:'fulfilled', value} | {uid, status:'rejected', reason}] (was Promise.all: a bare array that
+	    rejected on the first failure). A missing profile becomes a rejected entry instead of a TypeError.
+	 4. webpush.fcmOptions.link (camelCase, per the Admin SDK) is only sent when payload.link is an https URL.
+	    HTML is stripped from the push title and body.
+	 5. cleanDevice() is fire-and-forget and catches its own errors.
+	 6. email(): rejects cleanly when payload.email is missing, and rejects when the _comm response has
+	    status === 'error' (previously counted as sent).
+	 sms() is byte-for-byte the original. $settings usage is unchanged.
+*/
 let Comm = function(payload){
 	let _normalize = number=>{
 		return (number && number.length == 10) ? `1${number}` : number;
@@ -458,44 +478,90 @@ let Comm = function(payload){
 		return http(req);
 	};
 
-	let cleanDevice = $device=>{
-		return $device.$fire.update({
-			subscribe: null,
-			token: null,
-			status: 'Unregistered'
-		});
+	let _stripHtml = (str='')=>{
+		return String(str || '')
+			.replace(/<\s*br\s*\/?>/gi, ' ')
+			.replace(/<\/(p|div|li|h[1-6])>/gi, ' ')
+			.replace(/<[^>]*>/g, '')
+			.replace(/&nbsp;/gi, ' ')
+			.replace(/&lt;/gi, '<')
+			.replace(/&gt;/gi, '>')
+			.replace(/&quot;/gi, '"')
+			.replace(/&#39;|&apos;/gi, "'")
+			.replace(/&amp;/gi, '&')
+			.replace(/\s+/g, ' ')
+			.trim();
+	};
+
+	let _errCode = e=>{
+		return (e && (e.code || (e.errorInfo && e.errorInfo.code))) || null;
+	};
+
+	let _isDeadToken = e=>{
+		let code = _errCode(e);
+		if(code == 'messaging/registration-token-not-registered' || code == 'messaging/invalid-registration-token')
+			return true;
+		if(code == 'messaging/invalid-argument'){
+			let msg = String((e && (e.message || (e.errorInfo && e.errorInfo.message))) || '');
+			return /registration token|token/i.test(msg);
+		}
+		return false;
+	};
+
+	let cleanDevice = $device=>{	//fire-and-forget: never blocks or rejects the caller.
+		try{
+			Promise.resolve($device.$fire.update({
+				subscribe: null,
+				token: null,
+				status: 'Unregistered'
+			})).catch(e=>{
+				console.error('Comm.cleanDevice failed', $device && $device.id, e?.message||e);
+			});
+		}catch(e){
+			console.error('Comm.cleanDevice failed', $device && $device.id, e?.message||e);
+		}
 	};
 
 	let push = (payload, $profile)=>{
-		return new Promise((res, rej)=>{
-			new Fire(`profile/${$profile.id}/devices`).where('subscribe', '==', true).get().then($devices=>{
-				$devices = ($devices || []).filter(d=>d.token);
+		return Promise.resolve().then(()=>{
+			return new Fire(`profile/${$profile.id}/devices`).where('subscribe', '==', true).get();
+		}).then($devices=>{
+			$devices = ($devices || []).filter(d=>d && d.token);
 
-				if(!$devices.length)
-					return rej({status:'error', type:'PUSH', message:'No Valid Devices'});
+			if(!$devices.length)
+				return Promise.reject({status:'error', type:'PUSH', message:'No Valid Devices'});
 
-				Promise.all($devices.map($device=>{
-					return getMessaging().send({
-						notification: {
-							title: payload.subject,
-							body: `${pathValue(payload,'message.text')||''} - ${pathValue(payload,'sender.name')||payload.from||'System'}`
-						},
-						webpush: {fcm_options:{link: payload.link}},
-						token: $device.token
-					}).then(r=>{
-						return {device:$device.title, r};
-					}).catch(e=>{
-						cleanDevice($device);
-						return {device:$device.title, e};
-					});
-				})).then(recipients=>{
-					res({status:'success', type:'PUSH', recipients});
+			let text = _stripHtml(pathValue(payload,'message.text'));
+			let name = _stripHtml(pathValue(payload,'sender.name')||payload.from||'System');
+			let body = text ? `${text} - ${name}` : name;
+			if(body.length > 1000)
+				body = body.slice(0, 997) + '...';
+
+			let message = {
+				notification: {
+					title: _stripHtml(payload.subject) || 'Notification',
+					body
+				}
+			};
+			if(payload.link && /^https:\/\//i.test(payload.link))
+				message.webpush = {fcmOptions:{link: payload.link}};
+
+			return Promise.all($devices.map($device=>{
+				return getMessaging().send({...message, token: $device.token}).then(r=>{
+					return {device:$device.title, ok:true, r};
 				}).catch(e=>{
-					rej({status:'error', type:'PUSH', error:e?.message||e});
+					let cleaned = _isDeadToken(e);
+					if(cleaned)
+						cleanDevice($device);
+					return {device:$device.title, ok:false, code:_errCode(e), cleaned, e:e?.message||e};
 				});
-			}).catch(e=>{
-				rej({status:'error', type:'PUSH', error:e?.message||e});
+			})).then(recipients=>{
+				if(recipients.some(r=>r.ok))
+					return {status:'success', type:'PUSH', recipients};
+				return Promise.reject({status:'error', type:'PUSH', message:'All device sends failed', recipients});
 			});
+		}, e=>{
+			return Promise.reject({status:'error', type:'PUSH', message:'Device lookup failed', error:e?.message||e});
 		});
 	};
 
@@ -524,6 +590,9 @@ let Comm = function(payload){
 
 	let email = (payload, $profile)=>{
 		return new Promise((res, rej)=>{
+			if(!payload.email)
+				return rej({status:'error', type:'EMAIL', error:'No email template specified.'});
+
 			new Fire(payload.email).get().then($template=>{
 				if(!$template?.key)
 					return rej(new Error('Missing email template key.'));
@@ -545,6 +614,8 @@ let Comm = function(payload){
 					},
 					json:true
 				}).then(result=>{
+					if(result?.status === 'error')
+						return rej({status:'error', type:'EMAIL', recipient:$profile.email, error:result.message||result.error||'Email send failed.', result});
 					res({status:'success', type:'EMAIL', recipient:$profile.email, result});
 				});
 			}).catch(e=>{
@@ -573,11 +644,28 @@ let Comm = function(payload){
 		return email(payload, $profile);
 	};
 
-	return Promise.all((payload.to||[]).map(uid=>{
-		return new Fire(`profile/${uid}`).get().then($profile=>{
+	let _reason = e=>{	//Error objects serialize to {} in response.send()
+		return (e instanceof Error) ? {status:'error', message:e.message} : e;
+	};
+
+	let uids = payload.to||[];
+	return Promise.allSettled(uids.map(uid=>{
+		return Promise.resolve().then(()=>{
+			return new Fire(`profile/${uid}`).get();
+		}).then($profile=>{
+			if(!$profile)
+				return Promise.reject({status:'error', type:'PROFILE', message:'Profile not found.'});
+			if(!$profile.id)
+				$profile.id = uid;
 			return sendToProfile($profile);
 		});
-	}));
+	})).then(results=>{
+		return results.map((r, i)=>{
+			return (r.status == 'fulfilled')
+				? {uid:uids[i], status:r.status, value:r.value}
+				: {uid:uids[i], status:r.status, reason:_reason(r.reason)};
+		});
+	});
 };
 
 new Fire('admin/settings').get().then(r=>{
