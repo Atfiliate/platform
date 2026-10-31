@@ -673,6 +673,16 @@ new Fire('admin/settings').get().then(r=>{
 	$settings = r;
 })
 
+let $templates = {};
+const TPL_PATH = 'acl/db/groups/manage/data/role/comm/comm/templates';
+if(db) db.collection(TPL_PATH).onSnapshot(qs=>{
+	qs.docChanges().forEach(c=>{
+		if(c.type == 'removed') delete $templates[c.doc.id];
+		else $templates[c.doc.id] = {id: c.doc.id, path: `${TPL_PATH}/${c.doc.id}`, ...c.doc.data()};
+	});
+}, e=>console.log('Template cache error:', e?.message||e));
+
+
 module.exports = {
 	Fire,
 	options: function(request, response){
