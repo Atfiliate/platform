@@ -654,7 +654,9 @@ app.factory('Auth', function($firebaseAuth, Fire, $http){
 						if(!profile.avatar){
 							if(user.photoURL){
 								let imgUrl = user.photoURL;
-								$http.post('/cloud/cl_img', {imgUrl}).then(result=>{
+								user.getIdToken().then(jwt=>{
+									return $http.post('/cloud/cl_img', {imgUrl}, {headers: {Authorization: 'Bearer '+jwt}});
+								}).then(result=>{
 									let clImg = result.data.secure_url || defaultImg;
 									profile.avatar = clImg;
 									profile.$fire.save();

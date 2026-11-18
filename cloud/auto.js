@@ -7,6 +7,7 @@ var moment		= require('moment-timezone');
 var mcache		= require('memory-cache');
 // In scope for Firestore cloud handlers: their code is eval'd in this file.
 var aiMeter		= require('./aiMeter.js');
+var siteRoute	= require('./siteRoute.js');
 let filecache	= {v:1.2};
 let db			= false;
 
@@ -763,6 +764,22 @@ module.exports = {
 			settings.origin = settings.origin || settings.domain;
 			
 		var path = request.params.path;
+		let site = siteRoute.find(filecache, 'cloud', path);
+		if(site){
+			response.setHeader('X-Core-Source', 'site');
+			try{
+				var js; eval('js = '+site.item.code);
+				if(js && js.init){
+					js.init(request, response)
+				}else{
+					response.send('Init not found.')
+				}
+			}catch(e){
+				response.send(e);
+			}
+			return;
+		}
+		siteRoute.warn('LEGACY_FALLBACK', 'cloud', path);
 		var code = mcache.get(path)
 		if(code){
 			try{
@@ -779,6 +796,10 @@ module.exports = {
 			console.log('NOTFROMCACHE-cloud----------> '+request.params.path);
 			var ref = firebase.database().ref('site/private/endpoints').child(request.params.path);
 			ref.once('value', function(snapshot){
+				if(!snapshot.exists()){
+					response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
+					siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
+				}
 				var endpoint = snapshot.val() || '404 Not Found';
 				var code = endpoint.code;
 				if(process.env.cache)
@@ -800,14 +821,25 @@ module.exports = {
 		}
 	},
 	component: function(request, response){
-		var path = request.params.path;
-			path = path.split('.').join('_');
+		var name = request.params.path;
+		var path = name.split('.').join('_');
 
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
 			response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
+
+		let site = siteRoute.find(filecache, 'component', name);
+		if(site){
+			let type = siteRoute.contentType(name);
+			if(type)
+				response.setHeader("Content-Type", type);
+			response.setHeader('X-Core-Source', 'site');
+			response.send(site.item.code);
+			return;
+		}
+		siteRoute.warn('LEGACY_FALLBACK', 'component', path);
 
 		if(path.indexOf('_js') != -1)
 			response.setHeader("Content-Type", 'application/javascript');
@@ -826,6 +858,10 @@ module.exports = {
 			var ref = firebase.database().ref('site/private/components').child(path);
 			ref.once('value', function(snapshot){
 				var component = snapshot.val();
+				if(!component){
+					response.setHeader('X-Core-Error', 'COMPONENT_NOT_FOUND');
+					siteRoute.warn('COMPONENT_NOT_FOUND', 'component', path);
+				}
 				try{
 					if(component.cache){
 						mcache.put(path, component.code, Number(component.cache));
