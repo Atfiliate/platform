@@ -5,6 +5,8 @@ var http		= require('request-promise');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment-timezone');
 var mcache		= require('memory-cache');
+// In scope for Firestore cloud handlers: their code is eval'd in this file.
+var aiMeter		= require('./aiMeter.js');
 let filecache	= {v:1.2};
 let db			= false;
 
@@ -685,6 +687,7 @@ if(db) db.collection(TPL_PATH).onSnapshot(qs=>{
 
 module.exports = {
 	Fire,
+	aiMeter,
 	options: function(request, response){
 		if(request.headers.origin){
 			var headers = {};
