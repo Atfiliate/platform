@@ -319,7 +319,7 @@ let Fire = function(path, cdg){
 						}).catch(e=>{
 							fire.$error = e;
 							console.log(`There was a DB error: `, fire, ref);
-							deferred.reject(e);
+							rej(e);
 						})
 					}
 				}else{
