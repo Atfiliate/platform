@@ -1,0 +1,16 @@
+{
+	"projectId": "site",
+	"title": "Site",
+	"notes": "Site-wide handlers and shell files served at /cloud/<name> and /component/<name> (site-first routing). Installed once; never overwritten by the installer.",
+	"cloud": {
+		"pixel": "cloud/pixel.js",
+		"cl_img": "cloud/cl_img.js",
+		"proxy": "cloud/proxy.js",
+		"swConfig": "cloud/swConfig.js"
+	},
+	"component": {
+		"site.css": "component/site.css",
+		"firebase-sw.js": "component/firebase-sw.js",
+		"manifest.json": {"generate": "webManifest"}
+	}
+}

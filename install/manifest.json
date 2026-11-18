@@ -1,8 +1,8 @@
 {
 	"name": "platform-install",
-	"version": "0.1.0",
-	"phase": 0,
-	"notes": "Names only. Never put values here. Read by cloud/health.js for /__core/health and the dry-run /__core/install/plan.",
+	"version": "0.2.0",
+	"phase": 1,
+	"notes": "Names only. Never put values here. Read by cloud/health.js (/__core/health, /__core/install/plan) and cloud/installer.js (POST /__core/install/apply, /__core/install/rollback).",
 	"env": {
 		"required": [
 			{"name": "config", "why": "Public site config JSON (firebase web config, title, colors)."},
@@ -20,7 +20,9 @@
 			{"name": "TZ", "feature": "Scheduled jobs run in local time"},
 			{"name": "cache", "feature": "Legacy endpoint cache TTL"},
 			{"name": "gtag", "feature": "Analytics tag in page shell"},
-			{"name": "manifest", "feature": "PWA manifest link in page shell"}
+			{"name": "manifest", "feature": "PWA manifest link in page shell"},
+			{"name": "pixabayKey", "feature": "Image search (site project pixel handler)"},
+			{"name": "installKey", "feature": "First install only: lets a signed-in user run the installer while the roles collection is empty"}
 		],
 		"configKeys": ["firebase.projectId", "firebase.databaseURL", "firebase.apiKey", "firebase.authDomain"]
 	},
@@ -29,16 +31,17 @@
 		{"id": "roles", "path": "roles", "kind": "collection", "required": true, "why": "At least one account with roles (installer becomes root)."},
 		{"id": "manageGroup", "path": "acl/db/groups/manage", "kind": "doc", "required": true, "why": "Home of site-wide code projects and Comm templates."},
 		{"id": "commTemplates", "path": "acl/db/groups/manage/data/role/comm/comm/templates", "kind": "collection", "required": true, "why": "$emailTemplates cache; email has no fallback."},
-		{"id": "prodDefault", "path": "dev", "kind": "collection", "where": [["stage", "==", "prod"], ["default", "==", true]], "required": true, "why": "At least one live (starred) prod default version."}
+		{"id": "prodDefault", "path": "dev", "kind": "collection", "where": [["stage", "==", "prod"], ["default", "==", true]], "required": true, "why": "At least one live (starred) prod default version."},
+		{"id": "siteProject", "path": "dev", "kind": "collection", "where": [["projectId", "==", "site"], ["stage", "==", "prod"], ["default", "==", true]], "required": false, "why": "Site-wide handlers and shell files (site-first routing for /cloud and /component)."}
 	],
 	"install": {
 		"steps": [
 			{"id": "env", "title": "Set required env names on the host app", "type": "manual", "check": "env"},
 			{"id": "settings", "title": "Create admin/settings if missing", "type": "createIfMissing", "check": "settings"},
-			{"id": "roles", "title": "Make the installer root in roles/{uid}", "type": "createIfMissing", "check": "roles"},
+			{"id": "roles", "title": "Make the installer root in roles/{uid} (only while roles is empty)", "type": "createIfMissing", "check": "roles"},
 			{"id": "manageGroup", "title": "Create the manage group if missing", "type": "createIfMissing", "check": "manageGroup"},
 			{"id": "commTemplates", "title": "Copy Comm templates from the source site", "type": "manual", "check": "commTemplates"},
-			{"id": "siteProject", "title": "Install the site project (dev/{vid}, projectId site)", "type": "planned", "phase": 2},
+			{"id": "siteProject", "title": "Install the site project from install/site (dev/{vid}, projectId site)", "type": "createIfMissing", "check": "siteProject"},
 			{"id": "products", "title": "Install product packages through the code-change process", "type": "planned", "phase": 5}
 		]
 	}

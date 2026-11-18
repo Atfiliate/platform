@@ -153,6 +153,10 @@ if(setupMode){
 	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>firebase.auth(), env: process.env});
 	app.get('/__core/health', health.route('health'));
 	app.get('/__core/install/plan', health.route('plan'));
+	// First install: idempotent installer (dry run by default; writes need {dryRun:false, confirm:'apply'}), install log and rollback.
+	var installer = require('./cloud/installer.js').create({db: firebase.firestore(), auth: ()=>firebase.auth(), env: process.env});
+	app.post('/__core/install/apply', installer.route('apply'));
+	app.post('/__core/install/rollback', installer.route('rollback'));
 
 	app.get('/', renderApp);
 	app.get('/:view', renderApp);
