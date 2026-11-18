@@ -149,6 +149,11 @@ if(setupMode){
 	app.get('/project/cloud/:cloud', auto.project);
 	app.post('/project/cloud/:cloud', auto.project);
 	
+	// Phase 0: root/admin-only health check and dry-run install plan (names only, read-only).
+	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>firebase.auth(), env: process.env});
+	app.get('/__core/health', health.route('health'));
+	app.get('/__core/install/plan', health.route('plan'));
+
 	app.get('/', renderApp);
 	app.get('/:view', renderApp);
 	app.get('/:view/:id', renderApp);
