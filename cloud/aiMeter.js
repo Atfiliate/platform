@@ -6,8 +6,13 @@
  * handlers are eval'd there, so they call aiMeter.check / recordSafe the
  * same way they call Fire or Comm — no require(), no HTTP hop.
  *
- *   var gate = await aiMeter.check({ jwtUid, feature, studentId });
- *   aiMeter.recordSafe({ jwtUid, feature, model, tokensIn, tokensOut, requestId });
+ * Handlers pass facts only. guard reads the signed-in uid; track reads the
+ * provider result and prices it from the in-memory table.
+ *
+ *   if (!(await aiMeter.guard(request, response, { feature: 'groups._gpt.chat' }))) return;
+ *   aiMeter.track(request, { provider: 'openai', kind: 'chat', model, result });
+ *
+ * check / record / recordSafe stay available for callers that already know the uid.
  *
  * db is the Admin SDK (firebase-admin), same as the rest of cloud/. Tests
  * pass a deps object with their own db. Handlers call the one-argument form.
@@ -656,6 +661,406 @@ function useDb(next) {
 	dbOverride = next || null;
 }
 
+let verifyOverride = null;
+
+function useVerify(fn) {
+	verifyOverride = typeof fn === 'function' ? fn : null;
+}
+
+function resetCache() {
+	sharedPricesCache.at = 0;
+	sharedPricesCache.value = null;
+	Object.keys(sharedSpendCache).forEach(k => delete sharedSpendCache[k]);
+}
+
+function num(v) {
+	if (v == null || v === '') return null;
+	const n = Number(v);
+	return Number.isFinite(n) ? n : null;
+}
+
+function canonProvider(provider) {
+	const s = String(provider || '').toLowerCase().replace(/[\s._]+/g, '');
+	if (s === 'openai') return 'openai';
+	if (s === 'elevenlabs' || s === 'eleven' || s === '11labs') return 'elevenlabs';
+	if (s === 'xai' || s === 'grok') return 'xai';
+	if (s === 'google' || s === 'googlevision' || s === 'vision') return 'google-vision';
+	return s;
+}
+
+function attachedUid(request) {
+	if (!request || typeof request !== 'object') return null;
+	const a = request.aiUser;
+	if (typeof a === 'string') return safeId(a);
+	if (a && typeof a === 'object' && typeof a.uid === 'string') return safeId(a.uid);
+	return null;
+}
+
+function tokenFromRequest(request) {
+	const body = request && request.body;
+	if (body && typeof body.jwt === 'string' && body.jwt) return body.jwt;
+	const headers = (request && request.headers) || {};
+	const auth = headers.authorization || headers.Authorization;
+	if (typeof auth === 'string') {
+		const m = auth.match(/^Bearer\s+(\S+)/i);
+		if (m) return m[1];
+	}
+	return null;
+}
+
+async function verifyIdToken(token) {
+	if (verifyOverride) return verifyOverride(token);
+	let fb = firebaseAdmin;
+	if (!fb) {
+		try {
+			fb = require('firebase-admin');
+			firebaseAdmin = fb;
+		} catch (e) {
+			throw coded('auth unavailable', 'auth');
+		}
+	}
+	if (!fb.auth || typeof fb.auth !== 'function')
+		throw coded('auth unavailable', 'auth');
+	return fb.auth().verifyIdToken(token);
+}
+
+async function uidFromRequest(request) {
+	const have = attachedUid(request);
+	if (have) return have;
+	const token = tokenFromRequest(request);
+	if (!token) return null;
+	try {
+		const decoded = await verifyIdToken(token);
+		const uid = decoded && safeId(decoded.uid);
+		if (uid && request && typeof request === 'object') request.aiUser = uid;
+		return uid;
+	} catch (e) {
+		if (e && e.code === 'auth') throw e;
+		const err = new Error('Please sign in to use AI.');
+		err.code = 'auth';
+		throw err;
+	}
+}
+
+function readFact(opts, body, key) {
+	if (opts && opts[key] != null && opts[key] !== '') return opts[key];
+	if (body && body[key] != null && body[key] !== '') return body[key];
+	return null;
+}
+
+function checkedId(value, label) {
+	if (value == null || value === '') return null;
+	const id = safeId(typeof value === 'string' ? value : '');
+	if (!id) throw coded('bad ' + (label || 'id'), 'request');
+	return id;
+}
+
+function resolveFacts(opts, body) {
+	const opt = opts || {};
+	const fromOpts = opt.feature != null && opt.feature !== '';
+	const feature = checkedId(readFact(opt, body, 'feature'), 'feature');
+	// A client-supplied feature must not select the system payer or skip the cap.
+	if (feature && !fromOpts && SYSTEM_FEATURES[feature])
+		throw coded('bad feature', 'request');
+	return {
+		feature: feature,
+		studentId: checkedId(readFact(opt, body, 'studentId'), 'studentId'),
+		billToSystem: opt.billToSystem === true
+	};
+}
+
+function reply(response, status, error) {
+	const body = { error: error };
+	try {
+		if (response && typeof response.status === 'function') {
+			const chained = response.status(status);
+			if (chained && typeof chained.send === 'function') {
+				chained.send(body);
+				return;
+			}
+		}
+		if (response && typeof response.send === 'function') response.send(body);
+	} catch (e) {
+		console.error('aiMeter guard respond failed', e && e.message);
+	}
+}
+
+/**
+ * Cap check for a handler. Uses request.aiUser when a server-side caller
+ * already set it, otherwise verifies request.body.jwt (or Authorization: Bearer)
+ * the same way cloud/stripe.js does. feature and studentId come from opts,
+ * then a safe body field. childId and any client payer are ignored.
+ * Returns true to continue, false when a response was already sent.
+ */
+async function guard(request, response, opts) {
+	try {
+		const deps = defaultDeps();
+		const jwtUid = await uidFromRequest(request);
+		if (!jwtUid) {
+			reply(response, 403, 'Please sign in to use AI.');
+			return false;
+		}
+		if (request && typeof request === 'object') request.aiUser = jwtUid;
+		const body = (request && request.body) || {};
+		let facts;
+		try {
+			facts = resolveFacts(opts, body);
+		} catch (e) {
+			reply(response, 400, e && e.message || 'bad request');
+			return false;
+		}
+		const feature = facts.feature;
+		const studentId = facts.studentId;
+		const base = { jwtUid, feature: feature || undefined };
+		if (facts.billToSystem) base.billToSystem = true;
+		let gate = await check(deps, studentId ? Object.assign({ studentId }, base) : base);
+		if (gate && gate.code === 'skip')
+			gate = await check(deps, base);
+		if (gate && gate.failOpen) return true;
+		if (gate && gate.ok) return true;
+		if (gate && gate.code === 'limit') {
+			reply(response, 429, 'Monthly AI limit reached');
+			return false;
+		}
+		if (gate && gate.code === 'request') {
+			reply(response, 400, gate.error || 'bad request');
+			return false;
+		}
+		reply(response, 403, (gate && gate.error) || 'Please sign in to use AI.');
+		return false;
+	} catch (e) {
+		if (e && (e.code === 'auth' || e.code === 'request')) {
+			reply(response, e.code === 'request' ? 400 : 403, e.message || 'Please sign in to use AI.');
+			return false;
+		}
+		console.error('aiMeter guard failed open', e && e.code, e && e.message);
+		return true;
+	}
+}
+
+function unwrapChat(result) {
+	if (!result || typeof result !== 'object' || Array.isArray(result)) return {};
+	const data = result.data;
+	if (data && !Array.isArray(data) && typeof data === 'object' && data.usage && (data.choices || data.output))
+		return data;
+	return result;
+}
+
+function openaiTokenFields(result) {
+	const body = unwrapChat(result);
+	let usage = body.usage;
+	if (!usage && (body.prompt_tokens != null || body.input_tokens != null)) usage = body;
+	if (!usage || typeof usage !== 'object') return null;
+	const prompt = num(usage.prompt_tokens != null ? usage.prompt_tokens : usage.input_tokens);
+	const completion = num(usage.completion_tokens != null ? usage.completion_tokens : usage.output_tokens);
+	const details = usage.prompt_tokens_details || usage.input_tokens_details || {};
+	const cached = num(details.cached_tokens) || 0;
+	if (prompt == null && completion == null && !cached) return null;
+	const promptN = prompt || 0;
+	const out = {};
+	if (prompt != null) out.tokensIn = Math.max(0, promptN - cached);
+	if (cached) out.tokensCached = cached;
+	if (completion != null) out.tokensOut = completion;
+	return out;
+}
+
+function isImageResult(result) {
+	const data = result && result.data;
+	if (!Array.isArray(data)) return false;
+	return data.some(row => row && typeof row === 'object' && (row.b64_json != null || row.url != null || row.revised_prompt != null));
+}
+
+function isWhisperResult(result) {
+	if (!result || typeof result !== 'object') return false;
+	const usage = result.usage;
+	if (usage && (usage.type === 'duration' || (usage.seconds != null && typeof result.text === 'string')))
+		return true;
+	return typeof result.text === 'string' && result.duration != null && !result.choices;
+}
+
+function readOpenAIImage(result, opts) {
+	const out = {};
+	if (Array.isArray(result && result.data)) out.images = result.data.length;
+	else if (num(opts && opts.images) != null) out.images = num(opts.images);
+	const tokens = openaiTokenFields(result);
+	if (tokens) Object.assign(out, tokens);
+	return out;
+}
+
+function readOpenAITts(result, opts) {
+	const out = {};
+	const tokens = openaiTokenFields(result);
+	if (tokens) Object.assign(out, tokens);
+	const fromResult = result && (result.character_count != null ? result.character_count : result.chars);
+	const chars = num(fromResult) != null ? num(fromResult) : num(opts && opts.chars);
+	if (chars != null) out.chars = chars;
+	return out;
+}
+
+function readWhisper(result, opts) {
+	let seconds = null;
+	if (result && result.usage && result.usage.seconds != null) seconds = num(result.usage.seconds);
+	else if (result && result.duration != null) seconds = num(result.duration);
+	else seconds = num(opts && opts.seconds);
+	if (seconds == null) return {};
+	return { seconds: seconds, minutes: seconds / 60, ms: Math.round(seconds * 1000) };
+}
+
+function readEleven(result, opts) {
+	const out = {};
+	let chars = null;
+	if (result && result.character_count != null) chars = num(result.character_count);
+	else if (result && typeof result.characters === 'number') chars = num(result.characters);
+	else if (result && result.alignment && Array.isArray(result.alignment.characters))
+		chars = result.alignment.characters.length;
+	else chars = num(opts && opts.chars);
+	if (chars != null) out.chars = chars;
+	let seconds = null;
+	if (result && result.duration_seconds != null) seconds = num(result.duration_seconds);
+	else if (result && typeof result.duration === 'number') seconds = num(result.duration);
+	else if (result && result.alignment && Array.isArray(result.alignment.character_end_times_seconds) && result.alignment.character_end_times_seconds.length)
+		seconds = num(result.alignment.character_end_times_seconds[result.alignment.character_end_times_seconds.length - 1]);
+	else seconds = num(opts && opts.seconds);
+	if (seconds != null) {
+		out.seconds = seconds;
+		if (chars == null) out.ms = Math.round(seconds * 1000);
+	}
+	return out;
+}
+
+function readXai(result, opts) {
+	const video = (result && result.video) || {};
+	const seconds = num(result && result.duration) != null ? num(result.duration)
+		: num(video.duration) != null ? num(video.duration)
+		: num(result && result.seconds) != null ? num(result.seconds)
+		: num(opts && opts.seconds);
+	const usage = (result && result.usage) || {};
+	const ticks = num(result && result.cost_in_usd_ticks) != null ? num(result.cost_in_usd_ticks)
+		: num(result && result.costInUsdTicks) != null ? num(result.costInUsdTicks)
+		: num(video.cost_in_usd_ticks) != null ? num(video.cost_in_usd_ticks)
+		: num(usage.cost_in_usd_ticks);
+	const out = {};
+	if (seconds != null) out.seconds = seconds;
+	if (ticks != null) out.costTicks = ticks;
+	if ((result && (result.video || result.duration != null || result.cost_in_usd_ticks != null)) || (opts && String(opts.kind || '').toLowerCase() === 'video'))
+		out.videos = 1;
+	return out;
+}
+
+function readVision(result, opts) {
+	const out = {};
+	if (result && Array.isArray(result.responses)) out.pages = result.responses.length;
+	else if (result && (result.fullTextAnnotation || result.textAnnotations)) out.pages = 1;
+	else if (num(opts && opts.pages) != null) out.pages = num(opts.pages);
+	return out;
+}
+
+function explicitFacts(opts) {
+	const out = {};
+	['chars', 'seconds', 'images', 'pages'].forEach(k => {
+		const n = num(opts && opts[k]);
+		if (n != null) out[k] = n;
+	});
+	if (out.seconds != null && out.ms == null) out.ms = Math.round(out.seconds * 1000);
+	return out;
+}
+
+/**
+ * Usage from the provider payload. The branch is the response shape
+ * (and the provider / kind the handler names), never the model id.
+ */
+function readUsage(opts) {
+	const opt = opts || {};
+	const result = opt.result && typeof opt.result === 'object' ? opt.result : {};
+	const provider = canonProvider(opt.provider);
+	const kind = String(opt.kind || '').toLowerCase();
+	let usage;
+	if (provider === 'elevenlabs') usage = readEleven(result, opt);
+	else if (provider === 'xai') usage = readXai(result, opt);
+	else if (provider === 'google-vision') usage = readVision(result, opt);
+	else if (provider === 'openai') {
+		if (kind === 'image' || (kind !== 'chat' && kind !== 'speech' && kind !== 'tts' && kind !== 'whisper' && kind !== 'transcribe' && isImageResult(result)))
+			usage = readOpenAIImage(result, opt);
+		else if (kind === 'speech' || kind === 'tts')
+			usage = readOpenAITts(result, opt);
+		else if (kind === 'whisper' || kind === 'transcribe' || (kind !== 'chat' && isWhisperResult(result)))
+			usage = readWhisper(result, opt);
+		else
+			usage = openaiTokenFields(result) || {};
+	} else if (isImageResult(result)) usage = readOpenAIImage(result, opt);
+	else if (isWhisperResult(result)) usage = readWhisper(result, opt);
+	else usage = Object.assign(openaiTokenFields(result) || {}, explicitFacts(opt));
+	const facts = explicitFacts(opt);
+	Object.keys(facts).forEach(k => {
+		if (usage[k] == null) usage[k] = facts[k];
+	});
+	return usage;
+}
+
+async function applySkipFallback(deps, input) {
+	if (!input.studentId) return input;
+	try {
+		await resolvePayer(deps.db, {
+			jwtUid: input.jwtUid,
+			feature: input.feature,
+			studentId: input.studentId
+		});
+		return input;
+	} catch (e) {
+		if (e && e.code === 'skip') {
+			const copy = Object.assign({}, input);
+			delete copy.studentId;
+			return copy;
+		}
+		throw e;
+	}
+}
+
+/**
+ * Fire-and-forget usage write. Never rejects. Reads tokens / images / chars /
+ * seconds / pages from the provider result, prices `model` from the cached
+ * price table, and recordSafe's the line. An unknown model is stored with
+ * source 'unknown' and a zero cost.
+ */
+function track(request, opts) {
+	const fail = e => {
+		try { console.error('aiMeter track failed', e && e.code, e && e.message); } catch (err) {}
+		return { error: true, code: e && e.code, message: e && e.message };
+	};
+	try {
+		const deps = defaultDeps();
+		return Promise.resolve().then(() => trackImpl(deps, request, opts)).catch(fail);
+	} catch (e) {
+		return Promise.resolve(fail(e));
+	}
+}
+
+async function trackImpl(deps, request, opts) {
+	const opt = opts || {};
+	const body = (request && request.body) || {};
+	let jwtUid = attachedUid(request);
+	if (!jwtUid) jwtUid = await uidFromRequest(request);
+	const facts = resolveFacts(opt, body);
+	const usage = readUsage(opt);
+	const input = {
+		jwtUid: jwtUid,
+		feature: facts.feature || undefined,
+		provider: opt.provider || null,
+		model: opt.model || null
+	};
+	if (facts.studentId) input.studentId = facts.studentId;
+	if (opt.requestId) input.requestId = opt.requestId;
+	if (facts.billToSystem) input.billToSystem = true;
+	['tokensIn', 'tokensCached', 'tokensOut', 'chars', 'ms', 'seconds', 'minutes', 'images', 'pages', 'videos', 'costTicks', 'costUsd', 'costMicros'].forEach(k => {
+		if (usage[k] != null) input[k] = usage[k];
+	});
+	const billed = await applySkipFallback(deps, input);
+	const rec = await recordSafe(deps, billed);
+	if (rec && rec.source === 'unknown' && !rec.error)
+		console.warn('aiMeter unknown model', opt.model || '');
+	return rec;
+}
+
 module.exports = {
 	PRICES_PATH,
 	CACHE_MS,
@@ -683,5 +1088,9 @@ module.exports = {
 	recordSafe: bindDeps(recordSafe),
 	check: bindDeps(check),
 	setLimit: bindDeps(setLimit),
-	_useDb: useDb
+	guard: guard,
+	track: track,
+	_useDb: useDb,
+	_useVerify: useVerify,
+	_resetCache: resetCache
 };

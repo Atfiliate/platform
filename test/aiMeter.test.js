@@ -397,6 +397,7 @@ test('setLimit is admin-only and null clears the override', async () => {
 });
 
 test('handlers call check and record with one argument', async () => {
+	M._resetCache();
 	const db = createMockDb({
 		'roles/root': { root: { all: true } }
 	});
@@ -420,6 +421,432 @@ test('handlers call check and record with one argument', async () => {
 	} finally {
 		M._useDb(null);
 	}
+});
+
+test('check still reports skip when the student has no createdBy', async () => {
+	const d = deps();
+	const g = await M.check(d, { jwtUid: 'parent1', studentId: 'stu-nopayer', feature: 'studio._evaluate' });
+	assert.strictEqual(g.ok, false);
+	assert.strictEqual(g.code, 'skip');
+});
+
+function mockRes() {
+	return {
+		statusCode: 200,
+		body: null,
+		sent: false,
+		status(code) { this.statusCode = code; return this; },
+		send(body) { this.sent = true; this.body = body; return this; }
+	};
+}
+
+function priceTable() {
+	return {
+		multiplier: 2,
+		tz: 'America/Phoenix',
+		currency: 'USD',
+		userMonthlyLimitMicros: 25000000,
+		models: {
+			'gpt-4.1': { provider: 'openai', unit: '1M tokens', input: 2.0, cachedInput: 0.5, output: 8.0 }
+		},
+		speech: {
+			'gpt-4o-mini-tts': { provider: 'openai', unit: '1M tokens', textInput: 0.6, audioOutput: 12, approxUsdPerSpokenMinute: 0.015 },
+			'eleven_flash_v2': { provider: 'elevenlabs', unit: '1M tokens', textInput: 0.1, approxUsdPerSpokenMinute: 0.015 },
+			'eleven_seconds': { provider: 'elevenlabs', unit: 'second', usdPerSecond: 0.01 }
+		},
+		image: {
+			'gpt-image-1': { provider: 'openai', unit: 'image', usdPerUnit: 0.04 }
+		},
+		transcribe: {
+			'whisper-1': { provider: 'openai', unit: 'minute', usdPerMinute: 0.006 }
+		},
+		video: {
+			'grok-imagine-video': { provider: 'xai', unit: 'second', usdPerSecond: 0.05 }
+		},
+		ocr: {
+			DOCUMENT_TEXT_DETECTION: { provider: 'google-vision', unit: 'image', usdPerUnitAfterFree: 0.0015 }
+		}
+	};
+}
+
+function handlerDb(extra) {
+	const store = {
+		'students/stu1': { createdBy: 'parent1', team: { parent1: { roles: ['parent'] }, teacher1: { roles: ['teacher'] } } },
+		'students/stu-nopayer': { team: { parent1: true } },
+		[M.PRICES_PATH]: priceTable()
+	};
+	Object.keys(extra || {}).forEach(k => { store[k] = extra[k]; });
+	return createMockDb(store);
+}
+
+async function withHandler(extra, fn) {
+	M._resetCache();
+	M._useVerify(null);
+	const db = handlerDb(extra);
+	M._useDb(db);
+	try {
+		await fn(db);
+	} finally {
+		M._useDb(null);
+		M._useVerify(null);
+		M._resetCache();
+	}
+}
+
+function periodNow() {
+	return M.periodKey(new Date(), 'America/Phoenix');
+}
+
+function eventAt(db, billedUid, requestId) {
+	return db._store['meterBill/ai-' + billedUid + '/aiEvents/' + requestId];
+}
+
+test('guard allows the jwt uid, blocks the cap, and ignores client payer fields', async () => {
+	const period = periodNow();
+	const over = { details: { periods: {} } };
+	over.details.periods[period] = { billedMicros: 25000000 };
+	await withHandler({ 'meterBill/ai-full': over }, async db => {
+		const open = mockRes();
+		const req = { body: { feature: 'groups._gpt.chat', childId: 'stu1', billedUid: 'ai-full', payer: 'ai-full' }, aiUser: 'userA' };
+		assert.strictEqual(await M.guard(req, open), true);
+		assert.strictEqual(open.sent, false);
+
+		const blocked = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'full', body: {} }, blocked, { feature: 'groups._gpt.chat' }), false);
+		assert.strictEqual(blocked.statusCode, 429);
+		assert.deepStrictEqual(blocked.body, { error: 'Monthly AI limit reached' });
+
+		const stranger = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'stranger', body: { studentId: 'stu1' } }, stranger, { feature: 'studio._tutor' }), false);
+		assert.strictEqual(stranger.statusCode, 403);
+
+		const bad = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'userA', body: { studentId: 'a/b' } }, bad, { feature: 'groups._gpt.chat' }), false);
+		assert.strictEqual(bad.statusCode, 400);
+
+		const spoof = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'full', body: { feature: 'studio._ocr', billToSystem: true } }, spoof), false);
+		assert.strictEqual(spoof.statusCode, 400);
+		const spoofed = await M.track({ aiUser: 'full', body: { feature: 'studio._ocr', billToSystem: true } }, {
+			provider: 'openai',
+			kind: 'chat',
+			model: 'gpt-4.1',
+			result: { usage: { prompt_tokens: 10, completion_tokens: 1 } }
+		});
+		assert.strictEqual(spoofed.error, true);
+		assert.ok(!db._store['meterBill/ai-system']);
+
+		const signedOut = mockRes();
+		assert.strictEqual(await M.guard({ body: {} }, signedOut, { feature: 'groups._gpt.chat' }), false);
+		assert.strictEqual(signedOut.statusCode, 403);
+		assert.strictEqual(signedOut.body.error, 'Please sign in to use AI.');
+	});
+});
+
+test('guard verifies body.jwt the way stripe does and keeps the uid on the request', async () => {
+	await withHandler(null, async () => {
+		let seen = null;
+		M._useVerify(async token => {
+			seen = token;
+			return { uid: 'userA' };
+		});
+		const req = { headers: {}, body: { jwt: 'signed-token', feature: 'groups._gpt.chat' } };
+		const res = mockRes();
+		assert.strictEqual(await M.guard(req, res), true);
+		assert.strictEqual(seen, 'signed-token');
+		assert.strictEqual(req.aiUser, 'userA');
+		assert.strictEqual(res.sent, false);
+
+		M._useVerify(async () => { throw new Error('expired'); });
+		const denied = mockRes();
+		assert.strictEqual(await M.guard({ body: { jwt: 'nope' } }, denied, { feature: 'groups._gpt.chat' }), false);
+		assert.strictEqual(denied.statusCode, 403);
+	});
+});
+
+test('guard bills the jwt uid when the student has no createdBy', async () => {
+	await withHandler(null, async () => {
+		const ok = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'parent1', body: { studentId: 'stu-nopayer' } }, ok, { feature: 'studio._evaluate' }), true);
+		assert.strictEqual(ok.sent, false);
+	});
+	const period = periodNow();
+	const over = { details: { periods: {} } };
+	over.details.periods[period] = { billedMicros: 25000000 };
+	await withHandler({ 'meterBill/ai-parent1': over }, async () => {
+		const blocked = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'parent1', body: {} }, blocked, { feature: 'studio._evaluate', studentId: 'stu-nopayer' }), false);
+		assert.strictEqual(blocked.statusCode, 429);
+	});
+});
+
+test('guard fails open when the cap read throws', async () => {
+	await withHandler(null, async db => {
+		const orig = db.doc.bind(db);
+		db.doc = p => {
+			if (String(p).indexOf('meterBill/') === 0) throw new Error('firestore down');
+			return orig(p);
+		};
+		const res = mockRes();
+		assert.strictEqual(await M.guard({ aiUser: 'userA', body: {} }, res, { feature: 'groups._gpt.chat' }), true);
+		assert.strictEqual(res.sent, false);
+	});
+});
+
+test('track reads openai chat and responses usage, including cached tokens', async () => {
+	await withHandler(null, async db => {
+		const period = periodNow();
+		await M.track(
+			{ aiUser: 'userA', body: { model: 'mystery-free', billedUid: 'victim', childId: 'stu1' } },
+			{
+				provider: 'openai',
+				kind: 'chat',
+				model: 'gpt-4.1',
+				feature: 'groups._gpt.chat',
+				requestId: 'chat-1',
+				result: { usage: { prompt_tokens: 1000, completion_tokens: 50, prompt_tokens_details: { cached_tokens: 100 } } }
+			}
+		);
+		const chat = eventAt(db, 'userA', 'chat-1');
+		assert.strictEqual(chat.tokensIn, 900);
+		assert.strictEqual(chat.tokensCached, 100);
+		assert.strictEqual(chat.tokensOut, 50);
+		assert.strictEqual(chat.costMicros, 2250);
+		assert.strictEqual(chat.billedMicros, 4500);
+		assert.strictEqual(chat.source, 'table');
+		assert.strictEqual(chat.billedUid, 'userA');
+		assert.ok(!db._store['meterBill/ai-victim']);
+		assert.ok(!db._store['meterBill/ai-parent1']);
+
+		await M.track({ aiUser: 'userB' }, {
+			provider: 'openai',
+			kind: 'chat',
+			model: 'gpt-4.1',
+			feature: 'groups._gpt.chat',
+			requestId: 'resp-1',
+			result: { usage: { input_tokens: 1000, output_tokens: 20, input_tokens_details: { cached_tokens: 100 } } }
+		});
+		const resp = eventAt(db, 'userB', 'resp-1');
+		assert.strictEqual(resp.tokensIn, 900);
+		assert.strictEqual(resp.tokensCached, 100);
+		assert.strictEqual(resp.tokensOut, 20);
+		assert.strictEqual(resp.costMicros, 2010);
+		assert.strictEqual(resp.billedMicros, 4020);
+		assert.strictEqual(db._store['meterBill/ai-userA'].details.periods[period].byFeature['groups._gpt.chat'].byModel['gpt-4.1'].requests, 1);
+	});
+});
+
+test('track prices openai images from data.length and usage', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'openai',
+			kind: 'image',
+			model: 'gpt-image-1',
+			feature: 'groups._gpt.image',
+			requestId: 'img-1',
+			result: {
+				data: [{ b64_json: 'aaa' }, { url: 'https://example.test/b.png' }],
+				usage: { input_tokens: 16, output_tokens: 80 }
+			}
+		});
+		const ev = eventAt(db, 'userA', 'img-1');
+		assert.strictEqual(ev.images, 2);
+		assert.strictEqual(ev.tokensIn, 16);
+		assert.strictEqual(ev.tokensOut, 80);
+		assert.strictEqual(ev.costMicros, 80000);
+		assert.strictEqual(ev.billedMicros, 160000);
+		assert.strictEqual(ev.source, 'table');
+	});
+});
+
+test('track prices openai tts from character count', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'openai',
+			kind: 'speech',
+			model: 'gpt-4o-mini-tts',
+			feature: 'groups._gpt.speech',
+			chars: 1500,
+			requestId: 'tts-1',
+			result: {}
+		});
+		const ev = eventAt(db, 'userA', 'tts-1');
+		assert.strictEqual(ev.chars, 1500);
+		assert.strictEqual(ev.source, 'estimate');
+		assert.strictEqual(ev.costMicros, 22500);
+		assert.strictEqual(ev.billedMicros, 45000);
+	});
+});
+
+test('track reads elevenlabs characters and seconds', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'elevenlabs',
+			kind: 'speech',
+			model: 'eleven_flash_v2',
+			feature: 'groups._gpt.speech',
+			requestId: 'el-chars',
+			result: { alignment: { characters: new Array(1000).fill('a') } }
+		});
+		const chars = eventAt(db, 'userA', 'el-chars');
+		assert.strictEqual(chars.chars, 1000);
+		assert.strictEqual(chars.source, 'estimate');
+		assert.strictEqual(chars.costMicros, 15000);
+		assert.strictEqual(chars.billedMicros, 30000);
+
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'elevenlabs',
+			kind: 'speech',
+			model: 'eleven_seconds',
+			feature: 'groups._gpt.speech',
+			requestId: 'el-sec',
+			result: { duration_seconds: 10 }
+		});
+		const secs = eventAt(db, 'userA', 'el-sec');
+		assert.strictEqual(secs.source, 'table');
+		assert.strictEqual(secs.costMicros, 100000);
+		assert.strictEqual(secs.billedMicros, 200000);
+	});
+});
+
+test('track reads xai video seconds and provider cost ticks', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'xai',
+			kind: 'video',
+			model: 'grok-imagine-video',
+			feature: 'groups._gpt.video',
+			requestId: 'xai-sec',
+			result: { video: { duration: 10 } }
+		});
+		const timed = eventAt(db, 'userA', 'xai-sec');
+		assert.strictEqual(timed.costMicros, 500000);
+		assert.strictEqual(timed.billedMicros, 1000000);
+		assert.strictEqual(timed.source, 'table');
+		assert.strictEqual(db._store['meterBill/ai-userA'].details.periods[periodNow()].videos, 1);
+
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'xai',
+			kind: 'video',
+			model: 'grok-imagine-video',
+			feature: 'groups._gpt.video',
+			requestId: 'xai-ticks',
+			result: { duration: 4, cost_in_usd_ticks: 2e10 }
+		});
+		const ticks = eventAt(db, 'userA', 'xai-ticks');
+		assert.strictEqual(ticks.source, 'provider');
+		assert.strictEqual(ticks.costMicros, 2e6);
+		assert.strictEqual(ticks.billedMicros, 4e6);
+	});
+});
+
+test('track reads google vision pages and whisper minutes', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'google-vision',
+			kind: 'ocr',
+			model: 'DOCUMENT_TEXT_DETECTION',
+			feature: 'studio._ocr',
+			requestId: 'ocr-1',
+			result: { responses: [{}, {}, {}] }
+		});
+		const ocr = eventAt(db, 'system', 'ocr-1');
+		assert.ok(ocr, 'ocr bills ai-system');
+		assert.strictEqual(ocr.pages, 3);
+		assert.strictEqual(ocr.billedUid, 'system');
+		assert.strictEqual(ocr.costMicros, 4500);
+		assert.strictEqual(ocr.billedMicros, 9000);
+
+		await M.track({ aiUser: 'userA' }, {
+			provider: 'openai',
+			kind: 'whisper',
+			model: 'whisper-1',
+			feature: 'groups._gpt.transcribe',
+			requestId: 'wh-1',
+			result: { text: 'hello', usage: { type: 'duration', seconds: 60 } }
+		});
+		const wh = eventAt(db, 'userA', 'wh-1');
+		assert.strictEqual(wh.ms, 60000);
+		assert.strictEqual(wh.costMicros, 6000);
+		assert.strictEqual(wh.billedMicros, 12000);
+		assert.strictEqual(wh.source, 'table');
+	});
+});
+
+test('track bills createdBy for a student and the jwt uid when createdBy is missing', async () => {
+	await withHandler(null, async db => {
+		await M.track({ aiUser: 'teacher1' }, {
+			provider: 'openai',
+			kind: 'chat',
+			model: 'gpt-4.1',
+			feature: 'studio._evaluate',
+			studentId: 'stu1',
+			requestId: 'stu-1',
+			result: { usage: { prompt_tokens: 1000, completion_tokens: 0 } }
+		});
+		const ev = eventAt(db, 'parent1', 'stu-1');
+		assert.strictEqual(ev.billedUid, 'parent1');
+		assert.strictEqual(ev.actorUid, 'teacher1');
+		assert.strictEqual(ev.studentId, 'stu1');
+
+		await M.track({ aiUser: 'parent1' }, {
+			provider: 'openai',
+			kind: 'chat',
+			model: 'gpt-4.1',
+			feature: 'studio._evaluate',
+			studentId: 'stu-nopayer',
+			requestId: 'nopayer-1',
+			result: { usage: { prompt_tokens: 1000, completion_tokens: 0 } }
+		});
+		const fallback = eventAt(db, 'parent1', 'nopayer-1');
+		assert.ok(fallback);
+		assert.strictEqual(fallback.billedUid, 'parent1');
+		assert.strictEqual(fallback.studentId, undefined);
+	});
+});
+
+test('unknown model records a zero cost and does not throw', async () => {
+	await withHandler(null, async db => {
+		const warnings = [];
+		const orig = console.warn;
+		console.warn = function() { warnings.push(Array.prototype.slice.call(arguments)); };
+		try {
+			const rec = await M.track({ aiUser: 'userA' }, {
+				provider: 'openai',
+				kind: 'chat',
+				model: 'brand-new-x',
+				feature: 'groups._gpt.chat',
+				requestId: 'unk-1',
+				result: { usage: { prompt_tokens: 10, completion_tokens: 4 } }
+			});
+			assert.strictEqual(rec.source, 'unknown');
+			assert.strictEqual(rec.costMicros, 0);
+			assert.strictEqual(rec.billedMicros, 0);
+			const ev = eventAt(db, 'userA', 'unk-1');
+			assert.strictEqual(ev.source, 'unknown');
+			assert.strictEqual(ev.costMicros, 0);
+			assert.strictEqual(ev.tokensIn, 10);
+			assert.strictEqual(ev.tokensOut, 4);
+			assert.ok(warnings.some(w => String(w[0]).indexOf('unknown model') !== -1 && w[1] === 'brand-new-x'));
+		} finally {
+			console.warn = orig;
+		}
+	});
+});
+
+test('track never throws when the write fails', async () => {
+	await withHandler(null, async db => {
+		db.doc = () => { throw new Error('firestore down'); };
+		db.runTransaction = () => { throw new Error('firestore down'); };
+		const rec = await M.track({ aiUser: 'userA' }, {
+			provider: 'openai',
+			kind: 'chat',
+			model: 'gpt-4.1',
+			feature: 'groups._gpt.chat',
+			result: { usage: { prompt_tokens: 1, completion_tokens: 1 } }
+		});
+		assert.strictEqual(rec.error, true);
+	});
 });
 
 test('auto.js exposes aiMeter to cloud handlers', () => {
