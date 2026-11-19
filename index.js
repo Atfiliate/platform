@@ -37,6 +37,7 @@ if(setupMode){
 	var firebase = require("firebase-admin");
 	var fire = require("./cloud/fire.js");
 	var auto = require("./cloud/auto.js");
+	var shell = require("./cloud/shell.js");
 	var stripe = require('./cloud/stripe.js');
 
 	let $settings = {subSite: {}};
@@ -68,6 +69,9 @@ if(setupMode){
 		}else{
 			let config = {};
 			Object.assign(config, Config);
+			let siteProject = auto.getProject('site');
+			let site = shell.read(siteProject);
+			shell.brand(config, site);
 			let settings = $settings.subSite[request.headers.host];
 			if(settings)
 				Object.assign(config, settings);
@@ -79,7 +83,7 @@ if(setupMode){
 				config.description = project.page.description;
 			
 			
-			app.render('pages/index', {config}, (e, html)=>{
+			app.render('pages/index', {config, shell: shell.locals(siteProject, site)}, (e, html)=>{
 				if(e)
 					return response.status(500).send(e.message || e);
 				response.send(html);

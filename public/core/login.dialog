@@ -1,0 +1,82 @@
+ <md-dialog style="width: 400px; max-width: 90%; box-shadow: 0px 0px 16px 8px #0009;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<span ng-hide="$root.signup">Login</span> <span ng-show="$root.signup">Signup</span>
+			<span flex></span>
+			<span ng-show="$root.signup" style="font-size:small;" ng-click="$root.signup = false">(Login)</span> <span ng-hide="$root.signup" style="font-size:small;" ng-click="$root.signup = true">(Signup)</span>
+		</div>
+	</md-toolbar>
+
+	<div md-whiteframe="2" layout-padding layout-margin ng-show="$root.signupMessage">
+		<p class="hint">{{$root.signupMessage}}</p>
+	</div>
+	<div ng-hide="loginMethod.status == 'sent' || loginMethod.type == 'email' || loginMethod.type == 'pin'">
+		<md-list>
+			<md-list-item class="md-2-line md-long-text" ng-repeat="m in loginMethods" aria-label="Login with {{m.title}}" ng-click="$root.tools.login(m, $root.signup).then($mdDialog.hide)">
+				<!--<img cl-src="{{item.img.src}}" transform_h="50" transform_w="50" transform_g="faces" class="md-avatar"/>-->
+				<md-button class="md-icon-button" style="color: {{m.background}};" aria-label="Login" ng-click="$root.tools.login(m).then($mdDialog.hide)"><i class="fa fa-{{m.icon}}"></i></md-button>
+				<div class="md-list-item-text">
+					<h3>{{m.title}}</h3>
+					<p>Use {{m.title}} to create or access your account.</p>
+				</div>
+			</md-list-item>
+			<!--<md-list-item class="md-2-line md-long-text" aria-label="Login with email" ng-click="$root.useEmail = true;">-->
+				<!--<img cl-src="{{item.img.src}}" transform_h="50" transform_w="50" transform_g="faces" class="md-avatar"/>-->
+			<!--	<md-button class="md-icon-button" style="color: {{m.background}};" aria-label="Login" ng-click="$root.tools.login(m).then($mdDialog.hide)"><i class="fa fa-envelope"></i></md-button>-->
+			<!--	<div class="md-list-item-text">-->
+			<!--		<h3>Email</h3>-->
+			<!--		<p>Use your email address and a password to create or access your account.</p>-->
+			<!--	</div>-->
+			<!--</md-list-item>-->
+		</md-list>
+		<!--<md-button style="border-width: 1px 1px 1px 4px; border-style: solid; color: {{m.background}};" ng-repeat="m in loginMethods" aria-label="Login with {{m.title}}" class="md-raised" ng-click="$root.tools.login(m).then($mdDialog.hide)" title="{{m.description}}"><i class="fa fa-{{m.icon}}"></i>&nbsp;{{m.title}}</md-button>-->
+	</div>
+	<div flex></div>
+	<div md-whiteframe="2" layout-padding layout-margin ng-show="loginMethod.type == 'email'">
+		<div ng-show="$root.signup">
+			<md-input-container class="md-block">
+				<label>Name</label>
+				<input type="text" ng-model="$root.signupForm.displayName">
+			</md-input-container>
+			<md-input-container class="md-block">
+				<label>Phone</label>
+				<input type="text" ng-model="$root.signupForm.phone">
+			</md-input-container>
+		</div>
+		<form ng-submit="$root.tools.login(loginMethod, $root.signup)" ng-show="loginMethod.type == 'email' && loginMethod.status != 'sent'">
+			<md-input-container class="md-block">
+				<label>Email</label>
+				<input type="text" ng-model="$root.signupForm.email">
+			</md-input-container>
+			<md-input-container class="md-block">
+				<label>Password</label>
+				<input type="password" ng-model="$root.signupForm.password">
+			</md-input-container>
+			<div layout="row">
+				<md-button aria-label="Cancel" class="md-raised" ng-click="loginMethod=null">Cancel</md-button>
+				<span flex></span>
+				<md-button aria-label="Login" ng-hide="$root.signup" class="md-raised md-primary" type="submit">Login</md-button>
+				<md-button aria-label="Signup" ng-show="$root.signup" class="md-raised md-primary" type="submit">Signup</md-button>
+			</div>
+		</form>
+		<div ng-show="loginMethod.status == 'sent'">
+			<p>An email has been sent to: {{loginMethod.email}}  Check your email and follow the link to authenticate.</p>
+		</div>
+	</div>
+	<div md-whiteframe="2" layout-padding layout-margin ng-show="loginMethod.type == 'pin'">
+		<p class="hint">On a device where you are already signed in, open your menu and choose "Get Quick Connect code". Enter that code here.</p>
+		<form ng-submit="$root.tools.quickConnect.redeem($root.qc.code)" novalidate>
+			<md-input-container class="md-block">
+				<label>6-digit code</label>
+				<input type="text" ng-model="$root.qc.code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" aria-label="6-digit code" style="font-size: 32px; letter-spacing: 8px; text-align: center;">
+			</md-input-container>
+			<p class="md-warn" role="alert" ng-show="$root.qc.error">{{$root.qc.error}}</p>
+			<md-progress-linear md-mode="indeterminate" ng-show="$root.qc.busy"></md-progress-linear>
+			<div layout="row">
+				<md-button aria-label="Cancel" type="button" class="md-raised" ng-click="$root.loginMethod = null; $root.qc = null">Cancel</md-button>
+				<span flex></span>
+				<md-button aria-label="Connect" type="submit" class="md-raised md-primary" ng-disabled="$root.qc.busy">Connect</md-button>
+			</div>
+		</form>
+	</div>
+</md-dialog>

@@ -1,0 +1,15 @@
+<md-bottom-sheet class="md-grid" layout="column">
+	<div layout="row" layout-align="center center" ng-cloak>
+		<h4 flex>Quick components!</h4>
+		<p>{{temp.page.templateRef}}</p>
+	</div>
+	<div ng-cloak>
+		<div flex layout="row" layout-wrap layout-align="center center">
+			<div flex="50" flex-gt-sm="25" class="center" ng-repeat="item in temp.snippets" ng-click="addon.edit.snippet.select(item)">
+				<div layout-padding layout-margin md-whiteframe="2">
+					{{item.id}}
+				</div>
+			</div>
+		</div>
+	</div>
+</md-bottom-sheet>

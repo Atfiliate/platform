@@ -1,0 +1,318 @@
+<md-dialog flex="90" class="projSettings" ng-class="{min:temp.hideEditor}" layout-padding>
+	<style>
+		.active{
+			border-left: 5px solid #0AF;
+		}
+		.layout-row .scroll-box{
+			max-height: 60vh;
+			overflow: auto;
+		}
+		
+		#project-settings .tab-content{
+			max-height: 70vh;
+			overflow: hidden;
+		}
+		#project-settings .sidebar{
+			overflow: auto;
+		}
+		#project-settings .sidebar > * {
+		    margin-bottom: 4px;
+		}
+		
+		md-menu-item .md-menu > .md-button{
+			display: block;
+			border-radius: 0;
+			margin: 0;
+			text-transform: none;
+			min-height: 48px;
+			height: 48px;
+			padding-left: 16px;
+			width: 100%;
+			text-align: left;
+		}
+		.insight-sidebar{
+			overflow: auto;
+			border-right: 1px solid rgba(0,0,0,.08);
+			background: #fafafa;
+		}
+		.insight-placeholder{
+			padding: 16px;
+			color: rgba(0,0,0,.65);
+		}
+	</style>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 class="flex">Edit: {{edit.project.var.title || page.var.title}}</h2>
+			<md-icon ng-click="addon.edit.variation.save()"><i class="fa fa-save"></i></md-icon>
+		</div>
+	</md-toolbar>
+
+	<md-content id="project-settings">
+		<md-tabs md-dynamic-height md-border-bottom md-selected="settingsTab">
+			<md-tab label="library" md-on-select="addon.edit.tab('library')">
+				<md-content class="tab-content" layout="row">
+					<div flex="20" class="sidebar">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('library')" dyno="{{sideFeature.template}}"></div>
+					</div>
+			
+					<div flex="80">
+						<md-content layout="row" layout-wrap>
+							<div flex="100" flex-gt-md="50" class="scroll-box">
+								<md-list layout-margin md-whiteframe="3">
+									<md-subheader>Stage</md-subheader>
+			
+									<md-list-item ng-repeat="v in edit.$variations | orderBy:'createdOn'"
+										ng-click="addon.edit.variation.edit(v)"
+										class="md-3-line"
+										ng-class="{active: v.id == page.vid}"
+										ng-show="v.stage == 'dev'">
+			
+										<div class="md-list-item-text">
+											<h3><i class="green fa fa-star" ng-if="v.default"></i> {{v.var.title}}</h3>
+											<p>{{moment(v.updatedOn).calendar()}}</p>
+										</div>
+
+										<md-menu>
+											<md-button aria-label="Menu" class="md-icon-button" ng-click="$mdMenu.open($event)"><i class="fa fa-bars"></i></md-button>
+											<md-menu-content width="4">
+												<md-menu-item ng-show="v != edit.project">
+													<md-button ng-click="addon.edit.variation.compare(v)">
+														<i class="fa fa-code-fork"></i> Compare
+													</md-button>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.diff(v, edit.project)">
+														<i class="fa fa-code-fork"></i> Diff
+													</md-button>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.duplicate(v)">
+														<i class="fa fa-copy"></i> Duplicate
+													</md-button>
+												</md-menu-item>
+												<md-menu-item ng-show="v == edit.project">
+													<md-menu>
+														<md-button ng-click="$mdMenu.open()"><i class="fa fa-thumbs-o-up"></i> Promote To Prod</md-button>
+														<md-menu-content width="3">
+															<md-menu-item ng-repeat="pv in edit.$variations | orderBy:'createdOn'" ng-if="pv.stage=='prod'">
+																<md-button aria-label="Merge into {{pv.var.title}}" ng-click="addon.edit.variation.promote(v, pv)">{{pv.var.title}}</md-button>
+															</md-menu-item>
+															<md-menu-item><md-button aria-label="New" ng-click="addon.edit.variation.promote(v, 'upgrade')">Add A Variant</md-button></md-menu-item>
+														</md-menu-content>
+													</md-menu>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.delete(v)">
+														<i class="fa fa-trash"></i> Delete
+													</md-button>
+												</md-menu-item>
+											</md-menu-content>
+										</md-menu>
+									</md-list-item>
+			
+									<md-list-item ng-click="addon.edit.variation.add()">
+										<p>Add</p>
+									</md-list-item>
+			
+								</md-list>
+							</div>
+			
+							<div flex="100" flex-gt-md="50" class="scroll-box">
+								<md-list layout-margin md-whiteframe="3">
+									<md-subheader>Prod</md-subheader>
+			
+									<md-list-item ng-repeat="v in edit.$variations | orderBy:'createdOn'"
+										ng-click="addon.edit.variation.edit(v)"
+										class="md-3-line"
+										ng-class="{active: v.id == page.vid}"
+										ng-show="v.stage == 'prod'">
+			
+										<div class="md-list-item-text">
+											<h3><i class="green fa fa-star" ng-if="v.default"></i> {{v.var.title}}</h3>
+											<p>{{moment(v.updatedOn).calendar()}}</p>
+										</div>
+										<md-menu>
+											<md-button aria-label="Menu" class="md-icon-button" ng-click="$mdMenu.open($event)"><i class="fa fa-bars"></i></md-button>
+											<md-menu-content width="4">
+												<md-menu-item ng-show="v != edit.project">
+													<md-button ng-click="addon.edit.variation.compare(v)">
+														<i class="fa fa-code-fork"></i> Compare
+													</md-button>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.duplicate(v)">
+														<i class="fa fa-copy"></i> Duplicate
+													</md-button>
+												</md-menu-item>
+												<md-menu-item ng-show="v == edit.project && !v.default">
+													<md-button ng-click="addon.edit.variation.default(v)">
+														<i class="fa fa-star"></i> Make Default
+													</md-button>
+												</md-menu-item>
+												<md-menu-item ng-show="v == edit.project && !v.default">
+													<md-button ng-click="addon.edit.variation.promote(v)">
+														<i class="fa fa-thumbs-o-down"></i> Demote To Stage
+													</md-button>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.diff(v, edit.project)">
+														<i class="fa fa-code-fork"></i> Diff
+													</md-button>
+												</md-menu-item>
+												<md-menu-item>
+													<md-button ng-click="addon.edit.variation.delete(v)">
+														<i class="fa fa-trash"></i> Delete
+													</md-button>
+												</md-menu-item>
+											</md-menu-content>
+										</md-menu>
+									</md-list-item>
+			
+								</md-list>
+							</div>
+			
+						</md-content>
+					</div>
+			
+				</md-content>
+			</md-tab>
+
+			<md-tab label="settings" md-on-select="addon.edit.tab('settings')">
+				<md-content class="tab-content" layout="row">
+					<div flex="20" class="sidebar">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('settings')" dyno="{{sideFeature.template}}"></div>
+					</div>
+					<div flex="80" class="md-padding insight-body">
+						<md-content class="md-padding" layout="row">
+							<div flex="100" flex-gt-sm="50">
+								<div ng-repeat="component in api._elements['edit-setting']" dyno="{{component.template}}"></div>
+							</div>
+							<div flex="100" flex-gt-sm="50">
+								<md-input-container class="md-block">
+									<label>Project Title</label>
+									<input type="text" ng-model="edit.project.page.title">
+								</md-input-container>
+								<md-input-container class="md-block">
+									<label>Description</label>
+									<textarea ng-model="edit.project.page.description"></textarea>
+								</md-input-container>
+								<md-input-container class="md-block">
+									<label>Notes</label>
+									<textarea ng-model="edit.project.page.notes"></textarea>
+								</md-input-container>
+								<md-divider></md-divider>
+								
+								<md-input-container class="md-block">
+									<label>Variation Title</label>
+									<input type="text" ng-model="edit.project.var.title">
+								</md-input-container>
+								<md-input-container class="md-block">
+									<label>Notes</label>
+									<textarea ng-model="edit.project.var.notes"></textarea>
+								</md-input-container>
+								
+								<p class="hint" ng-click="addon.edit.$advancedSettings=!addon.edit.$advancedSettings">Advanced</p>
+								<div ng-show="addon.edit.$advancedSettings">
+									<md-input-container class="md-block">
+										<label>Public Addon Key</label>
+										<input type="text" ng-model="edit.project.page.publicKey">
+									</md-input-container>
+									<!--<md-input-container class="md-block" title="This is a reference variation for pipeline pull modifications.">-->
+									<!--	<label>Template Variation</label>-->
+									<!--	<input type="text" ng-model="edit.project.var.ref">-->
+									<!--</md-input-container>-->
+									<md-input-container class="md-block" title="This is a url path to a set of snippets that can be used as suggestions for quick coding.  They must be stored on the alphabetize platform.">
+										<label>Snippet Project URL</label>
+										<input type="text" ng-model="edit.project.var.snippetRef">
+									</md-input-container>
+								</div>
+							</div>
+						</md-content>
+					</div>
+				</md-content>
+			</md-tab>
+
+			<md-tab label="html" md-on-select="addon.edit.tab('html'); addon.edit.ace.focus('htmlEditor')">
+				<md-content class="tab-content" layout="row">
+					<div flex="20" class="sidebar">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('html')" dyno="{{sideFeature.template}}"></div>
+					</div>
+					<div flex="80" class="insight-body">
+						<div class="editor dynaSize" id="htmlEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+
+			<md-tab label="js" md-on-select="addon.edit.tab('js'); addon.edit.ace.focus('jsEditor')">
+				<md-content class="tab-content" layout="row">
+					<div flex="20" class="sidebar">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('js')" dyno="{{sideFeature.template}}"></div>
+					</div>
+					<div flex="80" class="insight-body">
+						<div class="editor dynaSize" id="jsEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+
+			<md-tab label="components" md-on-select="addon.edit.tab('component'); addon.edit.component.init()">
+				<md-content class="tab-content" layout="row">
+					<div class="sidebar" flex="20">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('components')" dyno="{{sideFeature.template}}"></div>
+					</div>
+					<div flex="80" class="insight-body">
+						<md-toolbar>
+							<div class="md-toolbar-tools">
+								<h2 class="flex">{{edit.component.id}}</h2>
+								<md-button aria-label="Compare With Original" class="md-icon-button" ng-show="edit.component" ng-click="addon.edit.code.compare()">
+									<md-icon><i class="fa fa-clock-o"></i></md-icon>
+								</md-button>
+								<md-button aria-label="Compare" class="md-icon-button" ng-show="edit.component" ng-click="addon.edit.code.compare({})">
+									<md-icon><i class="fa fa-code-fork"></i></md-icon>
+								</md-button>
+								<md-button aria-label="Copy path" class="md-icon-button" ng-show="edit.component" ng-click="tools.copy(addon.edit.component.path(edit.component))">
+									<md-icon><i class="fa fa-link"></i></md-icon>
+								</md-button>
+							</div>
+						</md-toolbar>
+						<div class="editor dynaSize" id="cEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+
+			<md-tab label="cloud" md-on-select="addon.edit.tab('cloud'); addon.edit.cloud.init()">
+				<md-content class="tab-content" layout="row">
+					<div class="sidebar" flex="20">
+						<div ng-repeat="sideFeature in api._elements['edit-sideFeature'] | orderBy:'idx'" ng-if="!sideFeature.tabs || sideFeature.tabs.includes('cloud')" dyno="{{sideFeature.template}}"></div>
+					</div>
+					<div flex="80" class="insight-body">
+						<md-toolbar>
+							<div class="md-toolbar-tools">
+								<h2 class="flex">{{edit.cloud.id}}</h2>
+								<md-button aria-label="Compare With Original" class="md-icon-button" ng-show="edit.cloud" ng-click="addon.edit.code.compare()">
+									<md-icon><i class="fa fa-clock-o"></i></md-icon>
+								</md-button>
+								<md-button aria-label="Compare" class="md-icon-button" ng-show="edit.cloud" ng-click="addon.edit.code.compare({})">
+									<md-icon><i class="fa fa-code-fork"></i></md-icon>
+								</md-button>
+								<md-button aria-label="Copy path" class="md-icon-button" ng-show="edit.cloud" ng-click="tools.copy(addon.edit.cloud.path(edit.cloud))">
+									<md-icon><i class="fa fa-link"></i></md-icon>
+								</md-button>
+							</div>
+						</md-toolbar>
+						<div class="editor dynaSize" id="ccEditor"></div>
+					</div>
+				</md-content>
+			</md-tab>
+		</md-tabs>
+	</md-content>
+
+	<md-dialog-actions layout="row" ng-if="settingsTab!=0">
+		<span flex></span>
+		<md-button class="md-accent" aria-label="Cancel Changes" ng-click="addon.edit.cancel()" title="Discard Changes">
+			Cancel
+		</md-button>
+		<md-button class="md-primary md-raised" aria-label="Save Project" ng-click="addon.edit.variation.save().then($mdDialog.hide)">
+			Save
+		</md-button>
+	</md-dialog-actions>
+</md-dialog>

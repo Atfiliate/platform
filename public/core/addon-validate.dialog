@@ -1,0 +1,56 @@
+<md-dialog layout-padding flex="90" flex-gt-md="60" style="min-height:50vh;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<!--<md-button class="md-icon-button" ng-click="js.pipeline.link()"><i class="fa fa-link"></i></md-button>-->
+			<h2 flex>Addon Verification</h2>
+			<md-button class="md-icon-button" aria-label="close" ng-click="$mdDialog.hide()"><i class="fa fa-close"></i></md-button>
+		</div>
+	</md-toolbar>
+	<md-content layout="column">
+		<p style="color: red;">{{tools.addon._warning || 'This is a test group and will have high-level access to your personal info.
+		Test groups can be created by stakes, wards, etc. if there are developers who would like to improve the system.
+		You should not install these addons unless you trust group administrators and have discussed this in person.'}}</p>
+		
+		
+		<md-button ng-show="user.is('root')" ng-click="tools.validate.keys.generate()">Generate New RSA</md-button>
+		<md-input-container class="md-block" ng-if="user.is('root')">
+			<label>Private Key</label>
+			<textarea ng-model="tools.validate._privateKey" ng-change="tools.validate.keys.import('private')"></textarea>
+		</md-input-container>
+		
+		<md-list>
+	        <md-subheader class="md-no-sticky">Administrators</md-subheader>
+			<md-list-item class="md-3-line" ng-repeat="m in members" ng-if="m.roles.includes('admin')">
+				<img ng-src="{{m.img}}" class="md-avatar">
+				<div class="md-list-item-text" layout="column">
+					<h3>{{ m.name }}</h3>
+					<h4>{{ m.email }}</h4>
+				</div>
+			</md-list-item>
+		</md-list>
+		<md-list>
+	        <md-subheader class="md-no-sticky">Addons</md-subheader>
+			<md-list-item class="md-3-line" ng-repeat="m in tools.addon._invalidList">
+				<img ng-src="{{m.img}}" class="md-avatar">
+				<div class="md-list-item-text" layout="column">
+					<h3>{{ m.title }}</h3>
+					<h4>{{ m.description }}</h4>
+					<h4>{{ m.url }}</h4>
+				</div>
+				<md-button class="md-raised" ng-class="{'md-primary': m.signature}" aria-label="Sign" ng-if="tools.validate._privateKey" ng-click="tools.addon.sign(m, tools.validate._privateKey)">Sign</md-button>
+				<md-button class="md-raised" aria-label="Use" ng-if="!tools.validate._privateKey" ng-click="tools.addon.confirm(m)">Use</md-button>
+				<md-button class="md-raised" aria-label="Remove Old" ng-click="tools.addon.deny(m)">Remove</md-button>
+			</md-list-item>
+		</md-list>
+		<!--<md-dialog-actions layout="row" ng-if="js.validate._privateKey">-->
+		<!--	<span flex></span>-->
+		<!--	<md-button class="md-raised" aria-label="Save" ng-click="service.$fire.save().then($mdDialog.hide)">Save With Signed Addons</md-button>-->
+		<!--</md-dialog-actions>-->
+		<!--<md-dialog-actions layout="row" ng-if="!js.validate._privateKey">-->
+		<!--	<md-button class="md-raised" aria-label="Save" ng-if="js.validate._privateKey" ng-click="service.$fire.save().then($mdDialog.hide)">Save With Signed Addons</md-button>-->
+		<!--	<span flex></span>-->
+		<!--	<md-button class="md-raised" aria-label="Add" ng-click="js.addon.confirm(temp.manifest)">Install Addons</md-button>-->
+		<!--	<md-button class="md-raised" aria-label="Report" ng-click="js.addon.report(temp.manifest)">Report This</md-button>-->
+		<!--</md-dialog-actions>-->
+	</md-content>
+</md-dialog>

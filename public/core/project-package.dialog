@@ -1,0 +1,37 @@
+<md-dialog layout-padding flex="90" flex-gt-md="60" style="min-height:50vh;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<!--<md-button class="md-icon-button" ng-click="js.pipeline.link()"><i class="fa fa-link"></i></md-button>-->
+			<h2 flex>Package Explorer</h2>
+			<md-button class="md-icon-button" aria-label="close" ng-click="$mdDialog.hide()"><i class="fa fa-close"></i></md-button>
+		</div>
+	</md-toolbar>
+	<md-content layout="column" layout-margin>
+		<div md-whiteframe="2" layout-padding>
+			<div>
+				<p>Title: {{diff.pkg2.var.title}}</p>
+				<p>Notes: {{diff.pkg2.var.notes}}</p>
+				<p>Created On: {{moment(diff.pkg2.serverMeta.createdOn).calendar()}}</p>
+				<p>Origin: {{diff.pkg2.serverMeta.orgin}}</p>
+				<p><span class="chip">Changes: {{diff.stats.changes}}</span><span class="chip">New Items: {{diff.stats.adds}}</span><span class="chip">Missing Items: {{diff.stats.removes}}</span></p>
+			</div>
+		</div>
+		<md-list>
+			<md-divider></md-divider>
+			<md-subheader class="md-no-sticky">Components</md-subheader>
+			<md-list-item ng-repeat="item in diff.components" ng-click="addon.edit.package.compare(item)">
+				<!--<img alt="{{member.name}}" ng-src="{{member.img}}" class="md-avatar">-->
+				<p>{{ item.title }}</p>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'add'">Add</md-button>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'remove'">Remove</md-button>
+                <md-button class="md-raised md-secondary" ng-click="item.approved = !item.approved" ng-show="item.change == 'change'">Change</md-button>
+    			<md-checkbox class="md-secondary" title="Approve Change" ng-model="item.approved"></md-checkbox>
+			</md-list-item>
+		</md-list>
+	</md-content>
+	<md-dialog-actions layout="row">
+		<!--<md-button class="md-raised" aria-label="Add" ng-click="addon.email.add()">Add</md-button>-->
+		<span flex></span>
+		<md-button class="md-raised" aria-label="Apply Changes" ng-click="addon.edit.package.merge()">Merge</md-button>
+	</md-dialog-actions>
+</md-dialog>

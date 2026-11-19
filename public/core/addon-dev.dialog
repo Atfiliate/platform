@@ -1,0 +1,18 @@
+<md-dialog layout-padding style="width:500px; max-width:90%; min-height:50vh;">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2 flex>Developer Zone</h2>
+			<md-button class="md-icon-button" aria-label="close" ng-click="$mdDialog.hide()"><i class="fa fa-close"></i></md-button>
+		</div>
+	</md-toolbar>
+	<md-content layout="column">
+		<p>Warning: This will allow you to run unsafe code which could allow a hacker to anyone else to hack your account, steal your information, or take actions that you would not want to happen.</p>
+		<md-input-container>
+			<label>Addon URL</label>
+			<textarea ng-model="temp.addonUrl"></textarea>
+		</md-input-container>
+	</md-content>
+	<md-dialog-actions layout="row">
+		<span flex></span>
+		<md-button class="md-raised" aria-label="Preview" ng-hide="tools.addon._preview" ng-click="tools.addon.dev.install(temp.addonUrl)">Install</md-button>
+</md-dialog>
