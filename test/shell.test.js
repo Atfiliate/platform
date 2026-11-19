@@ -63,6 +63,14 @@ test('shell 2 without a core project -> MISSING_CORE_PROJECT once, shell 1', ()=
 	assert.ok(out[0].startsWith('MISSING_CORE_PROJECT'));
 });
 
+test('project() looks up the fixed home dev/{id} (getProject(id, id))', ()=>{
+	let calls = [];
+	let fixedDoc = {id: 'core'};
+	let got = shell.project((id, vid)=>{ calls.push([id, vid]); return vid == 'core' ? fixedDoc : {id: 'starred'}; }, 'core');
+	assert.strictEqual(got, fixedDoc);
+	assert.deepStrictEqual(calls, [['core', 'core']]);
+});
+
 test('no bundled client files in the repo', ()=>{
 	assert.ok(!fs.existsSync(path.join(__dirname, '..', 'public', 'core')));
 	for(let f of ['views/pages/index.ejs', 'views/partials/head.ejs', 'views/partials/scripts.ejs', 'cloud/shell.js'])

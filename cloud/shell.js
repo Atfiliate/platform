@@ -1,6 +1,6 @@
 // Site shell settings. A site opts in to shell 2 with the site project's
 // component site.json: {"platform": {"shell": 2}, "brand": {...}, "theme": {...}}.
-// Shell 2 loads the core client from this site's own starred 'core' project in
+// Shell 2 loads the core client from this site's own core project (dev/core) in
 // Firestore (/project/core/component/*), takes title/favicon/description/colors from
 // site.json brand/theme, and renders the site project's head.html into the page head.
 // "header": "default" uses the core project's header.html.
@@ -8,6 +8,7 @@
 // Shell 2 without a core project: named warning MISSING_CORE_PROJECT, shell 1 is used.
 const SHARED_BASE = '//a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;';
 const CORE_BASE = '/project/core/component/';
+const {fixed} = require('./siteRoute.js');
 let warned = {};
 
 function warnOnce(code, detail){
@@ -16,7 +17,7 @@ function warnOnce(code, detail){
 	console.warn(`${code} ${detail || ''}`.trim());
 }
 
-// project: the starred site project (auto.getProject('site')) or undefined.
+// project: the site project (shell.project(auto.getProject, 'site')) or undefined.
 function read(project){
 	let item = project && project.component && project.component['site.json'];
 	if(!item || typeof item.code != 'string' || !item.code.trim())
@@ -57,11 +58,11 @@ function nav(site){
 }
 
 // View locals for head.ejs / scripts.ejs / index.ejs.
-// project: the starred site project; core: the starred core project (auto.getProject('core')).
+// project: the site project (dev/site); core: the core project (dev/core).
 function locals(project, site, core){
 	let v = version(site);
 	if(v == 2 && !(core && core.component && core.component['app.js'])){
-		warnOnce('MISSING_CORE_PROJECT', 'shell 2 needs a starred core project; using shell 1');
+		warnOnce('MISSING_CORE_PROJECT', 'shell 2 needs a core project (dev/core); using shell 1');
 		v = 1;
 	}
 	let comp = (project && project.component) || {};
@@ -75,6 +76,9 @@ function locals(project, site, core){
 	};
 }
 
+// The site/core project at its fixed home dev/{id}; get is auto.getProject.
+function project(get, id){ return fixed(get, id); }
+
 function resetWarnings(){ warned = {}; }
 
-module.exports = {SHARED_BASE, CORE_BASE, read, version, brand, nav, locals, resetWarnings};
+module.exports = {SHARED_BASE, CORE_BASE, project, read, version, brand, nav, locals, resetWarnings};

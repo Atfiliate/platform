@@ -116,7 +116,7 @@ test('no site project: missing component keeps legacy body, adds named error hea
 	assert.strictEqual(r.headers['x-core-error'], 'COMPONENT_NOT_FOUND');
 });
 
-// ---- with a starred site project ----
+// ---- with the site project at its fixed home dev/site ----
 test('site project: unstarred or non-prod site docs are ignored', async ()=>{
 	reset();
 	loadDev([{id: 'draft1', projectId: 'site', stage: 'dev', default: false, cloud: {hello: {code: cloudCode('draft')}}}]);
@@ -126,7 +126,7 @@ test('site project: unstarred or non-prod site docs are ignored', async ()=>{
 
 test('site project: cloud resolves to site first', async ()=>{
 	reset();
-	loadDev([{id: 'v1', projectId: 'site', stage: 'prod', default: true,
+	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true,
 		cloud: {hello: {code: cloudCode('site hello')}, echo: {code: '{init: (req, res)=>res.send(req.params.id)}'}},
 		component: {'site.css': {code: 'h1{}'}, 'manifest.json': {code: '{}'}, 'firebase-sw.js': {code: '//sw'}, 'old_html': {code: '<p>'}}}]);
 	let r = await call('cloud', {path: 'hello'}, {headers: {host: 'h.test', origin: 'https://o.test'}});
@@ -170,9 +170,32 @@ test('site project: components resolve with correct content types', async ()=>{
 
 test('site project: handler error is sent like the project route does', async ()=>{
 	reset();
-	loadDev([{id: 'v1', projectId: 'site', stage: 'prod', default: true, cloud: {bad: {code: '{init: ()=>{ throw new Error("x") }}'}}}]);
+	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true, cloud: {bad: {code: '{init: ()=>{ throw new Error("x") }}'}}}]);
 	let r = await call('cloud', {path: 'bad'});
 	assert.ok(r.body instanceof Error);
+});
+
+test('fixed id: dev/site wins over another starred site version', async ()=>{
+	reset();
+	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: false, cloud: {hello: {code: cloudCode('site hello')}}},
+		{id: 'other', projectId: 'site', stage: 'prod', default: true, cloud: {hello: {code: cloudCode('other hello')}}}]);
+	let r = await call('cloud', {path: 'hello'});
+	assert.strictEqual(r.body, 'site hello');
+	assert.ok(!warnings.some(w=>w.startsWith('FIXED_ID_FALLBACK')));
+});
+
+test('fixed id: without dev/{id} the starred version is used with a named warning', ()=>{
+	reset();
+	let starred = {id: 'r4nd0m', projectId: 'core'};
+	let get = (id, vid)=>vid ? undefined : (id == 'core' ? starred : undefined);
+	assert.strictEqual(siteRoute.fixed(get, 'core'), starred);
+	assert.ok(warnings.includes('FIXED_ID_FALLBACK dev/core'));
+	warnings = [];
+	assert.strictEqual(siteRoute.fixed(get, 'site'), null);
+	assert.deepStrictEqual(warnings, []);
+	let fixedDoc = {id: 'core'};
+	assert.strictEqual(siteRoute.fixed((id, vid)=>vid == 'core' ? fixedDoc : starred, 'core'), fixedDoc);
+	assert.deepStrictEqual(warnings, []);
 });
 
 test('warnings are rate-limited per item', ()=>{

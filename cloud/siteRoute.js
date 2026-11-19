@@ -1,14 +1,26 @@
-// Legacy /cloud/:name and /component/:name resolve to the starred project with
-// projectId 'site' first. Only when that project does not have the item does the
+// Legacy /cloud/:name and /component/:name resolve to the site project first.
+// The site and core projects have fixed homes: dev/site and dev/core (doc id ==
+// projectId). Until a site has the fixed doc, the starred version is used and
+// FIXED_ID_FALLBACK is logged. Only when that project does not have the item does the
 // request fall back to the legacy RTDB site/private endpoints/components.
 // Sites without a 'site' project always fall back, exactly as before.
 const SITE_PROJECT = 'site';
 const WARN_EVERY_MS = 10 * 60 * 1000;
 let lastWarn = {};
 
+// get: a getProject-style lookup, get(projectId, vid) or get(projectId) for the starred one.
+function fixed(get, id){
+	let proj = get(id, id);
+	if(proj) return proj;
+	proj = get(id);
+	if(proj) warn('FIXED_ID_FALLBACK', 'dev', id);
+	return proj || null;
+}
 function siteProject(filecache){
-	let entry = filecache && filecache[SITE_PROJECT];
-	return (entry && entry.default) || null;
+	return fixed((id, vid)=>{
+		let entry = filecache && filecache[id];
+		return entry ? (vid ? entry.snaps && entry.snaps[vid] : entry.default) : null;
+	}, SITE_PROJECT);
 }
 
 // kind: 'cloud' | 'component'. Components also match the legacy name_ext form.
@@ -53,4 +65,4 @@ function resetWarnings(){
 	lastWarn = {};
 }
 
-module.exports = {SITE_PROJECT, siteProject, find, contentType, warn, resetWarnings};
+module.exports = {SITE_PROJECT, fixed, siteProject, find, contentType, warn, resetWarnings};
