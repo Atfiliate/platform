@@ -1,9 +1,7 @@
 // The site project lives at the fixed home dev/site (doc id == projectId). Until a
 // site has that doc, the starred 'site' version is used and FIXED_ID_FALLBACK is logged.
 // Cloud handlers named '_<name>' are startup functions: run at boot, never served.
-// Legacy /cloud/:name and /component/:name resolve to the site project first. Only when that project does not have the item does the
-// request fall back to the legacy RTDB site/private endpoints/components.
-// Sites without a 'site' project always fall back, exactly as before.
+// /cloud/:name and /component/:name are served only from the site project.
 const SITE_PROJECT = 'site';
 const WARN_EVERY_MS = 10 * 60 * 1000;
 let lastWarn = {};

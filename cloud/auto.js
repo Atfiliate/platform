@@ -702,29 +702,25 @@ module.exports = {
 	startup: ()=>{
 		if(db){
 			console.log('STARTUP-F(N)S----------> ');
-			let run = (key, code)=>{
+			let run = (key, code, from)=>{
 				try{
 					var js; eval('js = '+code)
-					if(js && js.init)
+					if(js && js.init){
 						js.init();
-					else
+						console.log(`STARTUP ${from} ${key} ok`);
+					}else
 						console.log(`JS had no init function: ${key}`);
 				}catch(e){
 					console.log(`Error running startup function: ${key}`);
 					console.log(e);
 				}
 			};
-			// Site project cloud handlers named '_<name>' run at boot; legacy RTDB startupfns only when there are none.
-			let legacy = ()=>{
-				console.warn('LEGACY_FALLBACK startup/startupfns');
-				firebase.database().ref('site/private/startupfns').once('value', function(snapshot){
-					snapshot.forEach(snap=>run(snap.key, (snap.val() || {}).code));
-				});
-			};
+			// Site project (dev/site) cloud handlers named '_<name>' run at boot.
 			db.collection('dev').doc(siteRoute.SITE_PROJECT).get().then(s=>{
 				let fns = siteRoute.startup(s.exists ? s.data() : null);
-				fns.length ? fns.forEach(f=>run(f.name, f.code)) : legacy();
-			}).catch(e=>{ console.log('Startup: site project read failed', e?.message || e); legacy(); });
+				if(!fns.length) console.warn('STARTUP none in dev/site');
+				fns.forEach(f=>run(f.name, f.code, 'site'));
+			}).catch(e=>console.log('Startup: site project read failed', e?.message || e));
 		}
 	},
 
@@ -785,50 +781,13 @@ module.exports = {
 			}
 			return;
 		}
-		siteRoute.warn('LEGACY_FALLBACK', 'cloud', path);
-		var code = mcache.get(path)
-		if(code){
-			try{
-				var js; eval('js = '+code)
-				if(js && js.init){
-					js.init(request, response)
-				}else{
-					response.send('No path found.')
-				}
-			}catch(e){
-				response.send(e);
-			}
-		}else{
-			console.log('NOTFROMCACHE-cloud----------> '+request.params.path);
-			var ref = firebase.database().ref('site/private/endpoints').child(request.params.path);
-			ref.once('value', function(snapshot){
-				if(!snapshot.exists()){
-					response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
-					siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
-				}
-				var endpoint = snapshot.val() || '404 Not Found';
-				var code = endpoint.code;
-				if(process.env.cache)
-					mcache.put(path, code, Number(process.env.cache));
-				//we need to migrate endpoint code to be similar to the components
-				//ie make this an object with code and other attributes instead of writing it directly.
-				//until then, we are caching all endpoint code until server restart.
-				try{
-					var js; eval('js = '+code)
-					if(js && js.init){
-						js.init(request, response)
-					}else{
-						response.send('No path found.')
-					}
-				}catch(e){
-					response.send(e);
-				}
-			});
-		}
+		response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
+		if(!siteRoute.isStartup(path))
+			siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
+		response.send('No path found.');
 	},
 	component: function(request, response){
 		var name = request.params.path;
-		var path = name.split('.').join('_');
 
 		if(request.headers.origin){
 			response.setHeader('Access-Control-Allow-Origin', request.headers.origin);
@@ -845,39 +804,9 @@ module.exports = {
 			response.send(site.item.code);
 			return;
 		}
-		siteRoute.warn('LEGACY_FALLBACK', 'component', path);
-
-		if(path.indexOf('_js') != -1)
-			response.setHeader("Content-Type", 'application/javascript');
-		else if(path.indexOf('_css') != -1)
-			response.setHeader("Content-Type", 'text/css');
-		else if(path.indexOf('_json') != -1)
-			response.setHeader("Content-Type", 'application/json');
-
-
-		var cache = mcache.get(path)
-		if(cache){
-			console.log('From Cache: '+path);
-			response.send(cache);
-		}else{
-			console.log('NOTFROMCACHE-component----------> '+path);
-			var ref = firebase.database().ref('site/private/components').child(path);
-			ref.once('value', function(snapshot){
-				var component = snapshot.val();
-				if(!component){
-					response.setHeader('X-Core-Error', 'COMPONENT_NOT_FOUND');
-					siteRoute.warn('COMPONENT_NOT_FOUND', 'component', path);
-				}
-				try{
-					if(component.cache){
-						mcache.put(path, component.code, Number(component.cache));
-					}
-					response.send(component.code)
-				}catch(e){
-					response.send(e);
-				}
-			});
-		}
+		response.setHeader('X-Core-Error', 'COMPONENT_NOT_FOUND');
+		siteRoute.warn('COMPONENT_NOT_FOUND', 'component', name);
+		response.status(404).send('Component not found.');
 	},
 	getProject: function(projId, vid){
 		if(vid && vid != 'default' && vid != 'undefined')
@@ -983,18 +912,5 @@ module.exports = {
 				response.send(page);
 			}
 		}
-	},
-	package: function(request, response){
-		db.doc('admin/settings').get().then(s=>{
-			let settings = s.data();
-			if(pathValue(settings, 'plan.id') == 'openSource'){
-				let path = `project/${request.params.id}`;
-				var ref = firebase.database().ref(path);
-				ref.once('value', function(snap){
-					var pkg = snap.val();
-						response.send(pkg);
-				})	
-			}
-		})
 	}
 }

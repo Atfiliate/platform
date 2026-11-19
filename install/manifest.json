@@ -22,7 +22,7 @@
 			{"name": "gtag", "feature": "Analytics tag in page shell"},
 			{"name": "manifest", "feature": "PWA manifest link in page shell"}
 		],
-		"configKeys": ["firebase.projectId", "firebase.databaseURL", "firebase.apiKey", "firebase.authDomain"]
+		"configKeys": ["firebase.projectId", "firebase.apiKey", "firebase.authDomain"]
 	},
 	"data": [
 		{"id": "settings", "path": "admin/settings", "kind": "doc", "required": true, "recommendedFields": ["domain", "subSite"], "why": "Site settings; core Comm email uses settings.domain."},

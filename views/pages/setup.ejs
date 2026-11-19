@@ -2,55 +2,12 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Setup Site</title>
-		
-		<link rel="stylesheet" media="screen" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.20/angular-material.css">
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-		
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-animate.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-aria.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-messages.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-route.min.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular-sanitize.js"></script>
-		<script src="//ajax.googleapis.com/ajax/libs/angular_material/1.2.1/angular-material.min.js"></script>
-
-		<script src="//apis.google.com/js/api.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-app.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-auth.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-database.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-firestore.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-messaging.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/angularFire/2.3.0/angularfire.min.js"></script>
-		<script src="https://widget.cloudinary.com/v2.0/global/all.js"></script>
-
-
-		<!-- Site Config -->
-		<% if(process.env.config){ %>
-		<script>
-		  window.config = <%- process.env.config %>;
-		</script>
-		<% } %>
 	</head>
-	<body layout="column" ng-controller="SiteCtrl">
-		<md-content flex ng-include="view"></md-content>
-		<script>
-			let imports = ['ngMaterial','ngSanitize','firebase','ngAnimate'];
-			var app = angular.module('app', imports);
-			app.config(function($controllerProvider) {
-				app.lazy = {
-					controller: $controllerProvider.register
-				};
-			});
-			app.controller('SiteCtrl', ['$scope','$sce', function($scope, $sce) {
-				$scope.view = $sce.trustAsResourceUrl('https://a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;setup.html')
-			}]);
-			angular.element(function() {
-				angular.bootstrap(document, ['app']);
-			});
-		</script>
+	<body style="font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px;">
+		<h1>This site is not set up yet</h1>
+		<p>Set the host app env vars <code>config</code> (JSON with <code>firebase.projectId</code>, <code>firebase.apiKey</code>, <code>firebase.authDomain</code>) and <code>googleJson</code> (service account), then restart.</p>
+		<p>Once it runs, a root user can see what is still missing at <code>/__core/health</code> and the install plan at <code>/__core/install/plan</code>.</p>
 	</body>
 </html>

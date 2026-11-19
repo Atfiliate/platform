@@ -103,7 +103,8 @@ test('templates: shell 1 keeps shared URLs; shell 2 uses the site project client
 	}
 	let s2 = {version: 2, base: '/project/site/component/', manifest: '/component/manifest.json', header: '/project/site/component/header.html', head: '<script>t</script>'};
 	let h = render('partials/head.ejs', s2), sc = render('partials/scripts.ejs', s2), page = render('pages/index.ejs', s2);
-	assert.ok(h.includes('href="/project/site/component/site.css"'));
+	assert.ok(!h.includes('href="/project/site/component/site.css"'), 'shell 2 loads site.css once');
+	assert.strictEqual(h.split('site.css').length - 1, 1);
 	assert.ok(h.includes('<link rel="manifest" href="/component/manifest.json">'));
 	assert.strictEqual(h.split('<script>t</script>').length, 2);
 	for(let f of ['app.js', 'services.js', 'directives.js'])

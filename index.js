@@ -16,7 +16,7 @@ if(process.env.config){
 	}
 }
 
-let setupMode = !Config?.firebase?.databaseURL || !Config?.firebase?.projectId;
+let setupMode = !Config?.firebase?.projectId;
 
 app.set('port', (process.env.PORT || 5000));
 app.set('views', __dirname + '/views');
@@ -38,7 +38,6 @@ if(setupMode){
 	var fire = require("./cloud/fire.js");
 	var auto = require("./cloud/auto.js");
 	var shell = require("./cloud/shell.js");
-	var stripe = require('./cloud/stripe.js');
 
 	let $settings = {subSite: {}};
 
@@ -124,9 +123,6 @@ if(setupMode){
 	// });
 
 	// app.get('/:root', auto.project);
-
-	app.post('/stripe/customer', stripe.customer);
-	app.post('/stripe/checkout', stripe.checkout);
 
 	app.options('/cloud/:path', auto.options);
 	app.post('/cloud/:path', auto.cloud);

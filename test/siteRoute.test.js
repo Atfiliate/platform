@@ -8,7 +8,7 @@ const tests = [];
 const test = (name, fn)=>tests.push({name, fn});
 
 // ---- stubs ----
-let rtdb = {endpoints: {}, components: {}, startupfns: {}};
+let rtdbCalls = 0;
 let siteDoc = null; // what dev/site returns to auto.startup()
 let devListener = null;
 let mstore = {};
@@ -23,21 +23,7 @@ const stubs = {
 			// admin/settings: the legacy cloud route reads $settings.subSite[host]
 			doc: (p)=>({get: ()=>Promise.resolve({id: p.split('/').pop(), ref: {}, exists: true, data: ()=>({subSite: {}})})})
 		}),
-		database: ()=>({
-			ref: (p)=>({
-				child: (name)=>({
-					once: (ev, cb)=>{
-						let cat = p.split('/').pop();
-						let val = rtdb[cat][name];
-						setImmediate(()=>cb({val: ()=>val === undefined ? null : val, exists: ()=>val !== undefined}));
-					}
-				}),
-				once: (ev, cb)=>{
-					let all = rtdb[p.split('/').pop()] || {};
-					setImmediate(()=>cb({forEach: (fn)=>Object.entries(all).forEach(([key, v])=>fn({key, val: ()=>v}))}));
-				}
-			})
-		}),
+		database: ()=>{ rtdbCalls++; throw new Error('RTDB must not be used'); },
 		auth: ()=>({})
 	},
 	'firebase-admin/messaging': {getMessaging: ()=>({})},
@@ -56,7 +42,8 @@ let warnings = [];
 const origWarn = console.warn;
 console.warn = (msg)=>warnings.push(String(msg));
 const origLog = console.log;
-console.log = ()=>{};
+let logs = [];
+console.log = (...a)=>logs.push(a.join(' '));
 
 const auto = require(path.join(__dirname, '../cloud/auto.js'));
 const siteRoute = require(path.join(__dirname, '../cloud/siteRoute.js'));
@@ -82,41 +69,26 @@ function call(fn, params, extra){
 const cloudCode = (txt)=>`{init: function(request, response){ response.send(${JSON.stringify(txt)}) }}`;
 function reset(){
 	warnings = [];
+	logs = [];
 	mstore = {};
 	siteRoute.resetWarnings();
 }
 
-// ---- legacy only (no site project): must behave as before ----
-test('no site project: cloud falls back to RTDB endpoint', async ()=>{
-	reset();
-	rtdb.endpoints.hello = {code: cloudCode('legacy hello')};
-	let r = await call('cloud', {path: 'hello'});
-	assert.strictEqual(r.body, 'legacy hello');
-	assert.strictEqual(r.headers['x-core-source'], undefined);
-	assert.ok(warnings.includes('LEGACY_FALLBACK cloud/hello'));
-});
-
-test('no site project: missing cloud keeps legacy body, adds named error header', async ()=>{
+// ---- no site project: nothing is served, and RTDB is never touched ----
+test('no site project: cloud is CLOUD_NOT_FOUND (no RTDB lookup)', async ()=>{
 	reset();
 	let r = await call('cloud', {path: 'nope'});
 	assert.strictEqual(r.body, 'No path found.');
 	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
 	assert.ok(warnings.includes('CLOUD_NOT_FOUND cloud/nope'));
+	assert.ok(!warnings.some(w=>w.startsWith('LEGACY_FALLBACK')));
 });
 
-test('no site project: component falls back with legacy name_ext and content type', async ()=>{
-	reset();
-	rtdb.components['site_css'] = {code: 'body{}'};
-	let r = await call('component', {path: 'site.css'});
-	assert.strictEqual(r.body, 'body{}');
-	assert.strictEqual(r.headers['content-type'], 'text/css');
-	assert.ok(warnings.includes('LEGACY_FALLBACK component/site_css'));
-});
-
-test('no site project: missing component keeps legacy body, adds named error header', async ()=>{
+test('no site project: component is 404 COMPONENT_NOT_FOUND (no RTDB lookup)', async ()=>{
 	reset();
 	let r = await call('component', {path: 'gone.js'});
-	assert.ok(r.body instanceof Error);
+	assert.strictEqual(r.status, 404);
+	assert.strictEqual(r.body, 'Component not found.');
 	assert.strictEqual(r.headers['x-core-error'], 'COMPONENT_NOT_FOUND');
 });
 
@@ -125,7 +97,7 @@ test('site project: unstarred or non-prod site docs are ignored', async ()=>{
 	reset();
 	loadDev([{id: 'draft1', projectId: 'site', stage: 'dev', default: false, cloud: {hello: {code: cloudCode('draft')}}}]);
 	let r = await call('cloud', {path: 'hello'});
-	assert.strictEqual(r.body, 'legacy hello');
+	assert.strictEqual(r.body, 'No path found.');
 });
 
 test('site project: cloud resolves to site first', async ()=>{
@@ -142,15 +114,14 @@ test('site project: cloud resolves to site first', async ()=>{
 	assert.strictEqual(e.body, 'abc');
 });
 
-test('site project: item missing from site falls back to RTDB with a named warning', async ()=>{
+test('site project: item missing from site is CLOUD_NOT_FOUND', async ()=>{
 	reset();
-	rtdb.endpoints.onlyLegacy = {code: cloudCode('legacy only')};
 	let r = await call('cloud', {path: 'onlyLegacy'});
-	assert.strictEqual(r.body, 'legacy only');
-	assert.ok(warnings.includes('LEGACY_FALLBACK cloud/onlyLegacy'));
+	assert.strictEqual(r.body, 'No path found.');
+	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
 });
 
-test('site project: site wins over a cached legacy copy', async ()=>{
+test('site project: site wins over a memory-cache entry', async ()=>{
 	reset();
 	mstore.hello = cloudCode('stale cache');
 	let r = await call('cloud', {path: 'hello'});
@@ -207,7 +178,7 @@ test("'_' cloud handlers are never served (legacy route or project route)", asyn
 	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true,
 		cloud: {hello: {code: cloudCode('site hello')}, _boot: {code: cloudCode('boot ran')}}, component: {}}]);
 	let r = await call('cloud', {path: '_boot'});
-	assert.notStrictEqual(r.body, 'boot ran');
+	assert.strictEqual(r.body, 'No path found.');
 	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
 	let p = await call('project', {projId: 'site', cloud: '_boot'});
 	assert.strictEqual(p.body, 'Cloud not found.');
@@ -223,22 +194,21 @@ test('startup(): only cloud handlers named _<name>', ()=>{
 
 const tick = ()=>new Promise(r=>setTimeout(r, 20));
 const bootCode = (tag)=>`{init: ()=>{ (global.__boot = global.__boot || []).push(${JSON.stringify(tag)}) }}`;
-test('boot runs dev/site _ handlers and skips RTDB startupfns', async ()=>{
+test('boot runs dev/site _ handlers only', async ()=>{
 	reset(); global.__boot = [];
 	siteDoc = {cloud: {_one: {code: bootCode('site one')}, plain: {code: bootCode('plain')}}};
-	rtdb.startupfns = {legacy: {code: bootCode('legacy')}};
 	auto.startup(); await tick();
 	assert.deepStrictEqual(global.__boot, ['site one']);
-	assert.ok(!warnings.some(w=>w.startsWith('LEGACY_FALLBACK startup')));
+	assert.ok(logs.includes('STARTUP site _one ok'));
 });
 
-test('boot falls back to RTDB startupfns with LEGACY_FALLBACK when dev/site has none (or fails)', async ()=>{
+test('boot with no _ handlers (or a failed read) runs nothing and never reads RTDB', async ()=>{
 	for(let doc of [null, {cloud: {plain: {code: bootCode('plain')}}}, new Error('read failed')]){
 		reset(); global.__boot = [];
 		siteDoc = doc;
 		auto.startup(); await tick();
-		assert.deepStrictEqual(global.__boot, ['legacy']);
-		assert.ok(warnings.includes('LEGACY_FALLBACK startup/startupfns'));
+		assert.deepStrictEqual(global.__boot, []);
+		assert.ok(!warnings.some(w=>w.startsWith('LEGACY_FALLBACK')));
 	}
 });
 
@@ -249,10 +219,11 @@ test('warnings are rate-limited per item', ()=>{
 	assert.strictEqual(siteRoute.warn('LEGACY_FALLBACK', 'cloud', 'x', 1000 + 11 * 60 * 1000), true);
 });
 
-test('client sends the ID token to cl_img', ()=>{
+test('core never calls the Realtime Database', ()=>{
+	assert.strictEqual(rtdbCalls, 0);
 	const fs = require('fs');
-	const src = fs.readFileSync(path.join(__dirname, '../public/js/services.js'), 'utf8');
-	assert.ok(/getIdToken\(\)\.then\(jwt=>\{\s*return \$http\.post\('\/cloud\/cl_img', \{imgUrl\}, \{headers: \{Authorization: 'Bearer '\+jwt\}\}\)/.test(src));
+	for(const f of ['cloud/auto.js', 'cloud/fire.js', 'cloud/siteRoute.js', 'cloud/shell.js', 'index.js', 'views/partials/scripts.ejs', 'views/pages/setup.ejs'])
+		assert.ok(!/\.database\(|firebase-database|angularfire|databaseURL/i.test(fs.readFileSync(path.join(__dirname, '..', f), 'utf8')), f);
 });
 
 (async ()=>{

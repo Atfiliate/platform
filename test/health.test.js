@@ -26,7 +26,7 @@ function mockFire(store){
 	};
 }
 const fullEnv = {
-	config: JSON.stringify({firebase: {projectId: 'p', databaseURL: 'u', apiKey: 'k', authDomain: 'a'}}),
+	config: JSON.stringify({firebase: {projectId: 'p', apiKey: 'k', authDomain: 'a'}}),
 	googleJson: '{}', origin: 'https://example.test', systemEmail: 'x@example.test'
 };
 const fullStore = {
@@ -55,7 +55,7 @@ test('named errors for missing env, never values', async ()=>{
 	let names = r.errors.map(e=>e.name);
 	assert.ok(names.includes('origin'));
 	assert.ok(names.includes('systemEmail'));
-	assert.ok(names.includes('config.firebase.databaseURL'));
+	assert.ok(names.includes('config.firebase.authDomain'));
 	assert.ok(!JSON.stringify(r).includes('secretish'));
 	assert.ok(!JSON.stringify(r).includes('example.test'));
 });
