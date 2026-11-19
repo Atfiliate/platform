@@ -13,7 +13,8 @@ Site code is edited in the site itself (Ctrl+E) and stored as versions in `dev/*
 | `/project/:id`, `/project/:id/component/:name`, `/project/:id/cloud/:name` | The starred version of project `:id` (or `?v=<version id>`) |
 | `/__core/health`, `/__core/install/plan` | Root or admin.all only (Bearer ID token); names only |
 
-- **Site project:** `dev/site` (doc id and `projectId` both `site`, stage `prod`, starred). Its cloud handlers named `_<name>` run once at boot and are never served over HTTP.
+- **Site project:** `dev/site` (doc id and `projectId` both `site`, stage `prod`, starred). Its cloud handlers named `__<name>` (double underscore) run once at boot.
+- **Startup handlers:** a cloud handler named `__<name>` in any project is never served: `/cloud/__<name>` and `/project/:id/cloud/__<name>` return 404 with `X-Core-Error: STARTUP_NOT_SERVED`. Only `dev/site` runs them, at boot, as `js = {init(){...}}` with no request. A single `_<name>` handler is a normal endpoint, like any other name.
 - **Versions (`?v=`):** the starred version and any version with stage `prod` run for anyone. Other versions (for example stage `dev`) run only for a developer of that project, who sends `Authorization: Bearer <ID token>` (or `jwt` in the body).
 - **Cloud handlers** are `js = {init(request, response){...}}`, evaluated in `cloud/auto.js` with `Fire`, `firebase`, `cloudinary`, `request`/`http`, `moment`, `aiMeter` and `settings` in scope. They run with the server's credentials, so write access to `dev/*` must stay limited to developers (see the rules template).
 - **Bodies:** JSON, form and multipart bodies are parsed only on cloud routes (`bodyLimit`, default 50mb; `uploadLimitMb`, default 50). Other routes do not parse request bodies.

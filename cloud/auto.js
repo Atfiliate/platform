@@ -692,6 +692,12 @@ let developerAccess = access.create({
 	getRoles: uid=>db ? db.collection('roles').doc(uid).get().then(s=>s.exists ? s.data() : null) : Promise.resolve(null)
 });
 
+// Startup functions ('__<name>') run only at boot; no project serves them over HTTP.
+function startupNotServed(response){
+	response.setHeader('X-Core-Error', 'STARTUP_NOT_SERVED');
+	return response.status(404).send('Not found.');
+}
+
 module.exports = {
 	Fire,
 	aiMeter,
@@ -721,7 +727,7 @@ module.exports = {
 					console.log(e);
 				}
 			};
-			// Site project (dev/site) cloud handlers named '_<name>' run at boot.
+			// Site project (dev/site) cloud handlers named '__<name>' run at boot.
 			db.collection('dev').doc(siteRoute.SITE_PROJECT).get().then(s=>{
 				let fns = siteRoute.startup(s.exists ? s.data() : null);
 				if(!fns.length) console.warn('STARTUP none in dev/site');
@@ -772,6 +778,8 @@ module.exports = {
 			settings.origin = settings.origin || settings.domain;
 			
 		var path = request.params.path;
+		if(siteRoute.isStartup(path))
+			return startupNotServed(response);
 		let site = siteRoute.find(filecache, 'cloud', path);
 		if(site){
 			response.setHeader('X-Core-Source', 'site');
@@ -789,8 +797,7 @@ module.exports = {
 			return;
 		}
 		response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
-		if(!siteRoute.isStartup(path))
-			siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
+		siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
 		response.send('No path found.');
 	},
 	component: function(request, response){
@@ -865,11 +872,13 @@ module.exports = {
 			}
 		}else if(request.params.cloud){
 			var cid = request.params.cloud;
+			if(siteRoute.isStartup(cid))
+				return startupNotServed(response);
 			
 			let cloud;
 			let starred = pathValue(filecache, `${request.params.projId}.default`);
 			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : starred;
-			if(proj && proj.cloud && !(request.params.projId == siteRoute.SITE_PROJECT && siteRoute.isStartup(cid)))
+			if(proj && proj.cloud)
 				cloud = proj.cloud[cid];
 
 			let run = ()=>{

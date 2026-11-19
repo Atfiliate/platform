@@ -1,6 +1,7 @@
 // The site project lives at the fixed home dev/site (doc id == projectId). Until a
 // site has that doc, the starred 'site' version is used and FIXED_ID_FALLBACK is logged.
-// Cloud handlers named '_<name>' are startup functions: run at boot, never served.
+// Cloud handlers named '__<name>' (double underscore) are startup functions: dev/site runs them
+// at boot, and no project serves them over HTTP. A single '_<name>' handler is a normal endpoint.
 // /cloud/:name and /component/:name are served only from the site project.
 const SITE_PROJECT = 'site';
 const WARN_EVERY_MS = 10 * 60 * 1000;
@@ -21,8 +22,9 @@ function siteProject(filecache){
 	}, SITE_PROJECT);
 }
 
-const isStartup = (name)=>typeof name == 'string' && name[0] == '_';
-// Startup functions in a site project doc: [{name, code}] for cloud handlers named '_<name>'.
+const STARTUP_PREFIX = '__';
+const isStartup = (name)=>typeof name == 'string' && name.length > STARTUP_PREFIX.length && name.startsWith(STARTUP_PREFIX);
+// Startup functions in a site project doc: [{name, code}] for cloud handlers named '__<name>'.
 function startup(doc){
 	return Object.entries((doc && doc.cloud) || {})
 		.filter(([n, item])=>isStartup(n) && item && typeof item.code == 'string' && item.code)
@@ -73,4 +75,4 @@ function resetWarnings(){
 	lastWarn = {};
 }
 
-module.exports = {SITE_PROJECT, fixed, siteProject, isStartup, startup, find, contentType, warn, resetWarnings};
+module.exports = {SITE_PROJECT, STARTUP_PREFIX, fixed, siteProject, isStartup, startup, find, contentType, warn, resetWarnings};

@@ -164,7 +164,7 @@
 			"path": "dev/site",
 			"kind": "doc",
 			"required": false,
-			"why": "Site project at its fixed home (doc id = projectId 'site'): site files, client files, cloud handlers; '_<name>' handlers run at boot."
+			"why": "Site project at its fixed home (doc id = projectId 'site'): site files, client files, cloud handlers; '__<name>' handlers run at boot and are never served."
 		}
 	],
 	"install": {

@@ -50,7 +50,8 @@ const adminHtml = '<md-sidenav>\n\t\t\t<md-list>\n\t\t\t\t<md-list-item>Tools</m
 	assert.strictEqual(site.projectId, 'site'); assert.strictEqual(site.default, true); assert.strictEqual(site.stage, 'prod');
 	for(const n of ['pixel', 'cl_img', 'proxy', 'shortCode', 'swConfig']) assert.ok(site.cloud[n] && site.cloud[n].code.includes('init'), n);
 	for(const n of ['site.json', 'site.css', 'manifest.json', 'firebase-sw.js']) assert.ok(site.component[n], n);
-	assert.ok(!Object.keys(site.cloud).some(n=>n[0] == '_'));
+	assert.deepStrictEqual(Object.keys(site.cloud).filter(n=>n[0] == '_'), ['__ready']);
+	assert.ok(site.cloud.__ready.code.includes('init'));
 	assert.ok(s.data['dev/adm1'].page.html.includes('/site?v=site'));
 	assert.strictEqual(s.data['dev/adm1'].page.js, 'js={}');
 	assert.ok(Object.keys(s.data).some(k=>k.startsWith('admin/install/log/')));

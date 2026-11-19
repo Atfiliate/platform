@@ -227,37 +227,61 @@ test('fixed id: without dev/{id} the starred version is used with a named warnin
 	assert.deepStrictEqual(warnings, []);
 });
 
-test("'_' cloud handlers are never served (legacy route or project route)", async ()=>{
+test("'__' cloud handlers are never served: 404 STARTUP_NOT_SERVED on the legacy route and on every project", async ()=>{
 	reset();
-	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true,
-		cloud: {hello: {code: cloudCode('site hello')}, _boot: {code: cloudCode('boot ran')}}, component: {}}]);
-	let r = await call('cloud', {path: '_boot'});
-	assert.strictEqual(r.body, 'No path found.');
-	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
-	let p = await call('project', {projId: 'site', cloud: '_boot'});
-	assert.strictEqual(p.body, 'Cloud not found.');
+	loadDev([
+		{id: 'site', projectId: 'site', stage: 'prod', default: true,
+			cloud: {hello: {code: cloudCode('site hello')}, __boot: {code: cloudCode('boot ran')}}, component: {}},
+		{id: 'g1', projectId: 'groups', stage: 'prod', default: true,
+			cloud: {__job: {code: cloudCode('job ran')}, _comm: {code: cloudCode('comm ran')}}},
+	]);
+	let r = await call('cloud', {path: '__boot'});
+	assert.strictEqual(r.status, 404);
+	assert.strictEqual(r.headers['x-core-error'], 'STARTUP_NOT_SERVED');
+	assert.notStrictEqual(r.body, 'boot ran');
+	for(let [projId, cloud] of [['site', '__boot'], ['groups', '__job'], ['nothere', '__x']]){
+		let p = await call('project', {projId, cloud});
+		assert.strictEqual(p.status, 404, projId);
+		assert.strictEqual(p.headers['x-core-error'], 'STARTUP_NOT_SERVED', projId);
+	}
+	let pv = await call('project', {projId: 'groups', cloud: '__job'}, {query: {v: 'g1'}});
+	assert.strictEqual(pv.status, 404);
 	let ok = await call('project', {projId: 'site', cloud: 'hello'});
 	assert.strictEqual(ok.body, 'site hello');
-	assert.strictEqual(siteRoute.find({site: {default: {id: 'site', cloud: {_x: {code: 'c'}}}, snaps: {}}}, 'cloud', '_x'), null);
+	assert.strictEqual(siteRoute.find({site: {default: {id: 'site', cloud: {__x: {code: 'c'}}}, snaps: {}}}, 'cloud', '__x'), null);
 });
 
-test('startup(): only cloud handlers named _<name>', ()=>{
-	assert.deepStrictEqual(siteRoute.startup({cloud: {_a: {code: 'A'}, b: {code: 'B'}, _empty: {code: ''}}}), [{name: '_a', code: 'A'}]);
+test("single '_' cloud handlers are normal endpoints (site and other projects)", async ()=>{
+	reset();
+	loadDev([
+		{id: 'site', projectId: 'site', stage: 'prod', default: true, cloud: {_queue: {code: cloudCode('site queue')}}, component: {}},
+		{id: 'g1', projectId: 'groups', stage: 'prod', default: true, cloud: {_comm: {code: cloudCode('comm ran')}}},
+	]);
+	assert.strictEqual((await call('cloud', {path: '_queue'})).body, 'site queue');
+	assert.strictEqual((await call('project', {projId: 'site', cloud: '_queue'})).body, 'site queue');
+	assert.strictEqual((await call('project', {projId: 'groups', cloud: '_comm'})).body, 'comm ran');
+	assert.strictEqual(siteRoute.isStartup('_x'), false);
+	assert.strictEqual(siteRoute.isStartup('__'), false);
+	assert.strictEqual(siteRoute.isStartup('__x'), true);
+});
+
+test('startup(): only cloud handlers named __<name>', ()=>{
+	assert.deepStrictEqual(siteRoute.startup({cloud: {__a: {code: 'A'}, _b: {code: 'B'}, c: {code: 'C'}, __empty: {code: ''}}}), [{name: '__a', code: 'A'}]);
 	assert.deepStrictEqual(siteRoute.startup(null), []);
 });
 
 const tick = ()=>new Promise(r=>setTimeout(r, 20));
 const bootCode = (tag)=>`{init: ()=>{ (global.__boot = global.__boot || []).push(${JSON.stringify(tag)}) }}`;
-test('boot runs dev/site _ handlers only', async ()=>{
+test('boot runs dev/site __ handlers only (not single _ handlers)', async ()=>{
 	reset(); global.__boot = [];
-	siteDoc = {cloud: {_one: {code: bootCode('site one')}, plain: {code: bootCode('plain')}}};
+	siteDoc = {cloud: {__one: {code: bootCode('site one')}, _single: {code: bootCode('single')}, plain: {code: bootCode('plain')}}};
 	auto.startup(); await tick();
 	assert.deepStrictEqual(global.__boot, ['site one']);
-	assert.ok(logs.includes('STARTUP site _one ok'));
+	assert.ok(logs.includes('STARTUP site __one ok'));
 });
 
-test('boot with no _ handlers (or a failed read) runs nothing and never reads RTDB', async ()=>{
-	for(let doc of [null, {cloud: {plain: {code: bootCode('plain')}}}, new Error('read failed')]){
+test('boot with no __ handlers (or a failed read) runs nothing and never reads RTDB', async ()=>{
+	for(let doc of [null, {cloud: {plain: {code: bootCode('plain')}, _single: {code: bootCode('single')}}}, new Error('read failed')]){
 		reset(); global.__boot = [];
 		siteDoc = doc;
 		auto.startup(); await tick();
