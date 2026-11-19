@@ -786,7 +786,7 @@ app.controller('SiteCtrl', function SiteCtrl($rootScope, $firebaseAuth, $firebas
 		dialog: function(dialog, params){
 			if(dialog.indexOf('http') != -1)
 				dialog = $sce.trustAsResourceUrl(dialog);
-			else
+			else if(dialog.indexOf('/core/') !== 0)	// platform templates are served as-is
 				dialog = tools.component(dialog);
 			params = Object.assign({
 				scope: $rootScope,

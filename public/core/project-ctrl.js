@@ -366,7 +366,7 @@ app.lazy.controller('ProjCtrl', function ProjCtrl($scope, $timeout, $interval, $
 			},
 			get: function(id){
 				//return url for ng-include.  if in edit, return dynamic url.
-				if(id.includes('://')){
+				if(id.includes('://') || id.indexOf('/core/') === 0){
 					return id;
 				}else{
 					var suffix = '?c=awesome';
