@@ -20,8 +20,8 @@ const stubs = {
 				onSnapshot: (cb)=>{ if(p == 'dev') devListener = cb; return ()=>{}; },
 				doc: (id)=>({get: ()=>siteDoc instanceof Error ? Promise.reject(siteDoc) : Promise.resolve({id, exists: !!siteDoc, data: ()=>siteDoc})})
 			}),
-			// admin/settings: the legacy cloud route reads $settings.subSite[host]
-			doc: (p)=>({get: ()=>Promise.resolve({id: p.split('/').pop(), ref: {}, exists: true, data: ()=>({subSite: {}})})})
+			// admin/settings without subSite (as on sites that never set one): cloud() must not throw
+			doc: (p)=>({get: ()=>Promise.resolve({id: p.split('/').pop(), ref: {}, exists: true, data: ()=>({})})})
 		}),
 		database: ()=>{ rtdbCalls++; throw new Error('RTDB must not be used'); },
 		auth: ()=>({})
@@ -75,6 +75,13 @@ function reset(){
 }
 
 // ---- no site project: nothing is served, and RTDB is never touched ----
+test('admin/settings without subSite: unknown host still gets a named CLOUD_NOT_FOUND', async ()=>{
+	reset();
+	await ready;
+	let r = await call('cloud', {path: 'nope'}, {headers: {host: 'unlisted.test'}});
+	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
+	assert.strictEqual(r.body, 'No path found.');
+});
 test('no site project: cloud is CLOUD_NOT_FOUND (no RTDB lookup)', async ()=>{
 	reset();
 	let r = await call('cloud', {path: 'nope'});

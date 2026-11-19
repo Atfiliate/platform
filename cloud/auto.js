@@ -673,7 +673,7 @@ let Comm = function(payload){
 
 new Fire('admin/settings').get().then(r=>{
 	console.log('---------------------------------get settings------------------------');
-	$settings = r;
+	$settings = r || {};
 })
 
 let $emailTemplates = {};
@@ -762,7 +762,7 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		let settings = $settings.subSite[request.headers.host] || config;
+		let settings = ($settings.subSite || {})[request.headers.host] || config;
 			settings.origin = settings.origin || settings.domain;
 			
 		var path = request.params.path;
