@@ -702,23 +702,29 @@ module.exports = {
 	startup: ()=>{
 		if(db){
 			console.log('STARTUP-F(N)S----------> ');
-			var ref = firebase.database().ref('site/private/startupfns');
-			ref.once('value', function(snapshot){
-				snapshot.forEach(snap=>{
-					let key = snap.key;
-					let module = snap.val();
-					try{
-						var js; eval('js = '+module.code)
-						if(js && js.init)
-							js.init();
-						else
-							console.log(`JS had no init function: ${key}`);
-					}catch(e){
-						console.log(`Error running startup function: ${key}`);
-						console.log(e);
-					}
-				})
-			});
+			let run = (key, code)=>{
+				try{
+					var js; eval('js = '+code)
+					if(js && js.init)
+						js.init();
+					else
+						console.log(`JS had no init function: ${key}`);
+				}catch(e){
+					console.log(`Error running startup function: ${key}`);
+					console.log(e);
+				}
+			};
+			// Site project cloud handlers named '_<name>' run at boot; legacy RTDB startupfns only when there are none.
+			let legacy = ()=>{
+				console.warn('LEGACY_FALLBACK startup/startupfns');
+				firebase.database().ref('site/private/startupfns').once('value', function(snapshot){
+					snapshot.forEach(snap=>run(snap.key, (snap.val() || {}).code));
+				});
+			};
+			db.collection('dev').doc(siteRoute.SITE_PROJECT).get().then(s=>{
+				let fns = siteRoute.startup(s.exists ? s.data() : null);
+				fns.length ? fns.forEach(f=>run(f.name, f.code)) : legacy();
+			}).catch(e=>{ console.log('Startup: site project read failed', e?.message || e); legacy(); });
 		}
 	},
 
@@ -926,7 +932,7 @@ module.exports = {
 			
 			let cloud;
 			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
-			if(proj && proj.cloud)
+			if(proj && proj.cloud && !(request.params.projId == siteRoute.SITE_PROJECT && siteRoute.isStartup(cid)))
 				cloud = proj.cloud[cid];
 
 			if(cloud){

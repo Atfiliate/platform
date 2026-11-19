@@ -29,7 +29,8 @@
 		{"id": "roles", "path": "roles", "kind": "collection", "required": true, "why": "At least one account with roles (installer becomes root)."},
 		{"id": "manageGroup", "path": "acl/db/groups/manage", "kind": "doc", "required": true, "why": "Home of site-wide code projects and Comm templates."},
 		{"id": "commTemplates", "path": "acl/db/groups/manage/data/role/comm/comm/templates", "kind": "collection", "required": true, "why": "$emailTemplates cache; email has no fallback."},
-		{"id": "prodDefault", "path": "dev", "kind": "collection", "where": [["stage", "==", "prod"], ["default", "==", true]], "required": true, "why": "At least one live (starred) prod default version."}
+		{"id": "prodDefault", "path": "dev", "kind": "collection", "where": [["stage", "==", "prod"], ["default", "==", true]], "required": true, "why": "At least one live (starred) prod default version."},
+		{"id": "siteProject", "path": "dev/site", "kind": "doc", "required": false, "why": "Site project at its fixed home (doc id = projectId 'site'): site files, client files, cloud handlers; '_<name>' handlers run at boot."}
 	],
 	"install": {
 		"steps": [
@@ -38,7 +39,7 @@
 			{"id": "roles", "title": "Make the installer root in roles/{uid}", "type": "createIfMissing", "check": "roles"},
 			{"id": "manageGroup", "title": "Create the manage group if missing", "type": "createIfMissing", "check": "manageGroup"},
 			{"id": "commTemplates", "title": "Copy Comm templates from the source site", "type": "manual", "check": "commTemplates"},
-			{"id": "siteProject", "title": "Install the site project (dev/{vid}, projectId site)", "type": "planned", "phase": 2},
+			{"id": "siteProject", "title": "Install the site project at dev/site (projectId site, starred)", "type": "planned", "phase": 2, "check": "siteProject"},
 			{"id": "products", "title": "Install product packages through the code-change process", "type": "planned", "phase": 5}
 		]
 	}
