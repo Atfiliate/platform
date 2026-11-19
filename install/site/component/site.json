@@ -1,0 +1,10 @@
+{
+	"platform": {
+		"shell": 1
+	},
+	"brand": {
+		"name": "My Site",
+		"description": "",
+		"favicon": ""
+	}
+}

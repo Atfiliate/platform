@@ -8,24 +8,24 @@
 	},
 	"main": "index.js",
 	"scripts": {
-		"start": "node index.js"
+		"start": "node index.js",
+		"test": "node --test test/*.test.js"
 	},
 	"dependencies": {
 		"@octokit/rest": "22.0.1",
 		"@tuya/tuya-connector-nodejs": "2.1.2",
 		"algoliasearch": "5.56.0",
-		"body-parser": "2.3.0",
+		"body-parser": "2.4.0",
 		"cloudinary": "2.10.0",
-		"compression": "1.8.1",
+		"compression": "1.8.2",
 		"connect-busboy": "1.0.0",
-		"crypto": "1.0.1",
 		"ejs": "6.0.1",
 		"express": "5.1.0",
 		"firebase-admin": "13.10.0",
 		"googleapis": "173.0.0",
 		"memory-cache": "0.2.0",
 		"moment-timezone": "0.6.3",
-		"multer": "2.0.2",
+		"multer": "2.5.0",
 		"node-cron": "4.6.0",
 		"request": "2.88.2",
 		"request-promise": "4.2.6",
@@ -38,5 +38,10 @@
 	"keywords": [
 		"platform"
 	],
-	"license": "GNU AGPLv3"
+	"license": "GNU AGPLv3",
+	"overrides": {
+		"form-data": "2.5.6",
+		"qs": "6.17.1",
+		"axios": "0.35.0"
+	}
 }

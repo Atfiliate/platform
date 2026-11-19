@@ -12,19 +12,24 @@ let rtdbCalls = 0;
 let siteDoc = null; // what dev/site returns to auto.startup()
 let devListener = null;
 let mstore = {};
+const tokens = {devTok: 'dev1', userTok: 'user1', rootTok: 'root1'};
+const roleDocs = {dev1: {developer: {groups: true}}, user1: {admin: {all: false}}, root1: {root: true}};
 const stubs = {
 	'firebase-admin': {
 		apps: [{}],
 		firestore: ()=>({
 			collection: (p)=>({
 				onSnapshot: (cb)=>{ if(p == 'dev') devListener = cb; return ()=>{}; },
-				doc: (id)=>({get: ()=>siteDoc instanceof Error ? Promise.reject(siteDoc) : Promise.resolve({id, exists: !!siteDoc, data: ()=>siteDoc})})
+				doc: (id)=>({get: ()=>{
+					if(p == 'roles') return Promise.resolve({id, exists: !!roleDocs[id], data: ()=>roleDocs[id]});
+					return siteDoc instanceof Error ? Promise.reject(siteDoc) : Promise.resolve({id, exists: !!siteDoc, data: ()=>siteDoc});
+				}})
 			}),
 			// admin/settings without subSite (as on sites that never set one): cloud() must not throw
 			doc: (p)=>({get: ()=>Promise.resolve({id: p.split('/').pop(), ref: {}, exists: true, data: ()=>({})})})
 		}),
 		database: ()=>{ rtdbCalls++; throw new Error('RTDB must not be used'); },
-		auth: ()=>({})
+		auth: ()=>({verifyIdToken: (t)=>tokens[t] ? Promise.resolve({uid: tokens[t]}) : Promise.reject(new Error('bad token'))})
 	},
 	'firebase-admin/messaging': {getMessaging: ()=>({})},
 	'request': function(){},
@@ -150,11 +155,53 @@ test('site project: components resolve with correct content types', async ()=>{
 	assert.deepStrictEqual(warnings, []);
 });
 
-test('site project: handler error is sent like the project route does', async ()=>{
+test('site project: a handler that throws gets a generic 500 (no error details sent)', async ()=>{
 	reset();
-	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true, cloud: {bad: {code: '{init: ()=>{ throw new Error("x") }}'}}}]);
+	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true, cloud: {bad: {code: '{init: ()=>{ throw new Error("secret detail") }}'}}}]);
 	let r = await call('cloud', {path: 'bad'});
-	assert.ok(r.body instanceof Error);
+	assert.strictEqual(r.status, 500);
+	assert.deepStrictEqual(r.body, {error: 'Cloud handler failed'});
+	let p = await call('project', {projId: 'site', cloud: 'bad'});
+	assert.strictEqual(p.status, 500);
+	assert.ok(!JSON.stringify(p.body).includes('secret detail'));
+});
+
+// ---- ?v= versions on /project/:projId/cloud/:cloud ----
+const verDocs = ()=>[
+	{id: 'gStar', projectId: 'groups', stage: 'prod', default: true, cloud: {hi: {code: cloudCode('starred')}}},
+	{id: 'gProd', projectId: 'groups', stage: 'prod', default: false, cloud: {hi: {code: cloudCode('published')}, _comm: {code: cloudCode('comm')}}},
+	{id: 'gDev', projectId: 'groups', stage: 'dev', default: false, cloud: {hi: {code: cloudCode('draft')}}}
+];
+const vcall = (v, extra)=>call('project', {projId: 'groups', cloud: 'hi'}, Object.assign({query: v ? {v} : {}}, extra || {}));
+test('?v=: starred and published (stage prod) versions run for anyone', async ()=>{
+	reset(); loadDev(verDocs());
+	assert.strictEqual((await vcall()).body, 'starred');
+	assert.strictEqual((await vcall('gStar')).body, 'starred');
+	assert.strictEqual((await vcall('gProd')).body, 'published');
+	// server-to-server calls such as /project/groups/cloud/_comm?v=<published id> keep working
+	let c = await call('project', {projId: 'groups', cloud: '_comm'}, {query: {v: 'gProd'}});
+	assert.strictEqual(c.body, 'comm');
+});
+test('?v=: an unpublished (dev) version needs a developer of that project', async ()=>{
+	reset(); loadDev(verDocs());
+	let anon = await vcall('gDev');
+	assert.strictEqual(anon.status, 401);
+	assert.strictEqual(anon.body.errors[0].code, 'DEVELOPER_REQUIRED');
+	let bad = await vcall('gDev', {headers: {host: 'h.test', authorization: 'Bearer nope'}});
+	assert.strictEqual(bad.status, 401);
+	assert.strictEqual(bad.body.errors[0].code, 'AUTH_INVALID');
+	let user = await vcall('gDev', {headers: {host: 'h.test', authorization: 'Bearer userTok'}});
+	assert.strictEqual(user.status, 403);
+	assert.strictEqual(user.body.errors[0].code, 'FORBIDDEN');
+	let dev = await vcall('gDev', {headers: {host: 'h.test', authorization: 'Bearer devTok'}});
+	assert.strictEqual(dev.body, 'draft');
+	let root = await vcall('gDev', {body: {jwt: 'rootTok'}});
+	assert.strictEqual(root.body, 'draft');
+	assert.ok(!JSON.stringify(anon.body).includes('draft'));
+});
+test('?v=: an unknown version id is not found', async ()=>{
+	reset(); loadDev(verDocs());
+	assert.strictEqual((await vcall('nope')).body, 'Cloud not found.');
 });
 
 test('fixed id: dev/site wins over another starred site version', async ()=>{

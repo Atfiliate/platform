@@ -82,7 +82,8 @@ test('plan is dry run and reports wouldCreate/manual', async ()=>{
 	assert.strictEqual(by.settings, 'wouldCreate');
 	assert.strictEqual(by.env, 'manual');
 	assert.strictEqual(by.roles, 'none');
-	assert.strictEqual(by.siteProject, 'planned');
+	assert.strictEqual(by.siteProject, 'wouldCreate');
+	assert.strictEqual(by.products, 'planned');
 });
 
 function call(h, fn, authorization){

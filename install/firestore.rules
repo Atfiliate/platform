@@ -1,0 +1,69 @@
+rules_version = "2";
+// Starting Firestore rules for a new site. Product packages add their own matches
+// (groups, forms, and so on). Everything not matched here is denied.
+service cloud.firestore {
+	match /databases/{database}/documents {
+		function isAuthenticated() {
+			return request.auth != null;
+		}
+		// roles/{uid}: {<role>: {<subRole>: true, all: true}}
+		function hasRole(role, subRole) {
+			let roles = get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.get(role, {});
+			return roles.get(subRole, false) == true || roles.get("all", false) == true;
+		}
+
+		match /roles/{uid} {
+			allow read: if isAuthenticated();
+			allow write: if hasRole("admin", "roles");
+		}
+		match /profile/{uid}/{document=**} {
+			allow read, write: if isAuthenticated() && (request.auth.uid == uid || hasRole("admin", "accounts"));
+		}
+		match /admin/{role}/{document=**} {
+			allow read, write: if hasRole("admin", role);
+		}
+
+		// Code versions. Cloud code here runs on the server, so: developers (or root) only,
+		// projectId is fixed after create, and only a site developer may create a 'site' version.
+		match /dev/{document=**} {
+			function canDev(d) {
+				return (hasRole("developer", d.projectId) && hasRole("developer", d.stage))
+					|| hasRole("developer", "prod") || hasRole("root", "all");
+			}
+			allow read: if !exists(request.path) || (isAuthenticated() && (hasRole("developer", resource.data.projectId) || hasRole("developer", "prod") || hasRole("root", "all")));
+			allow create: if isAuthenticated()
+				&& hasRole("developer", request.resource.data.projectId)
+				&& hasRole("developer", request.resource.data.stage)
+				&& (request.resource.data.projectId != "site" || hasRole("developer", "site"));
+			allow update: if isAuthenticated() && canDev(resource.data)
+				&& request.resource.data.projectId == resource.data.projectId;
+			allow delete: if isAuthenticated() && canDev(resource.data);
+		}
+
+		match /site/public/{col}/{document=**} {
+			allow read: if true;
+			allow write: if hasRole("developer", "site");
+		}
+		match /content/{contentType}/{document=**} {
+			allow read: if true;
+			allow write: if hasRole("content", contentType) || hasRole("admin", contentType);
+		}
+		match /public/{document=**} {
+			allow read: if true;
+			allow write: if hasRole("admin", "public");
+		}
+		match /feedback/{id} {
+			allow create: if isAuthenticated() && request.resource.data.createdBy == request.auth.uid;
+			allow read, update, delete: if hasRole("admin", "feedback");
+		}
+		// Fire.realtime / Fire.realtimeList scratch docs: each user owns realtime/{uid}/...
+		match /realtime/{uid}/{document=**} {
+			allow read, write: if isAuthenticated() && request.auth.uid == uid;
+		}
+		// Black box: signed-in users drop entries; the content role reads them.
+		match /bb/{contentType}/{document=**} {
+			allow read, update, delete: if hasRole("content", contentType);
+			allow create: if isAuthenticated();
+		}
+	}
+}

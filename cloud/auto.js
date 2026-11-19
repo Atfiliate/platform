@@ -8,6 +8,7 @@ var mcache		= require('memory-cache');
 // In scope for Firestore cloud handlers: their code is eval'd in this file.
 var aiMeter		= require('./aiMeter.js');
 var siteRoute	= require('./siteRoute.js');
+var access		= require('./access.js');
 let filecache	= {v:1.2};
 let db			= false;
 
@@ -686,6 +687,11 @@ if(db) db.collection(TPL_PATH).onSnapshot(qs=>{
 }, e=>console.log('Template cache error:', e?.message||e));
 
 
+let developerAccess = access.create({
+	auth: ()=>firebase.auth(),
+	getRoles: uid=>db ? db.collection('roles').doc(uid).get().then(s=>s.exists ? s.data() : null) : Promise.resolve(null)
+});
+
 module.exports = {
 	Fire,
 	aiMeter,
@@ -777,7 +783,8 @@ module.exports = {
 					response.send('Init not found.')
 				}
 			}catch(e){
-				response.send(e);
+				console.log(`Cloud error site/${path}:`, e && e.message || e);
+				if(!response.headersSent) response.status(500).send({error: 'Cloud handler failed'});
 			}
 			return;
 		}
@@ -860,11 +867,12 @@ module.exports = {
 			var cid = request.params.cloud;
 			
 			let cloud;
-			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : pathValue(filecache, `${request.params.projId}.default`);
+			let starred = pathValue(filecache, `${request.params.projId}.default`);
+			let proj = request.query.v ? pathValue(filecache, `${request.params.projId}.snaps.${request.query.v}`) : starred;
 			if(proj && proj.cloud && !(request.params.projId == siteRoute.SITE_PROJECT && siteRoute.isStartup(cid)))
 				cloud = proj.cloud[cid];
 
-			if(cloud){
+			let run = ()=>{
 				try{
 					let code = cloud.code || '';
 					var js; eval('js = '+code);
@@ -874,10 +882,20 @@ module.exports = {
 						response.send('Init not found.')
 					}
 				}catch(e){
-					response.send(e)
+					console.log(`Cloud error ${request.params.projId}/${cid}:`, e && e.message || e);
+					if(!response.headersSent) response.status(500).send({error: 'Cloud handler failed'})
 				}
-			}else{
+			};
+			if(!cloud){
 				response.send('Cloud not found.')
+			}else if(access.versionAccess(proj, starred) == 'public'){
+				run();
+			}else{
+				// Unpublished version (not starred, stage not prod): developers only.
+				response.setHeader('Cache-Control', 'no-store');
+				developerAccess.requireDeveloper(request, request.params.projId).then(run).catch(e=>{
+					response.status((e && e.status) || 401).send({status: 'error', errors: [(e && e.error) || access.named('DEVELOPER_REQUIRED', 'authorization', 'Developer sign-in required.')]});
+				});
 			}
 		}else{
 			let proj, page;
@@ -889,8 +907,9 @@ module.exports = {
 				if(request.params.projId && request.query.v){
 					console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
 					console.log(Object.keys((pathValue(filecache, request.params.projId)||{})), Object.keys((pathValue(filecache, request.params.projId+'.snaps')||{})))
-					db.collection('dev').doc(request.query.v).get().then(r=>{
-						if(r.exists){
+					db.collection('dev').doc(String(request.query.v)).get().then(r=>{
+						// Only a version of the requested project (any other doc id is treated as missing).
+						if(r.exists && (r.data() || {}).projectId == request.params.projId){
 							proj = r.data();
 							proj.id = r.id;
 							page = proj.page = proj.page || {};

@@ -1,46 +1,226 @@
 {
 	"name": "platform-install",
-	"version": "0.1.0",
-	"phase": 0,
-	"notes": "Names only. Never put values here. Read by cloud/health.js for /__core/health and the dry-run /__core/install/plan.",
+	"version": "0.2.0",
+	"phase": 1,
+	"notes": "Names only. Never put values here. Read by cloud/health.js (/__core/health, /__core/install/plan) and install/apply.js.",
 	"env": {
 		"required": [
-			{"name": "config", "why": "Public site config JSON (firebase web config, title, colors)."},
-			{"name": "googleJson", "why": "Firebase service account JSON used by cloud/fire.js."},
-			{"name": "origin", "why": "This site's own origin for links and callbacks."},
-			{"name": "systemEmail", "why": "Sender address for system email."}
+			{
+				"name": "config",
+				"why": "Public site config JSON (firebase web config, title, colors)."
+			},
+			{
+				"name": "googleJson",
+				"why": "Firebase service account JSON used by cloud/fire.js."
+			},
+			{
+				"name": "origin",
+				"why": "This site's own origin for links and callbacks."
+			},
+			{
+				"name": "systemEmail",
+				"why": "Sender address for system email."
+			}
 		],
 		"optional": [
-			{"name": "cloudinaryName", "feature": "Cloudinary uploads"},
-			{"name": "cloudinaryKey", "feature": "Cloudinary uploads"},
-			{"name": "cloudinaryToken", "feature": "Cloudinary uploads"},
-			{"name": "plivoId", "feature": "SMS"},
-			{"name": "plivoToken", "feature": "SMS"},
-			{"name": "stripe", "feature": "Stripe checkout"},
-			{"name": "TZ", "feature": "Scheduled jobs run in local time"},
-			{"name": "cache", "feature": "Legacy endpoint cache TTL"},
-			{"name": "gtag", "feature": "Analytics tag in page shell"},
-			{"name": "manifest", "feature": "PWA manifest link in page shell"}
+			{
+				"name": "cloudinaryName",
+				"feature": "Cloudinary uploads (cl_img)"
+			},
+			{
+				"name": "cloudinaryKey",
+				"feature": "Cloudinary uploads (cl_img)"
+			},
+			{
+				"name": "cloudinaryToken",
+				"feature": "Cloudinary uploads (cl_img)"
+			},
+			{
+				"name": "pixabayKey",
+				"feature": "Image search in the image browser (pixel)"
+			},
+			{
+				"name": "mailgunToken",
+				"feature": "Queued email (_email_queue)"
+			},
+			{
+				"name": "mailgunDomain",
+				"feature": "Queued email (_email_queue)"
+			},
+			{
+				"name": "plivoId",
+				"feature": "SMS"
+			},
+			{
+				"name": "plivoToken",
+				"feature": "SMS"
+			},
+			{
+				"name": "stripe",
+				"feature": "Stripe checkout"
+			},
+			{
+				"name": "TZ",
+				"feature": "Scheduled jobs run in local time"
+			},
+			{
+				"name": "cache",
+				"feature": "Legacy endpoint cache TTL"
+			},
+			{
+				"name": "gtag",
+				"feature": "Analytics tag in the page shell"
+			},
+			{
+				"name": "sentry",
+				"feature": "Error reporting in the page shell"
+			},
+			{
+				"name": "logrocket",
+				"feature": "Session replay in the page shell"
+			},
+			{
+				"name": "manifest",
+				"feature": "PWA manifest link in the page shell"
+			},
+			{
+				"name": "bodyLimit",
+				"feature": "Max JSON/form body on cloud routes (default 50mb)"
+			},
+			{
+				"name": "uploadLimitMb",
+				"feature": "Max upload size per file on cloud routes (default 50)"
+			},
+			{
+				"name": "frameOptions",
+				"feature": "Send X-Frame-Options (DENY or SAMEORIGIN); off by default"
+			}
 		],
-		"configKeys": ["firebase.projectId", "firebase.apiKey", "firebase.authDomain"]
+		"configKeys": [
+			"firebase.projectId",
+			"firebase.apiKey",
+			"firebase.authDomain"
+		],
+		"googleJsonKeys": [
+			"project_id",
+			"client_email",
+			"private_key"
+		]
 	},
 	"data": [
-		{"id": "settings", "path": "admin/settings", "kind": "doc", "required": true, "recommendedFields": ["domain", "subSite"], "why": "Site settings; core Comm email uses settings.domain."},
-		{"id": "roles", "path": "roles", "kind": "collection", "required": true, "why": "At least one account with roles (installer becomes root)."},
-		{"id": "manageGroup", "path": "acl/db/groups/manage", "kind": "doc", "required": true, "why": "Home of site-wide code projects and Comm templates."},
-		{"id": "commTemplates", "path": "acl/db/groups/manage/data/role/comm/comm/templates", "kind": "collection", "required": true, "why": "$emailTemplates cache; email has no fallback."},
-		{"id": "prodDefault", "path": "dev", "kind": "collection", "where": [["stage", "==", "prod"], ["default", "==", true]], "required": true, "why": "At least one live (starred) prod default version."},
-		{"id": "siteProject", "path": "dev/site", "kind": "doc", "required": false, "why": "Site project at its fixed home (doc id = projectId 'site'): site files, client files, cloud handlers; '_<name>' handlers run at boot."}
+		{
+			"id": "settings",
+			"path": "admin/settings",
+			"kind": "doc",
+			"required": true,
+			"recommendedFields": [
+				"domain",
+				"subSite"
+			],
+			"why": "Site settings; core Comm email uses settings.domain."
+		},
+		{
+			"id": "roles",
+			"path": "roles",
+			"kind": "collection",
+			"required": true,
+			"why": "At least one account with roles (installer becomes root)."
+		},
+		{
+			"id": "manageGroup",
+			"path": "acl/db/groups/manage",
+			"kind": "doc",
+			"required": true,
+			"why": "Home of site-wide code projects and Comm templates."
+		},
+		{
+			"id": "commTemplates",
+			"path": "acl/db/groups/manage/data/role/comm/comm/templates",
+			"kind": "collection",
+			"required": true,
+			"why": "$emailTemplates cache; email has no fallback."
+		},
+		{
+			"id": "prodDefault",
+			"path": "dev",
+			"kind": "collection",
+			"where": [
+				[
+					"stage",
+					"==",
+					"prod"
+				],
+				[
+					"default",
+					"==",
+					true
+				]
+			],
+			"required": true,
+			"why": "At least one live (starred) prod default version."
+		},
+		{
+			"id": "siteProject",
+			"path": "dev/site",
+			"kind": "doc",
+			"required": false,
+			"why": "Site project at its fixed home (doc id = projectId 'site'): site files, client files, cloud handlers; '_<name>' handlers run at boot."
+		}
 	],
 	"install": {
 		"steps": [
-			{"id": "env", "title": "Set required env names on the host app", "type": "manual", "check": "env"},
-			{"id": "settings", "title": "Create admin/settings if missing", "type": "createIfMissing", "check": "settings"},
-			{"id": "roles", "title": "Make the installer root in roles/{uid}", "type": "createIfMissing", "check": "roles"},
-			{"id": "manageGroup", "title": "Create the manage group if missing", "type": "createIfMissing", "check": "manageGroup"},
-			{"id": "commTemplates", "title": "Copy Comm templates from the source site", "type": "manual", "check": "commTemplates"},
-			{"id": "siteProject", "title": "Install the site project at dev/site (projectId site, starred)", "type": "planned", "phase": 2, "check": "siteProject"},
-			{"id": "products", "title": "Install product packages through the code-change process", "type": "planned", "phase": 5}
+			{
+				"id": "env",
+				"title": "Set required env names on the host app",
+				"type": "manual",
+				"check": "env"
+			},
+			{
+				"id": "settings",
+				"title": "Create admin/settings if missing (install/apply.js)",
+				"type": "createIfMissing",
+				"check": "settings"
+			},
+			{
+				"id": "roles",
+				"title": "Make the installer root in roles/{uid} (install/apply.js --root-email)",
+				"type": "createIfMissing",
+				"check": "roles"
+			},
+			{
+				"id": "siteProject",
+				"title": "Install the site project at dev/site (install/apply.js; --site-from for a full export)",
+				"type": "createIfMissing",
+				"check": "siteProject"
+			},
+			{
+				"id": "siteCodeEntry",
+				"title": "Add the Site Code entry to the starred admin page (install/apply.js)",
+				"type": "createIfMissing"
+			},
+			{
+				"id": "rules",
+				"title": "Release install/firestore.rules on a new project (install/apply.js --rules)",
+				"type": "manual"
+			},
+			{
+				"id": "manageGroup",
+				"title": "Create the manage group if missing",
+				"type": "manual",
+				"check": "manageGroup"
+			},
+			{
+				"id": "commTemplates",
+				"title": "Copy Comm templates from a source site",
+				"type": "manual",
+				"check": "commTemplates"
+			},
+			{
+				"id": "products",
+				"title": "Install product packages through the code-change process",
+				"type": "planned",
+				"phase": 5
+			}
 		]
 	}
 }

@@ -22,12 +22,26 @@ app.set('port', (process.env.PORT || 5000));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
-app.use(express.static(__dirname + '/public'));
-app.use(bodyParser.json({limit:'50mb'}));
-app.use(bodyParser.urlencoded({extended:true, limit:'50mb'}));
-app.use(multer().any());
-app.use(busboy());
+app.disable('x-powered-by');
+app.use(require('./cloud/headers.js').create(process.env));
 app.use(compression());
+app.use(express.static(__dirname + '/public'));
+
+// Request bodies are parsed only on the routes that take them (cloud handlers).
+// Large uploads (data: URIs, files) stay possible there; every other route gets a
+// small body. Override with env bodyLimit (e.g. 25mb) and uploadLimitMb.
+const CLOUD_BODY_LIMIT = process.env.bodyLimit || '50mb';
+const UPLOAD_LIMIT_MB = Number(process.env.uploadLimitMb) || 50;
+const cloudBody = [
+	bodyParser.json({limit: CLOUD_BODY_LIMIT}),
+	bodyParser.urlencoded({extended: true, limit: CLOUD_BODY_LIMIT, parameterLimit: 5000}),
+	multer({limits: {fileSize: UPLOAD_LIMIT_MB * 1024 * 1024, files: 20, fields: 1000, parts: 1100}}).any(),
+	busboy({limits: {fileSize: UPLOAD_LIMIT_MB * 1024 * 1024, files: 20, fields: 1000}})
+];
+const smallBody = [
+	bodyParser.json({limit: '100kb'}),
+	bodyParser.urlencoded({extended: true, limit: '100kb'})
+];
 
 if(setupMode){
 	app.use(function(req, res){
@@ -103,34 +117,14 @@ if(setupMode){
 		res.redirect(path);
 	}
 
-	// app.get('/', function(request, response){
-	// 	if(request.query.rootSetup){
-	// 		response.render('pages/setup');
-	// 	}else{
-	// 		let config = {};
-	// 		Object.assign(config, Config);
-
-	// 		let settings = $settings.subSite[request.headers.host];
-	// 		if(settings)
-	// 			Object.assign(config, settings);
-
-	// 		app.render('pages/index', {config}, (e, html)=>{
-	// 			if(e)
-	// 				return response.status(500).send(e.message || e);
-	// 			response.send(html);
-	// 		});
-	// 	}
-	// });
-
-	// app.get('/:root', auto.project);
 
 	app.options('/cloud/:path', auto.options);
-	app.post('/cloud/:path', auto.cloud);
-	app.get('/cloud/:path', auto.cloud);
+	app.post('/cloud/:path', cloudBody, auto.cloud);
+	app.get('/cloud/:path', smallBody, auto.cloud);
 
 	app.options('/cloud/:path/:id', auto.options);
-	app.post('/cloud/:path/:id', auto.cloud);
-	app.get('/cloud/:path/:id', auto.cloud);
+	app.post('/cloud/:path/:id', cloudBody, auto.cloud);
+	app.get('/cloud/:path/:id', smallBody, auto.cloud);
 
 	app.get('/component/:path', auto.component);
 
@@ -142,12 +136,12 @@ if(setupMode){
 	app.options('/project/:projId/cloud/:cloud/:id', auto.options);
 	app.options('/project/cloud/:cloud', auto.options);
 
-	app.get('/project/:projId/cloud/:cloud', auto.project);
-	app.post('/project/:projId/cloud/:cloud', auto.project);
-	app.get('/project/:projId/cloud/:cloud/:id', auto.project);
-	app.post('/project/:projId/cloud/:cloud/:id', auto.project);
-	app.get('/project/cloud/:cloud', auto.project);
-	app.post('/project/cloud/:cloud', auto.project);
+	app.get('/project/:projId/cloud/:cloud', smallBody, auto.project);
+	app.post('/project/:projId/cloud/:cloud', cloudBody, auto.project);
+	app.get('/project/:projId/cloud/:cloud/:id', smallBody, auto.project);
+	app.post('/project/:projId/cloud/:cloud/:id', cloudBody, auto.project);
+	app.get('/project/cloud/:cloud', smallBody, auto.project);
+	app.post('/project/cloud/:cloud', cloudBody, auto.project);
 	
 	// Phase 0: root/admin-only health check and dry-run install plan (names only, read-only).
 	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>firebase.auth(), env: process.env});
