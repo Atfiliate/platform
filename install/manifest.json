@@ -1,6 +1,6 @@
 {
 	"name": "platform-install",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"phase": 1,
 	"notes": "Names only. Never put values here. Read by cloud/health.js (/__core/health, /__core/install/plan) and install/apply.js.",
 	"env": {
@@ -121,7 +121,7 @@
 				"domain",
 				"subSite"
 			],
-			"why": "Site settings; core Comm email uses settings.domain."
+			"why": "Site settings: typed values and the site schema (cloud/settings.js), plus subSite and domain."
 		},
 		{
 			"id": "roles",
@@ -226,5 +226,10 @@
 				"phase": 5
 			}
 		]
+	},
+	"settings": {
+		"schema": "install/settings.schema.json",
+		"doc": "admin/settings",
+		"notes": "Non-secret settings: admin/settings values (typed by the core schema plus the site's schema map). Secrets stay in env; no setting is read from env."
 	}
 }

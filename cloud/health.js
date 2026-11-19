@@ -25,7 +25,7 @@ function timeout(promise, name){
 	]);
 }
 
-function create({Fire, auth, env}){
+function create({Fire, auth, env, settings}){
 	if(!Fire) throw new Error('health: Fire is required');
 	if(!auth) throw new Error('health: auth is required');
 	env = env || process.env;
@@ -99,6 +99,14 @@ function create({Fire, auth, env}){
 				if(!d.ok && !d.required) warnings.push(d.error);
 				(d.warnings || []).forEach(w=>warnings.push(w));
 			});
+			// Site settings (admin/settings values): names and codes only.
+			if(settings){
+				if(!settings.isReady()) warnings.push(named('SETTINGS_NOT_READY', 'admin/settings', 'Settings are not loaded yet.'));
+				settings.problems().forEach(p=>{
+					let item = named(p.code, p.name, p.message);
+					(p.code == 'SETTING_UNKNOWN' ? warnings : errors).push(item);
+				});
+			}
 			return {
 				status: errors.length ? 'error' : 'ok',
 				manifestVersion: manifest.version,

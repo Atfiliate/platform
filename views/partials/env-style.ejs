@@ -1,0 +1,13 @@
+<% if(typeof env != 'undefined' && env && env.beta){ %>
+<style>
+	/* environment: beta (admin/settings). The bars take their own space in the page flow (they cover nothing) and
+	   stick to the top and bottom of the screen when the page scrolls; the frame never takes clicks. Dialogs stay above them. */
+	.core-env-bar{flex:0 0 auto;display:block;position:sticky;z-index:70;height:20px;line-height:20px;background:#c62828;color:#fff;
+		font:600 12px/20px "Open Sans",Arial,sans-serif;letter-spacing:.3em;text-align:center;user-select:none;}
+	.core-env-bar--top{top:0;}
+	.core-env-bar--bottom{bottom:0;height:auto;padding-bottom:env(safe-area-inset-bottom);}
+	html.core-env-beta::after{content:"";position:fixed;inset:0;border:2px solid #c62828;pointer-events:none;z-index:2147483647;}
+	@media print{.core-env-bar,html.core-env-beta::after{display:none;}}
+</style>
+<script>document.documentElement.classList.add('core-env-beta');</script>
+<% } %>

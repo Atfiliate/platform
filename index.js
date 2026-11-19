@@ -58,18 +58,16 @@ if(setupMode){
 	var auto = require("./cloud/auto.js");
 	var shell = require("./cloud/shell.js");
 
+	var siteSettings = require("./cloud/settings.js").shared;
+
 	let $settings = {subSite: {}};
 
-	if(getApps().length){
-		let db = getFirestore();
-		db.collection('admin').doc('settings')
-		.onSnapshot((doc)=>{
-			let s = doc.data() || {};
-			if(!s.subSite)
-				s.subSite = {};
-			$settings = s;
-		});
-	}
+	// admin/settings is watched once (cloud/settings.js); subSite and the typed values come from it.
+	siteSettings.onChange(raw=>{
+		$settings = Object.assign({}, raw, {subSite: (raw && raw.subSite) || {}});
+	});
+	if(getApps().length)
+		siteSettings.watch(getFirestore());
 
 	auto.startup();
 	auto.cache();
@@ -93,10 +91,20 @@ if(setupMode){
 		});
 	});
 	
+	// environment 'beta' adds the BETA bars (views/partials/env.ejs). A broken value is logged by
+	// cloud/settings.js and shows in /__core/health and the admin page; the page still renders.
+	function environment(){
+		try{
+			return siteSettings.get('environment');
+		}catch(e){
+			console.warn(`${e.code || 'SETTING_INVALID'} environment (page rendered without an environment bar)`);
+			return null;
+		}
+	}
 	function renderApp(request, response){
 		if(request.query.rootSetup){
 			response.render('pages/setup');
-		}else{
+		}else siteSettings.ready(3000).then(()=>{
 			let config = {};
 			Object.assign(config, Config);
 			let siteProject = shell.project(auto.getProject, 'site');
@@ -113,12 +121,15 @@ if(setupMode){
 				config.description = project.page.description;
 			
 			
-			app.render('pages/index', {config, shell: shell.locals(siteProject, site)}, (e, html)=>{
+			let env = environment();
+			config.environment = env;
+			
+			app.render('pages/index', {config, shell: shell.locals(siteProject, site), env: {name: env, beta: env == 'beta'}}, (e, html)=>{
 				if(e)
 					return response.status(500).send(e.message || e);
 				response.send(html);
 			});
-		}
+		});
 	}
 	function clientRedirect(req, res){
 		let path = '/#/project/' + encodeURIComponent(req.params.view);
@@ -161,9 +172,19 @@ if(setupMode){
 	app.post('/project/cloud/:cloud', cloudBody, auto.project);
 	
 	// Phase 0: root/admin-only health check and dry-run install plan (names only, read-only).
-	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>getAuth(), env: process.env});
+	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>getAuth(), env: process.env, settings: siteSettings});
 	app.get('/__core/health', health.route('health'));
 	app.get('/__core/install/plan', health.route('plan'));
+
+	// Site settings for the admin page (root, admin.all or admin.settings).
+	var settingsRoute = require('./cloud/settingsRoute.js').create({
+		settings: siteSettings,
+		auth: ()=>getAuth(),
+		getRoles: uid=>getFirestore().collection('roles').doc(uid).get().then(s=>s.exists ? s.data() : null),
+		db: ()=>getFirestore()
+	});
+	app.get('/__core/settings', settingsRoute.read);
+	app.post('/__core/settings', smallBody, settingsRoute.save);
 
 	app.get('/', renderApp);
 	app.get('/:view', renderApp);

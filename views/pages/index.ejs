@@ -4,8 +4,10 @@
 		<%- include ("../partials/head.ejs") %>
 	</head>
 	<body layout="column" ng-controller="SiteCtrl" ng-cloak>
+		<%- include ("../partials/env.ejs", {where: 'top'}) %>
 		<div ng-include="<%- (typeof shell != 'undefined' && shell.header) ? "'" + shell.header + "'" : "tools.component('header')" %>"></div>
 		<md-content flex layout="row" ng-view></md-content>
+		<%- include ("../partials/env.ejs", {where: 'bottom'}) %>
 		<%- include ("../partials/scripts.ejs") %>
 	</body>
 </html>

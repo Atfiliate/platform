@@ -12,6 +12,9 @@ var mcache		= require('memory-cache');
 var aiMeter		= require('./aiMeter.js');
 var siteRoute	= require('./siteRoute.js');
 var access		= require('./access.js');
+// Handlers read non-secret site settings with siteSetting('<name>') (admin/settings, typed; see cloud/settings.js).
+var siteSettings	= require('./settings.js').shared;
+const siteSetting	= name=>siteSettings.get(name);
 let filecache	= {v:1.2};
 let db			= false;
 
@@ -675,10 +678,10 @@ let Comm = function(payload){
 	});
 };
 
-new Fire('admin/settings').get().then(r=>{
-	console.log('---------------------------------get settings------------------------');
-	$settings = r || {};
-})
+// Live admin/settings (watched once in cloud/settings.js): serviceNumber, domain, subSite.
+siteSettings.onChange(raw=>{
+	$settings = raw || {};
+});
 
 let $emailTemplates = {};
 const TPL_PATH = 'acl/db/groups/manage/data/role/comm/comm/templates';
@@ -846,8 +849,7 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		$settings.subSite = $settings.subSite || {};
-		let settings = $settings?.subSite[request.headers.host] || config;
+		let settings = ($settings.subSite || {})[request.headers.host] || config;
 			settings.origin = settings.origin || settings.domain;
 					
 		if(request.params.root){

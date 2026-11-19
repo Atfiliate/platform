@@ -1,0 +1,14 @@
+{
+	"notes": "Core site settings. Values live in admin/settings `values`; a site adds its own entries in admin/settings `schema` (same shape; a site entry cannot reuse a core key). Secrets never go here: they stay in env.",
+	"settings": {
+		"environment": {
+			"type": "enum",
+			"label": "Environment",
+			"group": "Site",
+			"help": "Beta shows a red BETA bar at the top and bottom of every page.",
+			"options": ["production", "beta"],
+			"default": "production",
+			"public": true
+		}
+	}
+}
