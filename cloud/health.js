@@ -25,14 +25,16 @@ function timeout(promise, name){
 	]);
 }
 
-function create({Fire, auth, env, settings}){
+function create({Fire, auth, env, settings, studio, sites, siteConfig}){
 	if(!Fire) throw new Error('health: Fire is required');
 	if(!auth) throw new Error('health: auth is required');
 	env = env || process.env;
 
 	let checkEnv = ()=>{
 		let errors = [], present = [];
-		manifest.env.required.forEach(({name})=>{
+		// systemEmail is env only while configSource is env (settings mode: the systemEmail setting).
+		let envMode = !siteConfig || siteConfig.mode() == 'env';
+		manifest.env.required.concat(envMode ? (manifest.env.envModeOnly || []) : []).forEach(({name})=>{
 			if(env[name] === undefined || env[name] === '')
 				errors.push(named('MISSING_ENV', name, `Missing env: ${name}`));
 			else
@@ -107,9 +109,21 @@ function create({Fire, auth, env, settings}){
 					(p.code == 'SETTING_UNKNOWN' ? warnings : errors).push(item);
 				});
 			}
+			// Studio settings (admin/studio) and sub-sites (admin/settings/sites): names and codes only.
+			if(studio){
+				if(!studio.isReady()) warnings.push(named('SETTINGS_NOT_READY', 'admin/studio', 'Studio settings are not loaded yet.'));
+				studio.problems().forEach(p=>(p.code == 'SETTING_UNKNOWN' ? warnings : errors).push(named(p.code, `studio.${p.name}`, p.message)));
+			}
+			if(sites) sites.problems().forEach(p=>warnings.push(named(p.code, `sites.${p.name}`, p.message)));
+			if(siteConfig){
+				let c = siteConfig.problems();
+				c.errors.forEach(e=>errors.push(e));
+				c.warnings.forEach(w=>warnings.push(w));
+			}
 			return {
 				status: errors.length ? 'error' : 'ok',
 				manifestVersion: manifest.version,
+				configSource: siteConfig ? siteConfig.mode() : 'env',
 				env: {present: envResult.present, optionalMissing: envResult.optionalMissing},
 				data: data.map(d=>({id: d.id, ok: d.ok})),
 				errors,

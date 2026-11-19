@@ -1,14 +1,111 @@
 {
-	"notes": "Core site settings. Values live in admin/settings `values`; a site adds its own entries in admin/settings `schema` (same shape; a site entry cannot reuse a core key). Secrets never go here: they stay in env.",
+	"notes": "Core site settings. Values live in admin/settings `values`; a site adds its own entries in admin/settings `schema` (same shape; a site entry cannot reuse a core key). `group` is the admin tab, `section` a heading inside it, `description` the (i) text. `client` puts the value in the page config at that path (window.config and handler `config`); `override` lets a sub-site (admin/settings/sites/{host}) set its own value. Secrets never go here: they stay in env.",
 	"settings": {
+		"configSource": {
+			"type": "enum", "options": ["env", "settings"], "default": "env",
+			"label": "Page config source", "group": "General", "section": "Site",
+			"description": "Where the page config comes from. env: the host's `config` JSON (sites not migrated yet). settings: these settings, with env holding only the Firebase config, the service account, origin and secrets."
+		},
 		"environment": {
-			"type": "enum",
-			"label": "Environment",
-			"group": "Site",
+			"type": "enum", "options": ["production", "beta"], "default": "production", "public": true,
+			"label": "Environment", "group": "General", "section": "Site",
 			"help": "Beta shows a red BETA bar at the top and bottom of every page.",
-			"options": ["production", "beta"],
-			"default": "production",
-			"public": true
+			"description": "Beta shows a red BETA bar at the top and bottom of every page and a thin red frame, so testers never confuse it with the live site. Changes apply on the next page load, no restart."
+		},
+		"title": {
+			"type": "string", "maxLength": 120, "client": "title", "override": true,
+			"label": "Site name", "group": "General", "section": "Site",
+			"description": "The site's name: the browser tab title, the home-screen app name and the brand name in the header. A project page's own title replaces it on that page."
+		},
+		"description": {
+			"type": "text", "maxLength": 500, "client": "description", "override": true,
+			"label": "Description", "group": "General", "section": "Site",
+			"description": "One or two sentences shown to search engines and in link previews. A project page's own description replaces it on that page."
+		},
+		"homeGroup": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$", "client": "groupId", "override": true,
+			"label": "Home group", "group": "General", "section": "Landing",
+			"description": "Group id this site belongs to. When set, the main page opens this group's business page, and news, promotions and sign-ups are scoped to it. Leave empty for the whole platform."
+		},
+		"logo": {
+			"type": "string", "maxLength": 2000, "client": "icon", "override": true,
+			"label": "Logo", "group": "Branding", "section": "Logo",
+			"description": "Logo image in the header: an https URL or a Cloudinary image id. Shown square, about 100 px."
+		},
+		"tagline": {
+			"type": "string", "maxLength": 160, "client": "subTitle", "override": true,
+			"label": "Tagline", "group": "Branding", "section": "Logo",
+			"description": "Short slogan next to the logo in the header on wide screens."
+		},
+		"favicon": {
+			"type": "string", "maxLength": 2000, "client": "favicon", "override": true,
+			"label": "Favicon", "group": "Branding", "section": "Logo",
+			"description": "Small icon in the browser tab and bookmarks: an https URL to a .ico or .png image."
+		},
+		"icons": {
+			"type": "json", "client": "icons",
+			"label": "App icons", "group": "Branding", "section": "Logo",
+			"description": "Home-screen icon URLs by size, for example {\"ico144\": \"https://...\", \"ico152\": \"https://...\"}."
+		},
+		"colorPrimary": {
+			"type": "string", "maxLength": 40, "client": "color.primary", "override": true,
+			"label": "Primary color", "group": "Branding", "section": "Colors",
+			"description": "Main theme color: a Material palette name (for example indigo or blue-grey) or a hex color."
+		},
+		"colorSecondary": {
+			"type": "string", "maxLength": 40, "client": "color.secondary", "override": true,
+			"label": "Accent color", "group": "Branding", "section": "Colors",
+			"description": "Accent color for buttons and highlights: a Material palette name or a hex color."
+		},
+		"css": {
+			"type": "text", "maxLength": 20000, "client": "css", "override": true,
+			"label": "Custom CSS", "group": "Branding", "section": "Custom CSS",
+			"description": "Extra CSS added to every page's head (inside a <style> tag). Use it for small brand tweaks; it can break the layout, so test on beta first."
+		},
+		"login": {
+			"type": "string", "maxLength": 200, "client": "login", "override": true, "pattern": "^[A-Za-z ]+(,[A-Za-z ]+)*$",
+			"label": "Sign-in methods", "group": "Sign-in", "section": "Methods",
+			"description": "Comma-separated sign-in buttons offered, in order, for example Google,Email or Google,Email,Quick Connect. Empty: Google,Email."
+		},
+		"stripePublishableKey": {
+			"type": "string", "pattern": "^pk_(live|test)_[A-Za-z0-9]+$", "client": "stripe",
+			"label": "Stripe publishable key", "group": "Integrations", "section": "Payments",
+			"description": "Stripe's publishable key (starts with pk_). It is public by design and is used by checkout pages; the secret key stays in env."
+		},
+		"cloudinaryCloudName": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$", "client": "cloudinary.cloudName",
+			"label": "Cloudinary cloud name", "group": "Integrations", "section": "Images",
+			"description": "Cloudinary account name used to show and upload images from the browser. The API key and secret stay in env."
+		},
+		"cloudinaryUploadPreset": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$", "client": "cloudinary.uploadPreset",
+			"label": "Cloudinary upload preset", "group": "Integrations", "section": "Images",
+			"description": "Unsigned upload preset the browser uses for image uploads (set up in Cloudinary)."
+		},
+		"googleClientId": {
+			"type": "string", "maxLength": 200, "client": "gapi.clientId",
+			"label": "Google OAuth client id", "group": "Integrations", "section": "Google",
+			"description": "OAuth client id for Google sign-in and Drive/Calendar pickers in the browser. Public by design."
+		},
+		"googleApiKey": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{20,64}$", "client": "gapi.key",
+			"label": "Google browser API key", "group": "Integrations", "section": "Google",
+			"description": "Browser API key for Google APIs (pickers, sheets). It is visible to visitors by design, so restrict it to this site's domains in Google Cloud."
+		},
+		"googleMapsKey": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{20,64}$", "client": "gapi.mapKey",
+			"label": "Google Maps key", "group": "Integrations", "section": "Google",
+			"description": "Browser key for Google Maps, if a product shows maps. Restrict it to this site's domains."
+		},
+		"pushPublicKey": {
+			"type": "string", "pattern": "^[A-Za-z0-9_-]{40,200}$", "client": "fire.messagingKey",
+			"label": "Push public key (VAPID)", "group": "Integrations", "section": "Push notifications",
+			"description": "Web push public key from Firebase Cloud Messaging, used by browsers to subscribe to notifications."
+		},
+		"systemEmail": {
+			"type": "email", "override": true,
+			"label": "Sender email", "group": "Messaging", "section": "Email",
+			"description": "Address system emails come from (invites, PINs, receipts, notifications). Its domain must be set up for sending. A sub-site can send from its own address."
 		}
 	}
 }

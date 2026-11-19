@@ -39,14 +39,14 @@
 <!-- Site Config -->
 <% if(config.css){ %>
 <style>
-	<%- config.css %>
+	<%- String(config.css).replace(/<\/style/gi, '<\\/style') %>
 </style>
 <% } %>
 
 <!-- Site Config -->
 <% if(config){ %>
 <script>
-  window.config = <%- JSON.stringify(config) %>;
+  window.config = <%- JSON.stringify(config).replace(/</g, '\\u003c') %>;
 </script>
 <% } %>
 

@@ -20,7 +20,30 @@ service cloud.firestore {
 			allow read, write: if isAuthenticated() && (request.auth.uid == uid || hasRole("admin", "accounts"));
 		}
 		match /admin/{role}/{document=**} {
-			allow read, write: if hasRole("admin", role);
+			allow read, write: if !(role in ["settings", "studio"]) && hasRole("admin", role);
+		}
+		// Settings (admin/settings values/schema, admin/studio, sub-sites, change log) are written only by
+		// the server: /__core/settings validates each save. The admin page may edit legacy data fields
+		// (roles catalog, pairing) on admin/settings directly.
+		match /admin/settings {
+			allow read: if hasRole("admin", "settings");
+			allow update: if hasRole("admin", "settings")
+				&& !request.resource.data.diff(resource.data).affectedKeys().hasAny(["values", "schema", "valuesMeta"]);
+			allow create: if hasRole("admin", "settings")
+				&& !request.resource.data.keys().hasAny(["values", "schema", "valuesMeta"]);
+			allow delete: if false;
+			match /log/{id} {
+				allow read: if hasRole("admin", "settings");
+				allow write: if false;
+			}
+			match /sites/{host} {
+				allow read: if hasRole("admin", "settings");
+				allow write: if false;
+			}
+		}
+		match /admin/studio {
+			allow read: if hasRole("admin", "studio");
+			allow write: if false;
 		}
 
 		// Code versions. Cloud code here runs on the server, so: developers (or root) only,

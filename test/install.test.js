@@ -24,7 +24,10 @@ const adminHtml = '<md-sidenav>\n\t\t\t<md-list>\n\t\t\t\t<md-list-item>Tools</m
 (async ()=>{
 	// env: named errors for every missing name, values never echoed
 	let e = installer.checkEnv({config: '{bad', origin: 'x'});
-	assert.deepStrictEqual(e.errors.map(x=>x.code + ':' + x.name).sort(), ['INVALID_ENV:config', 'MISSING_ENV:googleJson', 'MISSING_ENV:systemEmail']);
+	assert.deepStrictEqual(e.errors.map(x=>x.code + ':' + x.name).sort(), ['INVALID_ENV:config', 'MISSING_ENV:googleJson']);
+	// a site still on configSource env also needs systemEmail in env
+	let eEnv = installer.checkEnv({config: '{bad', origin: 'x'}, 'env');
+	assert.deepStrictEqual(eEnv.errors.map(x=>x.code + ':' + x.name).sort(), ['INVALID_ENV:config', 'MISSING_ENV:googleJson', 'MISSING_ENV:systemEmail']);
 	assert.ok(e.warnings.some(w=>w.name == 'pixabayKey' && /image search/i.test(w.message)));
 	let e2 = installer.checkEnv(Object.assign({}, goodEnv, {googleJson: '{"project_id":"p"}'}));
 	assert.deepStrictEqual(e2.errors.map(x=>x.name).sort(), ['googleJson.client_email', 'googleJson.private_key']);
@@ -38,13 +41,19 @@ const adminHtml = '<md-sidenav>\n\t\t\t<md-list>\n\t\t\t\t<md-list-item>Tools</m
 
 	// new project: dry run plans, apply creates settings, root, dev/site, Site Code entry, install log
 	let s = memStore({'dev/adm1': {projectId: 'admin', stage: 'prod', default: true, page: {html: adminHtml, js: 'js={}'}}});
-	let dry = await installer.run({env: goodEnv, store: s, apply: false, rootUid: 'u1'});
+	const siteSeed = {title: 'New Site', systemEmail: 'noreply@site.example', environment: 'beta'};
+	let dry = await installer.run({env: goodEnv, store: s, apply: false, rootUid: 'u1', site: siteSeed});
 	assert.strictEqual(dry.applied, false);
-	assert.strictEqual(dry.writes, 4);
+	assert.strictEqual(dry.writes, 5);
 	assert.strictEqual(Object.keys(s.data).length, 1);
-	let r = await installer.run({env: goodEnv, store: s, apply: true, rootUid: 'u1'});
+	let r = await installer.run({env: goodEnv, store: s, apply: true, rootUid: 'u1', site: siteSeed});
 	assert.strictEqual(r.applied, true);
-	assert.strictEqual(s.data['admin/settings'].domain, 'https://site.example');
+	// new-site seed: settings mode from the start, no legacy domain/subSite fields; studio doc created
+	assert.deepStrictEqual(s.data['admin/settings'].values, {configSource: 'settings', title: 'New Site', systemEmail: 'noreply@site.example', environment: 'beta'});
+	assert.strictEqual(s.data['admin/settings'].domain, undefined);
+	assert.strictEqual(s.data['admin/settings'].subSite, undefined);
+	assert.deepStrictEqual(s.data['admin/studio'].values, {});
+	assert.ok(!JSON.stringify(r.steps.map(x=>[x.id, x.action, x.detail])).includes('noreply@'));
 	assert.deepStrictEqual(s.data['roles/u1'].root, {all: true});
 	let site = s.data['dev/site'];
 	assert.strictEqual(site.projectId, 'site'); assert.strictEqual(site.default, true); assert.strictEqual(site.stage, 'prod');
@@ -72,5 +81,17 @@ const adminHtml = '<md-sidenav>\n\t\t\t<md-list>\n\t\t\t\t<md-list-item>Tools</m
 	assert.strictEqual(r2.steps.find(x=>x.id == 'rootRole').action, 'manual');
 
 	assert.strictEqual(installer.addSiteCodeEntry('<div></div>').status, 'ADMIN_ANCHOR_MISSING');
+
+	// a bad seed value blocks the install with a named error, nothing written
+	let s3 = memStore();
+	let r3 = await installer.run({env: goodEnv, store: s3, apply: true, site: {systemEmail: 'not-an-email'}});
+	assert.strictEqual(r3.applied, false);
+	assert.ok(r3.envResult.errors.some(x=>x.code == 'SETTING_INVALID' && x.name == 'systemEmail'));
+	assert.deepStrictEqual(s3.data, {});
+	// no seed values: settings mode, the rest is set later in the admin tabs
+	let s4 = memStore();
+	let r4 = await installer.run({env: goodEnv, store: s4, apply: true});
+	assert.deepStrictEqual(s4.data['admin/settings'].values, {configSource: 'settings'});
+	assert.ok(r4.steps.find(x=>x.id == 'settings').detail.includes('set later: title, systemEmail'));
 	console.log('install: ok');
 })().catch(e=>{ console.error(e); process.exit(1); });

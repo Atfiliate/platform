@@ -6,6 +6,8 @@
 //   node install/apply.js --apply                 create what is missing (never overwrites)
 //     --root-email <email> | --root-uid <uid>     make that account root (first root role)
 //     --site-from <file.json>                     seed dev/site from an export instead of install/site
+//     --title <name> --system-email <address> [--environment beta|production]
+//                                                 first values for admin/settings (else set them in the admin tabs)
 //     --rules                                     release install/firestore.rules (only when the
 //                                                 project has no rules yet, unless --replace-rules)
 //   node install/apply.js export --out <file>     save this site's dev/site (cloud + components)
@@ -72,7 +74,8 @@ async function main(){
 	let from = arg('--site-from');
 	let siteExport = from ? JSON.parse(fs.readFileSync(from, 'utf8')) : null;
 
-	let result = await installer.run({env, store: store(db), apply: has('--apply'), rootUid, siteExport});
+	let result = await installer.run({env, store: store(db), apply: has('--apply'), rootUid, siteExport,
+		site: {title: arg('--title'), systemEmail: arg('--system-email'), environment: arg('--environment')}});
 	result.steps.forEach(s=>console.log(`${s.action.padEnd(8)} ${s.id.padEnd(14)} ${s.detail}`));
 
 	if(has('--rules')){

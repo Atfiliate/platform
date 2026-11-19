@@ -1,13 +1,13 @@
 {
 	"name": "platform-install",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"phase": 1,
 	"notes": "Names only. Never put values here. Read by cloud/health.js (/__core/health, /__core/install/plan) and install/apply.js.",
 	"env": {
 		"required": [
 			{
 				"name": "config",
-				"why": "Public site config JSON (firebase web config, title, colors)."
+				"why": "Boot config JSON: firebase web config (projectId, apiKey, authDomain...). Sites on configSource env also keep title, colors and other page fields here until migrated."
 			},
 			{
 				"name": "googleJson",
@@ -16,10 +16,6 @@
 			{
 				"name": "origin",
 				"why": "This site's own origin for links and callbacks."
-			},
-			{
-				"name": "systemEmail",
-				"why": "Sender address for system email."
 			}
 		],
 		"optional": [
@@ -109,6 +105,12 @@
 			"project_id",
 			"client_email",
 			"private_key"
+		],
+		"envModeOnly": [
+			{
+				"name": "systemEmail",
+				"why": "Sender address for system email, only while configSource is env. In settings mode it is the systemEmail setting (admin Messaging tab)."
+			}
 		]
 	},
 	"data": [
@@ -118,8 +120,7 @@
 			"kind": "doc",
 			"required": true,
 			"recommendedFields": [
-				"domain",
-				"subSite"
+				"values"
 			],
 			"why": "Site settings: typed values and the site schema (cloud/settings.js), plus subSite and domain."
 		},
@@ -230,6 +231,8 @@
 	"settings": {
 		"schema": "install/settings.schema.json",
 		"doc": "admin/settings",
-		"notes": "Non-secret settings: admin/settings values (typed by the core schema plus the site's schema map). Secrets stay in env; no setting is read from env."
+		"studioDoc": "admin/studio",
+		"sites": "admin/settings/sites/{host}",
+		"notes": "Non-secret settings: admin/settings values (core schema plus the site's schema map); studio settings in admin/studio; sub-sites in admin/settings/sites/{host} (overrides + private meta). configSource env|settings picks the page config source. Secrets stay in env; no setting is read from env."
 	}
 }

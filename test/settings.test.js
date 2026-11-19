@@ -118,7 +118,7 @@ test('write: replaces values (an unset key is really removed), logs names only',
 	assert.strictEqual(f.store['admin/settings'].domain, 'keep');
 	assert.strictEqual(f.store['admin/settings'].valuesMeta.updatedBy, 'u1');
 	assert.deepStrictEqual(f.ops, ['update', 'set']);
-	assert.deepStrictEqual(Object.keys(f.logs[0]).sort(), ['at', 'by', 'keys', 'unset']);
+	assert.deepStrictEqual(Object.keys(f.logs[0]).sort(), ['at', 'by', 'keys', 'scope', 'unset']);
 	await assert.rejects(s.write({db: f.db, uid: 'u1', patch: {environment: 'x'}}), e=>e.status == 400 && e.errors[0].code == 'SETTING_INVALID');
 });
 

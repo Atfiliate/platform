@@ -60,6 +60,24 @@ test('named errors for missing env, never values', async ()=>{
 	assert.ok(!JSON.stringify(r).includes('example.test'));
 });
 
+test('settings mode: systemEmail is not env; settings, studio, sites and config problems are listed by name', async ()=>{
+	let env = Object.assign({}, fullEnv); delete env.systemEmail;
+	let mk = (code, name)=>({code, name, message: 'm'});
+	let siteConfig = {mode: ()=>'settings', problems: ()=>({errors: [mk('SETTING_MISSING', 'systemEmail')], warnings: [mk('CONFIG_ENV_UNUSED', 'config.title')]})};
+	let studio = {isReady: ()=>true, problems: ()=>[mk('SETTING_INVALID', 'tutorMaxOut')]};
+	let sites = {problems: ()=>[mk('SITE_OVERRIDE_INVALID', 'a.example.title')]};
+	let settings = {isReady: ()=>true, problems: ()=>[]};
+	let r = await health.create({Fire: mockFire(fullStore), auth, env, settings, studio, sites, siteConfig}).health();
+	assert.strictEqual(r.configSource, 'settings');
+	let errs = r.errors.map(e=>e.code + ' ' + e.name), warns = r.warnings.map(e=>e.code + ' ' + e.name);
+	assert.ok(!errs.includes('MISSING_ENV systemEmail'));
+	assert.ok(errs.includes('SETTING_MISSING systemEmail') && errs.includes('SETTING_INVALID studio.tutorMaxOut'));
+	assert.ok(warns.includes('CONFIG_ENV_UNUSED config.title') && warns.includes('SITE_OVERRIDE_INVALID sites.a.example.title'));
+	// env mode still needs systemEmail in env
+	let r2 = await health.create({Fire: mockFire(fullStore), auth, env, siteConfig: {mode: ()=>'env', problems: ()=>({errors: [], warnings: []})}}).health();
+	assert.ok(r2.errors.some(e=>e.name == 'systemEmail'));
+});
+
 test('missing docs and empty collections are named', async ()=>{
 	let store = Object.assign({}, fullStore);
 	delete store['admin/settings'];

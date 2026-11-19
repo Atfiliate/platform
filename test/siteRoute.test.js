@@ -206,7 +206,9 @@ test('?v=: an unpublished (dev) version needs a developer of that project', asyn
 });
 test('?v=: an unknown version id is not found', async ()=>{
 	reset(); loadDev(verDocs());
-	assert.strictEqual((await vcall('nope')).body, 'Cloud not found.');
+	let nf = await vcall('nope');
+	assert.strictEqual(nf.body, 'Cloud not found.');
+	assert.strictEqual(nf.status, 404);
 });
 
 test('fixed id: dev/site wins over another starred site version', async ()=>{
@@ -359,6 +361,28 @@ test('Firestore INVALID_ARGUMENT on a version read maps to 404 VERSION_NOT_FOUND
 		r = await call('project', {projId: 'groups'}, {query: {v: 'wellFormedButUnknown2'}});
 		assert.strictEqual(r.status, 500); // other read errors stay 500
 	}finally{ siteDoc = saved; }
+});
+
+// ---- handler scope: per-host config, systemEmail and siteSetting(name, request) (settings mode) ----
+test('handlers: settings mode gives each host its own config, sender and overrides; env mode unchanged', async ()=>{
+	reset();
+	const S = require(path.join(__dirname, '../cloud/settings.js'));
+	const Sites = require(path.join(__dirname, '../cloud/sites.js'));
+	const code = `{init: function(request, response){ response.send([config.origin, config.title, systemEmail, settings.origin, siteSetting('title', request), siteSetting('title'), studioSetting('tutor'), siteSetting('tutor')].join('|')) }}`;
+	loadDev([{id: 'hs', projectId: 'hs', stage: 'prod', default: true, cloud: {who: {code}}}]);
+	process.env.origin = 'https://main.test';
+	S.shared.load({values: {configSource: 'settings', title: 'Main', systemEmail: 'system@main.test'}});
+	S.studio.load({schema: {tutor: {type: 'boolean', default: false}}, values: {tutor: true}});
+	Sites.shared.load([{id: 'sub.test', data: {host: 'sub.test', domain: 'https://sub.test', overrides: {title: 'Sub', systemEmail: 'hi@sub.test'}, meta: {createdBy: 'X'}}}]);
+	let main = await call('project', {projId: 'hs', cloud: 'who'}, {headers: {host: 'main.test'}});
+	assert.strictEqual(main.body, 'https://main.test|Main|system@main.test|https://main.test|Main|Main|true|true');
+	let sub = await call('project', {projId: 'hs', cloud: 'who'}, {headers: {host: 'sub.test'}});
+	assert.strictEqual(sub.body, 'https://sub.test|Sub|hi@sub.test|https://sub.test|Sub|Main|true|true');
+	// back to env mode: the env config and env sender, as before
+	S.shared.load({values: {}});
+	let legacy = await call('project', {projId: 'hs', cloud: 'who'}, {headers: {host: 'sub.test'}});
+	assert.ok(legacy.body.split('|')[2] === String(process.env.systemEmail || ''), legacy.body);
+	S.studio.load({}); Sites.shared.load([]); delete process.env.origin;
 });
 
 (async ()=>{

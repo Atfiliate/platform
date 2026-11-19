@@ -13,16 +13,30 @@ var aiMeter		= require('./aiMeter.js');
 var siteRoute	= require('./siteRoute.js');
 var access		= require('./access.js');
 // Handlers read non-secret site settings with siteSetting('<name>') (admin/settings, typed; see cloud/settings.js).
+// siteSetting(name, request?): with a request, a sub-site's override wins (admin/settings/sites/{host}).
+// studioSetting(name): studio settings (admin/studio). Both throw named SettingErrors.
+// `config` (per request) is the host's page config; `systemEmail` (per request) the sender address.
 var siteSettings	= require('./settings.js').shared;
-const siteSetting	= name=>siteSettings.get(name);
+var studioSettings	= require('./settings.js').studio;
+var siteConfig		= require('./siteConfig.js').shared;
+const hostOf		= r=>r && r.headers ? String(r.headers.host || '').toLowerCase() : (typeof r == 'string' ? r : null);
+const siteSetting	= (name, request)=>{
+	// Studio names (admin/studio) resolve too, so handlers written before the split keep working.
+	if(!siteSettings.has(name) && studioSettings.has(name)) return studioSettings.get(name);
+	if(request){
+		let v = siteConfig.value(name, hostOf(request));
+		if(v !== null) return v;
+	}
+	return siteSettings.get(name);
+};
+const studioSetting	= name=>studioSettings.get(name);
 let filecache	= {v:1.2};
 let db			= false;
 
 let $settings = {};
-let config = {};
-if(process.env.config)
-	config = JSON.parse(process.env.config);
-config.email = config.email || process.env.systemEmail;
+// Main-site handler config (startup handlers and helpers). Request handlers get their host's config.
+let config = siteConfig.server(null);
+let systemEmail = siteConfig.systemEmail(null);
 
 
 if(getApps().length)
@@ -611,7 +625,7 @@ let Comm = function(payload){
 
 				return http({
 					method:'POST',
-					uri:`${$settings.domain}/project/groups/cloud/_comm`,
+					uri:`${siteConfig.mode() == 'settings' ? siteConfig.originFor(null) : $settings.domain}/project/groups/cloud/_comm`,
 					headers:{'Content-Type':'application/json'},
 					body:{
 						action:'email.send',
@@ -681,6 +695,8 @@ let Comm = function(payload){
 // Live admin/settings (watched once in cloud/settings.js): serviceNumber, domain, subSite.
 siteSettings.onChange(raw=>{
 	$settings = raw || {};
+	config = siteConfig.server(null);
+	systemEmail = siteConfig.systemEmail(null);
 });
 
 let $emailTemplates = {};
@@ -785,7 +801,11 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		let settings = ($settings.subSite || {})[request.headers.host] || config;
+		// The host's config: env mode as before (sub-site entry or env config); settings mode merged per host.
+		let host = hostOf(request);
+		let config = siteConfig.server(host);
+		let systemEmail = siteConfig.systemEmail(host);
+		let settings = siteConfig.mode() == 'settings' ? config : (($settings.subSite || {})[request.headers.host] || config);
 			settings.origin = settings.origin || settings.domain;
 			
 		var path = request.params.path;
@@ -809,7 +829,7 @@ module.exports = {
 		}
 		response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
 		siteRoute.warn('CLOUD_NOT_FOUND', 'cloud', path);
-		response.send('No path found.');
+		response.status(404).send('No path found.');
 	},
 	component: function(request, response){
 		var name = request.params.path;
@@ -849,7 +869,11 @@ module.exports = {
 			response.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Content-Length, X-Requested-With, X-Custom-Header')
 		}
 		
-		let settings = ($settings.subSite || {})[request.headers.host] || config;
+		// The host's config: env mode as before (sub-site entry or env config); settings mode merged per host.
+		let host = hostOf(request);
+		let config = siteConfig.server(host);
+		let systemEmail = siteConfig.systemEmail(host);
+		let settings = siteConfig.mode() == 'settings' ? config : (($settings.subSite || {})[request.headers.host] || config);
 			settings.origin = settings.origin || settings.domain;
 					
 		if(request.params.root){
@@ -910,7 +934,8 @@ module.exports = {
 				}
 			};
 			if(!cloud){
-				response.send('Cloud not found.')
+				response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
+				response.status(404).send('Cloud not found.')
 			}else if(access.versionAccess(proj, starred) == 'public'){
 				run();
 			}else{

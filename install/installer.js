@@ -30,9 +30,11 @@ function empty(v){
 }
 
 // Every env name the platform and the site template read, with a named error for each gap.
-function checkEnv(env){
+// mode: the site's configSource. New installs use 'settings' (the sender address is a setting);
+// a site still on 'env' also needs the envModeOnly names (systemEmail).
+function checkEnv(env, mode){
 	let errors = [], warnings = [];
-	manifest.env.required.forEach(({name})=>{
+	manifest.env.required.concat(mode == 'env' ? (manifest.env.envModeOnly || []) : []).forEach(({name})=>{
 		if(empty(env[name])) errors.push(named('MISSING_ENV', name, `Missing env: ${name}`));
 	});
 	manifest.env.optional.forEach(({name, feature})=>{
@@ -48,6 +50,19 @@ function checkEnv(env){
 		});
 	});
 	return {errors, warnings};
+}
+
+function siteSeed(site){
+	const {coerce, CORE} = require('../cloud/settings.js');
+	let values = {configSource: 'settings'}, errors = [], names = [];
+	['title', 'systemEmail', 'environment'].forEach(k=>{
+		if(empty(site[k])) return;
+		let r = coerce(CORE[k], site[k]);
+		if(r.error) errors.push(named('SETTING_INVALID', k, `${k} ${r.error}`));
+		else{ values[k] = r.value; names.push(k); }
+	});
+	let missing = ['title', 'systemEmail'].filter(k=>values[k] === undefined);
+	return {values, errors, names, missing};
 }
 
 function readTemplate(dir){
@@ -96,12 +111,19 @@ async function plan(opts){
 	let envResult = checkEnv(env || {});
 	add('env', envResult.errors.length ? 'blocked' : 'ok', envResult.errors.map(e=>e.name).join(', ') || 'all required env present');
 
+	// New-site seed: settings mode from the start. opts.site: {title, systemEmail, environment} (each checked
+	// against the core schema); anything left out is set later in the admin settings tabs.
 	let settings = await store.get('admin/settings');
 	if(settings) add('settings', 'none', 'admin/settings exists');
 	else{
-		let origin = String(env.origin || '').replace(/\/+$/, '');
-		add('settings', 'create', 'admin/settings', {path: 'admin/settings', data: {domain: origin, subSite: {}, createdOn: now}});
+		let seed = siteSeed(opts.site || {});
+		seed.errors.forEach(e=>envResult.errors.push(e));
+		add('settings', seed.errors.length ? 'blocked' : 'create', `admin/settings: configSource settings${seed.names.length ? ', ' + seed.names.join(', ') : ''}${seed.missing.length ? ' (set later: ' + seed.missing.join(', ') + ')' : ''}`,
+			seed.errors.length ? undefined : {path: 'admin/settings', data: {values: seed.values, schema: {}, createdOn: now}});
 	}
+	let studio = await store.get('admin/studio');
+	if(studio) add('studioSettings', 'none', 'admin/studio exists');
+	else add('studioSettings', 'create', 'admin/studio (studio settings, empty)', {path: 'admin/studio', data: {values: {}, schema: {}, createdOn: now}});
 
 	if(opts.rootUid){
 		let roles = await store.get(`roles/${opts.rootUid}`);
@@ -149,4 +171,4 @@ async function run(opts){
 	return Object.assign(result, {applied: true, blocked, writes: writes.length});
 }
 
-module.exports = {checkEnv, plan, run, sitePackage, readTemplate, addSiteCodeEntry, named, ROOT_ROLES, SITE_CODE_ENTRY};
+module.exports = {checkEnv, siteSeed, plan, run, sitePackage, readTemplate, addSiteCodeEntry, named, ROOT_ROLES, SITE_CODE_ENTRY};

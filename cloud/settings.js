@@ -1,4 +1,4 @@
-// Site settings: one Firestore doc, admin/settings.
+// Site settings: one Firestore doc per scope (site: admin/settings, studio: admin/studio).
 //   values: {<key>: <value>}          non-secret settings, edited in the admin page
 //   schema: {<key>: <definition>}     the site's own setting definitions (core ones are in install/settings.schema.json)
 //   valuesMeta: {updatedBy, updatedOn, keys}
@@ -11,7 +11,11 @@ const CORE = require('../install/settings.schema.json').settings;
 const DOC = 'admin/settings';
 const TYPES = ['string', 'text', 'number', 'integer', 'boolean', 'enum', 'list', 'url', 'email', 'json'];
 const KEY = /^[A-Za-z][A-Za-z0-9_]{0,63}$/;
-const DEF_KEYS = ['type', 'label', 'group', 'help', 'options', 'min', 'max', 'pattern', 'required', 'default', 'public', 'maxLength', 'env'];
+const DEF_KEYS = ['type', 'label', 'group', 'section', 'description', 'help', 'options', 'min', 'max', 'pattern', 'required', 'default', 'public', 'maxLength', 'env', 'client', 'override'];
+// client: where the value goes in the page config (window.config and handler `config`), e.g. "gapi.clientId".
+// override: a sub-site (admin/settings/sites/{host}) may set its own value.
+const CLIENT_PATH = /^[A-Za-z][A-Za-z0-9_]{0,63}(\.[A-Za-z][A-Za-z0-9_]{0,63}){0,3}$/;
+const CLIENT_RESERVED = ['firebase', 'origin', 'environment', 'site', 'host', 'domain', 'email'];
 const MAX_TEXT = 20000;
 
 class SettingError extends Error{
@@ -37,6 +41,9 @@ function checkDef(key, def){
 	if(def.pattern !== undefined){
 		try{ new RegExp(def.pattern); }catch(e){ p.push(named('SCHEMA_INVALID', key, 'pattern is not a valid regular expression.')); }
 	}
+	if(def.client !== undefined && !(typeof def.client == 'string' && CLIENT_PATH.test(def.client) && !CLIENT_RESERVED.includes(def.client.split('.')[0])))
+		p.push(named('SCHEMA_INVALID', key, `client must be a page config path (not ${CLIENT_RESERVED.join(', ')}).`));
+	if(def.override !== undefined && typeof def.override != 'boolean') p.push(named('SCHEMA_INVALID', key, 'override must be true or false.'));
 	Object.keys(def).filter(k=>!DEF_KEYS.includes(k)).forEach(k=>p.push(named('SCHEMA_INVALID', key, `Unknown definition field: ${k}`)));
 	if(!p.length && def.default !== undefined){
 		let r = coerce(def, def.default);
@@ -85,9 +92,13 @@ function coerce(def, v){
 	return {error: `unknown type ${t}`};
 }
 
+// options: {log, doc (default admin/settings), core (core definitions; default the core schema), scope}
 function create(options){
 	options = options || {};
 	let log = options.log || console;
+	const doc = options.doc || DOC;
+	const core = options.core || CORE;
+	const scope = options.scope || 'site';
 	let state = {ready: false, raw: {}, schema: {}, values: {}, invalid: {}, problems: []};
 	let listeners = [];
 	let waiters = [];
@@ -96,12 +107,12 @@ function create(options){
 	function load(data){
 		data = (data && typeof data == 'object') ? data : {};
 		let schema = {}, problems = [], values = {}, invalid = {};
-		Object.entries(CORE).forEach(([k, def])=>{ schema[k] = Object.assign({source: 'core'}, def); });
+		Object.entries(core).forEach(([k, def])=>{ schema[k] = Object.assign({source: 'core'}, def); });
 		let site = data.schema;
 		if(site !== undefined && (site === null || typeof site != 'object' || Array.isArray(site)))
 			problems.push(named('SCHEMA_INVALID', 'schema', 'admin/settings schema must be a map.'));
 		else Object.entries(site || {}).forEach(([k, def])=>{
-			if(CORE[k]) return problems.push(named('SCHEMA_CONFLICT', k, 'A site setting cannot reuse a core setting name.'));
+			if(core[k]) return problems.push(named('SCHEMA_CONFLICT', k, 'A site setting cannot reuse a core setting name.'));
 			let p = checkDef(k, def);
 			if(p.length) return problems.push(...p);
 			schema[k] = Object.assign({source: 'site'}, def);
@@ -122,7 +133,7 @@ function create(options){
 				problems.push(named('SETTING_MISSING', k, 'Required setting has no value.'));
 		});
 		state = {ready: true, raw: data, schema, values, invalid, problems};
-		problems.forEach(p=>log.warn && log.warn(`${p.code} ${p.name}`));
+		problems.forEach(p=>log.warn && log.warn(`${p.code} ${p.name}${scope == 'site' ? '' : ' (' + scope + ')'}`));
 		waiters.splice(0).forEach(w=>w());
 		listeners.forEach(fn=>{ try{ fn(data); }catch(e){ log.error && log.error('settings listener failed', e && e.message); } });
 		return state;
@@ -174,13 +185,14 @@ function create(options){
 	// What the admin page shows: definitions, stored values and problems. Settings only (no secrets live here).
 	function describe(){
 		let list = Object.entries(state.schema).map(([key, d])=>({
-			key, type: d.type, label: d.label || key, group: d.group || 'Other', help: d.help || '',
+			key, type: d.type, label: d.label || key, group: d.group || 'Other', section: d.section || '', description: d.description || d.help || '', help: d.help || '',
+			client: d.client || null, override: !!d.override,
 			options: d.options, min: d.min, max: d.max, pattern: d.pattern, required: !!d.required,
 			default: d.default, public: !!d.public, source: d.source,
 			value: state.values[key] !== undefined ? clone(state.values[key]) : null,
 			invalid: state.invalid[key] || null
 		}));
-		return {ready: state.ready, settings: list, problems: state.problems.slice(), meta: clone(state.raw.valuesMeta) || null};
+		return {ready: state.ready, scope, doc, settings: list, problems: state.problems.slice(), meta: clone(state.raw.valuesMeta) || null};
 	}
 
 	// Writes a validated patch (db: a Firestore instance) and logs the changed names to admin/settings/log.
@@ -188,7 +200,7 @@ function create(options){
 		if(!state.ready) return Promise.reject(new SettingError('SETTINGS_NOT_READY', 'values', 'Settings are not loaded yet.'));
 		let {errors, values} = validate(patch);
 		if(errors.length) return Promise.reject({status: 400, errors});
-		let ref = db.doc(DOC);
+		let ref = db.doc(doc);
 		let keys = Object.keys(values).sort();
 		return db.runTransaction(t=>t.get(ref).then(s=>{
 			let cur = (s.exists && s.data().values) || {};
@@ -198,7 +210,7 @@ function create(options){
 			// update replaces the whole values map (a merge would keep unset keys).
 			if(s.exists) t.update(ref, {values: next, valuesMeta: meta});
 			else t.set(ref, {values: next, valuesMeta: meta});
-			t.set(db.collection(`${DOC}/log`).doc(), {at: new Date(), by: uid, keys, unset: keys.filter(k=>values[k] === null)});
+			t.set(db.collection(`${DOC}/log`).doc(), {at: new Date(), by: uid, scope, keys, unset: keys.filter(k=>values[k] === null)});
 		})).then(()=>({saved: keys}));
 	}
 
@@ -208,7 +220,7 @@ function create(options){
 	function watch(db){
 		if(watching) return;
 		watching = true;
-		db.doc(DOC).onSnapshot(s=>{ failed = false; load(s.exists ? s.data() : {}); }, e=>{
+		db.doc(doc).onSnapshot(s=>{ failed = false; load(s.exists ? s.data() : {}); }, e=>{
 			log.error && log.error('SETTINGS_WATCH_FAILED', e && e.message);
 			failed = true;
 			watching = false;
@@ -233,16 +245,26 @@ function create(options){
 		if(state.ready) fn(state.raw);
 	}
 
-	return {load, get, publicValues, validate, describe, write, watch, ready, onChange, raw: ()=>state.raw, problems: ()=>state.problems.slice(), isReady: ()=>state.ready};
+	// Definitions (merged schema), for the page config builder and sub-site checks.
+	function definitions(){ return state.schema; }
+	function has(name){ return !!state.schema[name]; }
+
+	return {load, get, has, definitions, publicValues, validate, describe, write, watch, ready, onChange, scope, doc,
+		raw: ()=>state.raw, problems: ()=>state.problems.slice(), isReady: ()=>state.ready};
 }
 
-// Who may read and change settings in the admin page: root, admin.all or admin.settings
-// (the same roles the Firestore rule for admin/settings allows).
-function canManage(roles){
+// Who may read and change settings in the admin page: root, admin.all, or the scope's admin role
+// (admin.settings for site settings and sub-sites, admin.studio for studio), as the Firestore rules allow.
+function canManage(roles, scope){
 	if(!roles) return false;
 	let root = roles.root, admin = roles.admin;
-	return root === true || !!(root && root.all) || !!(admin && (admin.all === true || admin.settings === true));
+	let role = scope == 'studio' ? 'studio' : 'settings';
+	return root === true || !!(root && root.all) || !!(admin && (admin.all === true || admin[role] === true));
 }
 
-let shared = null;
-module.exports = {create, canManage, coerce, checkDef, SettingError, DOC, CORE, TYPES, get shared(){ return shared || (shared = create()); }};
+const STUDIO_DOC = 'admin/studio';
+let shared = null, studio = null;
+module.exports = {create, canManage, coerce, checkDef, SettingError, named, DOC, STUDIO_DOC, CORE, TYPES,
+	get shared(){ return shared || (shared = create()); },
+	// Studio settings: their own doc (admin/studio), all definitions in its schema map.
+	get studio(){ return studio || (studio = create({doc: STUDIO_DOC, core: {}, scope: 'studio'})); }};

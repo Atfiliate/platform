@@ -59,6 +59,10 @@ if(setupMode){
 	var shell = require("./cloud/shell.js");
 
 	var siteSettings = require("./cloud/settings.js").shared;
+	var studioSettings = require("./cloud/settings.js").studio;
+	var sites = require("./cloud/sites.js").shared;
+	var siteConfig = require("./cloud/siteConfig.js").shared;
+	siteConfig.setProjectGetter(auto.getProject);
 
 	let $settings = {subSite: {}};
 
@@ -66,8 +70,11 @@ if(setupMode){
 	siteSettings.onChange(raw=>{
 		$settings = Object.assign({}, raw, {subSite: (raw && raw.subSite) || {}});
 	});
-	if(getApps().length)
+	if(getApps().length){
 		siteSettings.watch(getFirestore());
+		studioSettings.watch(getFirestore());
+		sites.watch(getFirestore());
+	}
 
 	auto.startup();
 	auto.cache();
@@ -105,24 +112,13 @@ if(setupMode){
 		if(request.query.rootSetup){
 			response.render('pages/setup');
 		}else siteSettings.ready(3000).then(()=>{
-			let config = {};
-			Object.assign(config, Config);
+			// One config per host (cloud/siteConfig.js): env mode as before; settings mode merges
+			// defaults, admin/settings values, the sub-site's overrides and the page title.
 			let siteProject = shell.project(auto.getProject, 'site');
 			let site = shell.read(siteProject);
-			shell.brand(config, site);
-			let settings = $settings.subSite[request.headers.host];
-			if(settings)
-				Object.assign(config, settings);
-				
 			let project = auto.getProject(request.params.view, request.query.v);
-			if(project?.page?.title)
-				config.title = project.page.title;
-			if(project?.page?.description)
-				config.description = project.page.description;
-			
-			
 			let env = environment();
-			config.environment = env;
+			let config = siteConfig.page(String(request.headers.host || '').toLowerCase(), project, env);
 			
 			app.render('pages/index', {config, shell: shell.locals(siteProject, site), env: {name: env, beta: env == 'beta'}}, (e, html)=>{
 				if(e)
@@ -172,13 +168,16 @@ if(setupMode){
 	app.post('/project/cloud/:cloud', cloudBody, auto.project);
 	
 	// Phase 0: root/admin-only health check and dry-run install plan (names only, read-only).
-	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>getAuth(), env: process.env, settings: siteSettings});
+	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>getAuth(), env: process.env, settings: siteSettings, studio: studioSettings, sites, siteConfig});
 	app.get('/__core/health', health.route('health'));
 	app.get('/__core/install/plan', health.route('plan'));
 
-	// Site settings for the admin page (root, admin.all or admin.settings).
+	// Settings for the admin page: ?scope=site (admin/settings; root, admin.all or admin.settings),
+	// studio (admin/studio; admin.studio) or sites (admin/settings/sites/{host}; admin.settings).
 	var settingsRoute = require('./cloud/settingsRoute.js').create({
 		settings: siteSettings,
+		studio: studioSettings,
+		sites,
 		auth: ()=>getAuth(),
 		getRoles: uid=>getFirestore().collection('roles').doc(uid).get().then(s=>s.exists ? s.data() : null),
 		db: ()=>getFirestore()
