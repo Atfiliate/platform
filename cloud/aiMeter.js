@@ -608,26 +608,14 @@ async function setLimit(deps, rawInput) {
 
 // Admin SDK, same lookup cloud/auto.js uses. Call-time so init order does not matter.
 // Tests inject a db through deps or _useDb and never need this.
-let firebaseAdmin = null;
-let firebaseAdminMissing = false;
+const {getApps} = require('firebase-admin/app');
+const {getFirestore} = require('firebase-admin/firestore');
+const {getAuth} = require('firebase-admin/auth');
 let dbOverride = null;
 
 function defaultDb() {
 	if (dbOverride) return dbOverride;
-	if (firebaseAdminMissing) return null;
-	if (!firebaseAdmin) {
-		try {
-			firebaseAdmin = require('firebase-admin');
-		} catch (e) {
-			firebaseAdminMissing = true;
-			return null;
-		}
-	}
-	try {
-		if (firebaseAdmin.apps && firebaseAdmin.apps.length)
-			return firebaseAdmin.firestore();
-	} catch (e) {}
-	return null;
+	return getApps().length ? getFirestore() : null;
 }
 
 const sharedPricesCache = { at: 0, value: null };
@@ -710,18 +698,9 @@ function tokenFromRequest(request) {
 
 async function verifyIdToken(token) {
 	if (verifyOverride) return verifyOverride(token);
-	let fb = firebaseAdmin;
-	if (!fb) {
-		try {
-			fb = require('firebase-admin');
-			firebaseAdmin = fb;
-		} catch (e) {
-			throw coded('auth unavailable', 'auth');
-		}
-	}
-	if (!fb.auth || typeof fb.auth !== 'function')
+	if (!getApps().length)
 		throw coded('auth unavailable', 'auth');
-	return fb.auth().verifyIdToken(token);
+	return getAuth().verifyIdToken(token);
 }
 
 async function uidFromRequest(request) {

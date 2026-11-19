@@ -1,5 +1,4 @@
-// The site project lives at the fixed home dev/site (doc id == projectId). Until a
-// site has that doc, the starred 'site' version is used and FIXED_ID_FALLBACK is logged.
+// The site project lives at the fixed home dev/site (doc id == projectId 'site'). Nothing else is used.
 // Cloud handlers named '__<name>' (double underscore) are startup functions: dev/site runs them
 // at boot, and no project serves them over HTTP. A single '_<name>' handler is a normal endpoint.
 // /cloud/:name and /component/:name are served only from the site project.
@@ -7,19 +6,10 @@ const SITE_PROJECT = 'site';
 const WARN_EVERY_MS = 10 * 60 * 1000;
 let lastWarn = {};
 
-// get: a getProject-style lookup, get(projectId, vid) or get(projectId) for the starred one.
-function fixed(get, id){
-	let proj = get(id, id);
-	if(proj) return proj;
-	proj = get(id);
-	if(proj) warn('FIXED_ID_FALLBACK', 'dev', id);
-	return proj || null;
-}
+// The site project from the dev cache: dev/site only.
 function siteProject(filecache){
-	return fixed((id, vid)=>{
-		let entry = filecache && filecache[id];
-		return entry ? (vid ? entry.snaps && entry.snaps[vid] : entry.default) : null;
-	}, SITE_PROJECT);
+	let entry = filecache && filecache[SITE_PROJECT];
+	return (entry && entry.snaps && entry.snaps[SITE_PROJECT]) || null;
 }
 
 const STARTUP_PREFIX = '__';
@@ -31,33 +21,26 @@ function startup(doc){
 		.map(([name, item])=>({name, code: item.code}));
 }
 
-// kind: 'cloud' | 'component'. Components also match the legacy name_ext form.
+// kind: 'cloud' | 'component'. Names match exactly.
 function find(filecache, kind, name){
 	if(kind == 'cloud' && isStartup(name))
 		return null;
 	let proj = siteProject(filecache);
 	if(!proj || !proj[kind] || !name)
 		return null;
-	let names = [name];
-	if(kind == 'component'){
-		let underscored = name.split('.').join('_');
-		if(underscored != name) names.push(underscored);
-	}
-	for(let n of names){
-		let item = proj[kind][n];
-		if(item && typeof item.code == 'string' && item.code)
-			return {name: n, item, vid: proj.id};
-	}
+	let item = proj[kind][name];
+	if(item && typeof item.code == 'string' && item.code)
+		return {name, item, vid: proj.id};
 	return null;
 }
 
-// Extension-based, checked json/css before js (the legacy check serves *_json as JS).
+// By file extension only.
 function contentType(name){
 	let n = String(name || '').toLowerCase();
-	if(/[._]json$/.test(n)) return 'application/json';
-	if(/[._]css$/.test(n)) return 'text/css';
-	if(/[._]js$/.test(n)) return 'application/javascript';
-	if(/[._]html$/.test(n)) return 'text/html; charset=utf-8';
+	if(/\.json$/.test(n)) return 'application/json';
+	if(/\.css$/.test(n)) return 'text/css';
+	if(/\.(m?js)$/.test(n)) return 'application/javascript';
+	if(/\.html$/.test(n)) return 'text/html; charset=utf-8';
 	return null;
 }
 
@@ -75,4 +58,4 @@ function resetWarnings(){
 	lastWarn = {};
 }
 
-module.exports = {SITE_PROJECT, STARTUP_PREFIX, fixed, siteProject, isStartup, startup, find, contentType, warn, resetWarnings};
+module.exports = {SITE_PROJECT, STARTUP_PREFIX, siteProject, isStartup, startup, find, contentType, warn, resetWarnings};

@@ -8,7 +8,6 @@
 // Shell 2 without app.js in the site project: named warning MISSING_CLIENT, shell 1 is used.
 const SHARED_BASE = '//a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;';
 const CORE_BASE = '/project/site/component/';
-const {fixed} = require('./siteRoute.js');
 let warned = {};
 
 function warnOnce(code, detail){
@@ -76,8 +75,8 @@ function locals(project, site){
 	};
 }
 
-// The project at its fixed home dev/{id}; get is auto.getProject.
-function project(get, id){ return fixed(get, id); }
+// The project at its fixed home dev/{id} (doc id == projectId); get is auto.getProject.
+function project(get, id){ return get(id, id) || null; }
 
 function resetWarnings(){ warned = {}; }
 

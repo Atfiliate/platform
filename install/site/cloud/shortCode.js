@@ -16,6 +16,6 @@ js = {
 			return response.status(404).send({error: 'Short code not found'});
 		response.redirect(302, link);
 		if(shortCode.$fire && shortCode.$fire.update)
-			shortCode.$fire.update({'_rate.usage': firebase.firestore.FieldValue.increment(1)}).catch(e=>console.log('shortCode usage update failed', id));
+			shortCode.$fire.update({'_rate.usage': FieldValue.increment(1)}).catch(e=>console.log('shortCode usage update failed', id));
 	}
 }

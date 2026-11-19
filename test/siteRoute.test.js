@@ -8,14 +8,12 @@ const tests = [];
 const test = (name, fn)=>tests.push({name, fn});
 
 // ---- stubs ----
-let rtdbCalls = 0;
 let siteDoc = null; // what dev/site returns to auto.startup()
 let devListener = null;
 let mstore = {};
 const tokens = {devTok: 'dev1', userTok: 'user1', rootTok: 'root1'};
 const roleDocs = {dev1: {developer: {groups: true}}, user1: {admin: {all: false}}, root1: {root: true}};
-const stubs = {
-	'firebase-admin': {
+const fake = {
 		apps: [{}],
 		firestore: ()=>({
 			collection: (p)=>({
@@ -28,12 +26,16 @@ const stubs = {
 			// admin/settings without subSite (as on sites that never set one): cloud() must not throw
 			doc: (p)=>({get: ()=>Promise.resolve({id: p.split('/').pop(), ref: {}, exists: true, data: ()=>({})})})
 		}),
-		database: ()=>{ rtdbCalls++; throw new Error('RTDB must not be used'); },
-		auth: ()=>({verifyIdToken: (t)=>tokens[t] ? Promise.resolve({uid: tokens[t]}) : Promise.reject(new Error('bad token'))})
-	},
+			auth: ()=>({verifyIdToken: (t)=>tokens[t] ? Promise.resolve({uid: tokens[t]}) : Promise.reject(new Error('bad token'))})
+};
+const stubs = {
+	// Only the modular API exists (firebase-admin 14); loading the namespace entry point is a test failure.
+	'firebase-admin': new Proxy({}, {get: (t, k)=>{ throw new Error('firebase-admin namespace used: ' + String(k)); }}),
+	'firebase-admin/app': {getApps: ()=>fake.apps, getApp: ()=>({}), initializeApp: ()=>{}, cert: ()=>({})},
+	'firebase-admin/firestore': {getFirestore: ()=>fake.firestore(), FieldValue: {delete: ()=>({$delete: true}), increment: n=>({$increment: n})}, FieldPath: {documentId: ()=>'__name__'}, Timestamp: {}, GeoPoint: function(){}},
+	'firebase-admin/auth': {getAuth: ()=>fake.auth ? fake.auth() : {}},
+	'firebase-admin/storage': {getStorage: ()=>({})},
 	'firebase-admin/messaging': {getMessaging: ()=>({})},
-	'request': function(){},
-	'request-promise': function(){},
 	'cloudinary': {config: ()=>{}, v2: {}},
 	'moment-timezone': function(){},
 	'memory-cache': {get: k=>mstore[k], put: (k, v)=>{ mstore[k] = v; }}
@@ -150,9 +152,12 @@ test('site project: components resolve with correct content types', async ()=>{
 	let sw = await call('component', {path: 'firebase-sw.js'});
 	assert.strictEqual(sw.headers['content-type'], 'application/javascript');
 	assert.strictEqual(sw.headers['x-core-source'], 'site');
-	let old = await call('component', {path: 'old.html'});
-	assert.strictEqual(old.body, '<p>');
-	assert.deepStrictEqual(warnings, []);
+	let exact = await call('component', {path: 'old_html'});
+	assert.strictEqual(exact.body, '<p>');
+	assert.strictEqual(exact.headers['content-type'], undefined);
+	let mapped = await call('component', {path: 'old.html'});
+	assert.strictEqual(mapped.status, 404, 'no name_ext mapping: old.html is not old_html');
+	warnings = [];
 });
 
 test('site project: a handler that throws gets a generic 500 (no error details sent)', async ()=>{
@@ -210,21 +215,16 @@ test('fixed id: dev/site wins over another starred site version', async ()=>{
 		{id: 'other', projectId: 'site', stage: 'prod', default: true, cloud: {hello: {code: cloudCode('other hello')}}}]);
 	let r = await call('cloud', {path: 'hello'});
 	assert.strictEqual(r.body, 'site hello');
-	assert.ok(!warnings.some(w=>w.startsWith('FIXED_ID_FALLBACK')));
 });
 
-test('fixed id: without dev/{id} the starred version is used with a named warning', ()=>{
+test('fixed id: without dev/site nothing is served (no starred-version fallback)', async ()=>{
 	reset();
-	let starred = {id: 'r4nd0m', projectId: 'core'};
-	let get = (id, vid)=>vid ? undefined : (id == 'core' ? starred : undefined);
-	assert.strictEqual(siteRoute.fixed(get, 'core'), starred);
-	assert.ok(warnings.includes('FIXED_ID_FALLBACK dev/core'));
-	warnings = [];
-	assert.strictEqual(siteRoute.fixed(get, 'site'), null);
-	assert.deepStrictEqual(warnings, []);
-	let fixedDoc = {id: 'core'};
-	assert.strictEqual(siteRoute.fixed((id, vid)=>vid == 'core' ? fixedDoc : starred, 'core'), fixedDoc);
-	assert.deepStrictEqual(warnings, []);
+	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: false, cloud: {}, component: {}},
+		{id: 'other', projectId: 'site', stage: 'prod', default: true, cloud: {hello: {code: cloudCode('other hello')}}}]);
+	assert.strictEqual(siteRoute.siteProject({site: {default: {id: 'other'}, snaps: {other: {id: 'other'}}}}), null);
+	let r = await call('cloud', {path: 'hello'});
+	assert.strictEqual(r.body, 'No path found.');
+	assert.ok(!warnings.some(w=>w.startsWith('FIXED_ID_FALLBACK')));
 });
 
 test("'__' cloud handlers are never served: 404 STARTUP_NOT_SERVED on the legacy route and on every project", async ()=>{
@@ -297,11 +297,21 @@ test('warnings are rate-limited per item', ()=>{
 	assert.strictEqual(siteRoute.warn('LEGACY_FALLBACK', 'cloud', 'x', 1000 + 11 * 60 * 1000), true);
 });
 
-test('core never calls the Realtime Database', ()=>{
-	assert.strictEqual(rtdbCalls, 0);
+test('core never calls the Realtime Database, the firebase-admin namespace or the request library', ()=>{
 	const fs = require('fs');
 	for(const f of ['cloud/auto.js', 'cloud/fire.js', 'cloud/siteRoute.js', 'cloud/shell.js', 'index.js', 'views/partials/scripts.ejs', 'views/pages/setup.ejs'])
 		assert.ok(!/\.database\(|firebase-database|angularfire|databaseURL/i.test(fs.readFileSync(path.join(__dirname, '..', f), 'utf8')), f);
+	const code = ['cloud/auto.js', 'cloud/fire.js', 'cloud/aiMeter.js', 'cloud/health.js', 'index.js', 'install/apply.js']
+		.concat(fs.readdirSync(path.join(__dirname, '../install/site/cloud')).map(f=>'install/site/cloud/' + f));
+	for(const f of code){
+		let src = fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+		assert.ok(!/require\(\s*['"]firebase-admin['"]\s*\)/.test(src), f + ' loads the firebase-admin namespace');
+		assert.ok(!/require\(\s*['"]request(-promise)?['"]\s*\)/.test(src), f + ' loads the request library');
+		assert.ok(!/(?<![\w.])firebase\.(firestore|auth|messaging|storage|apps|app|initializeApp|credential)\b/.test(src), f + ' uses firebase.* namespace calls');
+	}
+	const pkg = require('../package.json');
+	for(const dep of ['request', 'request-promise']) assert.ok(!pkg.dependencies[dep], dep + ' is still a dependency');
+	assert.ok(/^14\./.test(pkg.dependencies['firebase-admin']));
 });
 
 (async ()=>{

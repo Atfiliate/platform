@@ -3,9 +3,12 @@ var bodyParser = require('body-parser');
 var busboy = require('connect-busboy');
 var compression = require('compression');
 var multer = require('multer');
-var request = require('request');
+var {Readable} = require('stream');
 
 var app = express();
+
+// A cloud handler that forgets a .catch() must not take the whole server down.
+process.on('unhandledRejection', e=>console.error('Unhandled rejection:', e && (e.stack || e.message) || e));
 
 let Config = {};
 if(process.env.config){
@@ -48,15 +51,17 @@ if(setupMode){
 		res.render('pages/setup');
 	});
 }else{
-	var firebase = require("firebase-admin");
+	var {getApps} = require('firebase-admin/app');
+	var {getFirestore} = require('firebase-admin/firestore');
+	var {getAuth} = require('firebase-admin/auth');
 	var fire = require("./cloud/fire.js");
 	var auto = require("./cloud/auto.js");
 	var shell = require("./cloud/shell.js");
 
 	let $settings = {subSite: {}};
 
-	if(firebase.apps.length){
-		let db = firebase.firestore();
+	if(getApps().length){
+		let db = getFirestore();
 		db.collection('admin').doc('settings')
 		.onSnapshot((doc)=>{
 			let s = doc.data() || {};
@@ -71,9 +76,21 @@ if(setupMode){
 
 	app.use(auto.FireMiddleware);
 
-	app.use('/__/auth/', (req, res) => {
-		const url = `https://${Config.firebase.projectId}.firebaseapp.com${req.url}`;
-		req.pipe(request(url)).pipe(res);
+	// Firebase Auth helper pages (/__/auth/*) served from this domain, so sign-in redirects stay same-origin.
+	app.get('/__/auth/*path', (req, res) => {
+		const url = `https://${Config.firebase.projectId}.firebaseapp.com${req.originalUrl}`;
+		fetch(url, {redirect: 'manual'}).then(r=>{
+			res.status(r.status);
+			['content-type', 'cache-control', 'location', 'content-security-policy', 'x-frame-options'].forEach(h=>{
+				let v = r.headers.get(h);
+				if(v) res.setHeader(h, v);
+			});
+			if(!r.body) return res.end();
+			Readable.fromWeb(r.body).on('error', ()=>res.end()).pipe(res);
+		}).catch(e=>{
+			console.log('Auth helper fetch failed', e && e.message);
+			if(!res.headersSent) res.status(502).send('Auth helper unavailable');
+		});
 	});
 	
 	function renderApp(request, response){
@@ -144,7 +161,7 @@ if(setupMode){
 	app.post('/project/cloud/:cloud', cloudBody, auto.project);
 	
 	// Phase 0: root/admin-only health check and dry-run install plan (names only, read-only).
-	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>firebase.auth(), env: process.env});
+	var health = require('./cloud/health.js').create({Fire: auto.Fire, auth: ()=>getAuth(), env: process.env});
 	app.get('/__core/health', health.route('health'));
 	app.get('/__core/install/plan', health.route('plan'));
 

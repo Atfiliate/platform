@@ -1,13 +1,15 @@
-var firebase	= require('firebase-admin');
+// Starts the default Firebase app from env config (projectId) and googleJson (service account).
+const {initializeApp, cert} = require('firebase-admin/app');
+const {getFirestore} = require('firebase-admin/firestore');
 
 if(process.env.config){
 	let config = JSON.parse(process.env.config);
 	if(config?.firebase?.projectId){
-		firebase.initializeApp({
+		initializeApp({
 			projectId: config.firebase.projectId,
-			credential: firebase.credential.cert(JSON.parse(process.env.googleJson))
+			credential: cert(JSON.parse(process.env.googleJson))
 		});
-		firebase.firestore().settings({ignoreUndefinedProperties:true});
+		getFirestore().settings({ignoreUndefinedProperties: true});
 	}else{
 		console.log('Firebase projectId not listed in config.')
 	}

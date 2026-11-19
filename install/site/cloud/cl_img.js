@@ -12,7 +12,7 @@ js = {
 		if(!jwt)
 			return response.status(401).send({error: 'Sign-in required'});
 		try{
-			await firebase.auth().verifyIdToken(jwt);
+			await getAuth().verifyIdToken(jwt);
 		}catch(e){
 			return response.status(401).send({error: 'Invalid sign-in token'});
 		}

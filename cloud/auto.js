@@ -1,11 +1,14 @@
-var firebase	= require('firebase-admin');
-var { getMessaging } = require('firebase-admin/messaging');
-var request		= require('request');
-var http		= require('request-promise');
+// In scope for Firestore cloud handlers: their code is eval'd in this file.
+// firebase-admin is used through its modular API only (no `firebase` namespace in scope).
+const {getApps, getApp, initializeApp, cert} = require('firebase-admin/app');
+const {getFirestore, FieldValue, FieldPath, Timestamp, GeoPoint} = require('firebase-admin/firestore');
+const {getAuth} = require('firebase-admin/auth');
+const {getMessaging} = require('firebase-admin/messaging');
+const {getStorage} = require('firebase-admin/storage');
+const {http} = require('./http.js');
 var cloudinary	= require('cloudinary');
 var moment		= require('moment-timezone');
 var mcache		= require('memory-cache');
-// In scope for Firestore cloud handlers: their code is eval'd in this file.
 var aiMeter		= require('./aiMeter.js');
 var siteRoute	= require('./siteRoute.js');
 var access		= require('./access.js');
@@ -19,8 +22,8 @@ if(process.env.config)
 config.email = config.email || process.env.systemEmail;
 
 
-if(firebase.apps.length)
-	db			= firebase.firestore();
+if(getApps().length)
+	db			= getFirestore();
 
 if(process.env.cloudinaryName)
 	cloudinary.config({
@@ -266,7 +269,7 @@ let Fire = function(path, cdg){
 				Fire.ct.write++;
 				Object.keys(attrObj).forEach(function(k){
 					if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
-						attrObj[k] = firebase.firestore.FieldValue.delete();
+						attrObj[k] = FieldValue.delete();
 						pathValue(d, k, '_delete_');
 					}else{
 						pathValue(d, k, attrObj[k]);
@@ -403,7 +406,7 @@ let Fire = function(path, cdg){
 			Fire.ct.write++;
 			Object.keys(attrObj).forEach(function(k){
 				if(attrObj[k] === undefined || attrObj[k] === null || attrObj[k] === '' || attrObj[k] === '_delete_'){
-					attrObj[k] = firebase.firestore.FieldValue.delete();
+					attrObj[k] = FieldValue.delete();
 				}
 			})
 			attrObj.updatedOn = new Date();
@@ -688,7 +691,7 @@ if(db) db.collection(TPL_PATH).onSnapshot(qs=>{
 
 
 let developerAccess = access.create({
-	auth: ()=>firebase.auth(),
+	auth: ()=>getAuth(),
 	getRoles: uid=>db ? db.collection('roles').doc(uid).get().then(s=>s.exists ? s.data() : null) : Promise.resolve(null)
 });
 
@@ -844,7 +847,7 @@ module.exports = {
 			request.params.projId = 'root';
 		}
 		
-		if(firebase.apps.length === 0){
+		if(getApps().length === 0){
 			response.send('Firebase Not Setup');
 		}else if(request.params.component){
 			var cid = request.params.component;
@@ -854,21 +857,14 @@ module.exports = {
 			if(proj && proj.component)
 				component = proj.component[cid];
 			
-			if(component){	
-				if(cid.includes('_js') || cid.includes('.js'))
-					response.setHeader("Content-Type", 'application/javascript');
-				else if(cid.includes('_css') || cid.includes('.css'))
-					response.setHeader("Content-Type", 'text/css');
-				else if(cid.includes('_json') || cid.includes('.json'))
-					response.setHeader("Content-Type", 'application/json');
-	
-				try{
-					response.send(component.code);
-				}catch(e){
-					response.send(e)
-				}
+			if(component){
+				let type = siteRoute.contentType(cid);
+				if(type)
+					response.setHeader("Content-Type", type);
+				response.send(component.code);
 			}else{
-				response.send(`Component not found.`)
+				response.setHeader('X-Core-Error', 'COMPONENT_NOT_FOUND');
+				response.status(404).send(`Component not found.`)
 			}
 		}else if(request.params.cloud){
 			var cid = request.params.cloud;
@@ -914,10 +910,8 @@ module.exports = {
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
 				if(request.params.projId && request.query.v){
-					console.log(`*********************************** REQUESTING ${request.query.v} FOR ${request.params.projId} FROM DB ***********************************************************`)
-					console.log(Object.keys((pathValue(filecache, request.params.projId)||{})), Object.keys((pathValue(filecache, request.params.projId+'.snaps')||{})))
+					// Not in the cache yet (for example a version created a moment ago): read it once.
 					db.collection('dev').doc(String(request.query.v)).get().then(r=>{
-						// Only a version of the requested project (any other doc id is treated as missing).
 						if(r.exists && (r.data() || {}).projectId == request.params.projId){
 							proj = r.data();
 							proj.id = r.id;
@@ -925,12 +919,13 @@ module.exports = {
 							page.vid = proj.id;
 							response.send(page);
 						}else{
-							proj = pathValue(filecache, `${request.params.projId}.default`) || {};
-							page = proj.page = proj.page || {id: `${request.params.projId}Default`};
-							page.vid = proj.id;
-							response.send(page);
+							response.setHeader('X-Core-Error', 'VERSION_NOT_FOUND');
+							response.status(404).send({status: 'error', errors: [access.named('VERSION_NOT_FOUND', 'v', 'No such version of this project.')]});
 						}
-					})
+					}).catch(e=>{
+						console.log('Version read failed', e && e.message);
+						if(!response.headersSent) response.status(500).send({error: 'Version read failed'});
+					});
 				}else{
 					response.send('Invalid URL');
 				}

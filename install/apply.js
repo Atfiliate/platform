@@ -22,11 +22,11 @@ function arg(name){
 const has = (name)=>process.argv.includes(name);
 
 function firebaseApp(){
-	let admin = require('firebase-admin');
-	if(admin.apps.length) return admin;
-	let config = JSON.parse(process.env.config);
-	admin.initializeApp({projectId: config.firebase.projectId, credential: admin.credential.cert(JSON.parse(process.env.googleJson))});
-	return admin;
+	const {getApps, initializeApp, cert} = require('firebase-admin/app');
+	if(!getApps().length){
+		let config = JSON.parse(process.env.config);
+		initializeApp({projectId: config.firebase.projectId, credential: cert(JSON.parse(process.env.googleJson))});
+	}
 }
 
 function store(db){
@@ -50,8 +50,9 @@ async function main(){
 		process.exitCode = 2;
 		return;
 	}
-	let admin = firebaseApp();
-	let db = admin.firestore();
+	firebaseApp();
+	const {getFirestore} = require('firebase-admin/firestore');
+	let db = getFirestore();
 
 	if(process.argv[2] == 'export'){
 		let out = arg('--out');
@@ -67,7 +68,7 @@ async function main(){
 	let rootUid = arg('--root-uid');
 	let rootEmail = arg('--root-email');
 	if(!rootUid && rootEmail)
-		rootUid = (await admin.auth().getUserByEmail(rootEmail)).uid;
+		rootUid = (await require('firebase-admin/auth').getAuth().getUserByEmail(rootEmail)).uid;
 	let from = arg('--site-from');
 	let siteExport = from ? JSON.parse(fs.readFileSync(from, 'utf8')) : null;
 
@@ -76,7 +77,7 @@ async function main(){
 
 	if(has('--rules')){
 		let source = fs.readFileSync(path.join(__dirname, 'firestore.rules'), 'utf8');
-		let rules = admin.securityRules();
+		let rules = require('firebase-admin/security-rules').getSecurityRules();
 		let current = await rules.getFirestoreRuleset().catch(()=>null);
 		if(current && !has('--replace-rules'))
 			console.log('skip     rules          RULES_EXIST: this project already has rules; merge install/firestore.rules by hand or pass --replace-rules');

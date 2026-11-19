@@ -5,8 +5,7 @@ const Module = require('module');
 const path = require('path');
 
 let failRead = false;
-const stubs = {
-	'firebase-admin': {
+const fake = {
 		apps: [{}],
 		firestore: ()=>({
 			collection: ()=>({
@@ -15,11 +14,15 @@ const stubs = {
 			}),
 			doc: (p)=>({get: ()=>Promise.resolve({id: p, ref: {}, exists: true, data: ()=>({})})})
 		}),
-		database: ()=>({ref: ()=>({once: ()=>{}})})
-	},
+	};
+const stubs = {
+	// Only the modular API exists (firebase-admin 14); loading the namespace entry point is a test failure.
+	'firebase-admin': new Proxy({}, {get: (t, k)=>{ throw new Error('firebase-admin namespace used: ' + String(k)); }}),
+	'firebase-admin/app': {getApps: ()=>fake.apps, getApp: ()=>({}), initializeApp: ()=>{}, cert: ()=>({})},
+	'firebase-admin/firestore': {getFirestore: ()=>fake.firestore(), FieldValue: {delete: ()=>({$delete: true}), increment: n=>({$increment: n})}, FieldPath: {documentId: ()=>'__name__'}, Timestamp: {}, GeoPoint: function(){}},
+	'firebase-admin/auth': {getAuth: ()=>fake.auth ? fake.auth() : {}},
+	'firebase-admin/storage': {getStorage: ()=>({})},
 	'firebase-admin/messaging': {getMessaging: ()=>({})},
-	'request': function(){},
-	'request-promise': function(){},
 	'cloudinary': {config: ()=>{}},
 	'moment-timezone': function(){},
 	'memory-cache': {get: ()=>null, put: ()=>{}}

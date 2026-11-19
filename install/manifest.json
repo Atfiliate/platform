@@ -64,10 +64,6 @@
 				"feature": "Scheduled jobs run in local time"
 			},
 			{
-				"name": "cache",
-				"feature": "Legacy endpoint cache TTL"
-			},
-			{
 				"name": "gtag",
 				"feature": "Analytics tag in the page shell"
 			},
@@ -94,6 +90,14 @@
 			{
 				"name": "frameOptions",
 				"feature": "Send X-Frame-Options (DENY or SAMEORIGIN); off by default"
+			},
+			{
+				"name": "gptKey",
+				"feature": "OpenAI requests from site handlers (_gpt, administrator ai)"
+			},
+			{
+				"name": "googleVisionKey",
+				"feature": "Text detection in site handlers (vision, _vision)"
 			}
 		],
 		"configKeys": [

@@ -31,7 +31,7 @@ function tokenOf(request){
 	return typeof body.jwt == 'string' ? body.jwt : '';
 }
 
-// auth: ()=>firebase.auth(); getRoles: uid=>Promise<roles|null>
+// auth: ()=>getAuth(); getRoles: uid=>Promise<roles|null>
 function create({auth, getRoles}){
 	let requireDeveloper = (request, projectId)=>{
 		let token = tokenOf(request);
