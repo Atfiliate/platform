@@ -10,7 +10,7 @@ Site code is edited in the site itself (Ctrl+E) and stored as versions in `dev/*
 |---|---|
 | `/`, `/:view`, `/:view/:id` | Page shell (`views/`) with the site's brand from `dev/site` `site.json` |
 | `/component/:name`, `/cloud/:name` | The site project `dev/site` only. A missing site project serves nothing (no fixed-id or other fallback). |
-| `/project/:id`, `/project/:id/component/:name`, `/project/:id/cloud/:name` | The starred version of project `:id` (or `?v=<version id>`). An unknown `?v=` returns 404 `X-Core-Error: VERSION_NOT_FOUND`; a missing component returns 404 `COMPONENT_NOT_FOUND`. |
+| `/project/:id`, `/project/:id/component/:name`, `/project/:id/cloud/:name` | The starred version of project `:id` (or `?v=<version id>`). An unknown or malformed `?v=` (reserved `__name__` ids, anything outside `A-Z a-z 0-9 _ -`, over 128 chars) returns 404 `X-Core-Error: VERSION_NOT_FOUND`, and a malformed project id returns 404 `PROJECT_NOT_FOUND`, before the cache or Firestore is read; a missing component returns 404 `COMPONENT_NOT_FOUND`. |
 | `/__core/health`, `/__core/install/plan` | Root or admin.all only (Bearer ID token); names only |
 
 - **Site project:** `dev/site` (doc id and `projectId` both `site`, stage `prod`, starred). Its cloud handlers named `__<name>` (double underscore) run once at boot.
@@ -65,4 +65,4 @@ Optional names and the feature each one turns on are listed in `install/manifest
 npm ci
 npm test
 ```
-Tests stub the modular Firebase Admin entry points (requiring the `firebase-admin` root fails the tests); they need no network. Node 24 (`engines`). `npm audit` should report 0. Keep `package-lock.json` committed.
+Tests stub the modular Firebase Admin entry points (requiring the `firebase-admin` root fails the tests); they need no network. Node 24 (`engines`). `npm audit` should report 0. Install scripts are reviewed in `allowScripts` (the `protobufjs` and `@firebase/util` postinstalls are denied: one only prints a version warning, the other writes web-SDK defaults the server never uses). Keep `package-lock.json` committed.

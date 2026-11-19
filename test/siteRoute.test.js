@@ -314,6 +314,53 @@ test('core never calls the Realtime Database, the firebase-admin namespace or th
 	assert.ok(/^14\./.test(pkg.dependencies['firebase-admin']));
 });
 
+// ---- id validation: reserved or malformed ids never reach the cache or Firestore ----
+test('?v= with a reserved or malformed id: 404 VERSION_NOT_FOUND without a Firestore read', async ()=>{
+	reset();
+	await ready;
+	let saved = siteDoc;
+	siteDoc = new Error('Firestore must not be read'); // a read would turn into a 500
+	try{
+		for(const v of ['__no_such_version__', '__name__', 'a.b', 'a/b', 'x y', '', 'z'.repeat(129)].filter(Boolean)){
+			for(const params of [{projId: 'groups'}, {projId: 'groups', cloud: 'hi'}, {projId: 'groups', component: 'x.js'}]){
+				let r = await call('project', params, {query: {v}});
+				assert.strictEqual(r.status, 404, `${JSON.stringify(params)} v=${v.slice(0, 20)}`);
+				assert.strictEqual(r.headers['x-core-error'], 'VERSION_NOT_FOUND');
+			}
+		}
+		let r = await call('project', {projId: 'groups'}, {query: {v: ['a', 'b']}});
+		assert.strictEqual(r.status, 404);
+		assert.strictEqual(r.headers['x-core-error'], 'VERSION_NOT_FOUND');
+	}finally{ siteDoc = saved; }
+});
+
+test('malformed or reserved project id: 404 PROJECT_NOT_FOUND', async ()=>{
+	reset();
+	await ready;
+	for(const projId of ['__x__', 'a.b', 'a b', 'groups.snaps']){
+		let r = await call('project', {projId});
+		assert.strictEqual(r.status, 404, projId);
+		assert.strictEqual(r.headers['x-core-error'], 'PROJECT_NOT_FOUND');
+	}
+	assert.strictEqual(auto.getProject('__x__'), null);
+	assert.strictEqual(auto.getProject('groups', 'a.b'), null);
+});
+
+test('Firestore INVALID_ARGUMENT on a version read maps to 404 VERSION_NOT_FOUND', async ()=>{
+	reset();
+	await ready;
+	let saved = siteDoc;
+	siteDoc = Object.assign(new Error('3 INVALID_ARGUMENT: Document name is invalid'), {code: 3});
+	try{
+		let r = await call('project', {projId: 'groups'}, {query: {v: 'wellFormedButUnknown'}});
+		assert.strictEqual(r.status, 404);
+		assert.strictEqual(r.headers['x-core-error'], 'VERSION_NOT_FOUND');
+		siteDoc = new Error('network down');
+		r = await call('project', {projId: 'groups'}, {query: {v: 'wellFormedButUnknown2'}});
+		assert.strictEqual(r.status, 500); // other read errors stay 500
+	}finally{ siteDoc = saved; }
+});
+
 (async ()=>{
 	await ready;
 	let failed = 0;

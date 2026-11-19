@@ -701,6 +701,11 @@ function startupNotServed(response){
 	return response.status(404).send('Not found.');
 }
 
+function versionNotFound(response){
+	response.setHeader('X-Core-Error', 'VERSION_NOT_FOUND');
+	return response.status(404).send({status: 'error', errors: [access.named('VERSION_NOT_FOUND', 'v', 'No such version of this project.')]});
+}
+
 module.exports = {
 	Fire,
 	aiMeter,
@@ -826,8 +831,11 @@ module.exports = {
 		response.status(404).send('Component not found.');
 	},
 	getProject: function(projId, vid){
-		if(vid && vid != 'default' && vid != 'undefined')
+		if(!access.validId(projId)) return null;
+		if(vid && vid != 'default' && vid != 'undefined'){
+			if(!access.validId(vid)) return null;
 			return pathValue(filecache, `${projId}.snaps.${vid}`);
+		}
 		return pathValue(filecache, `${projId}.default`);
 	},
 	project: function(request, response){
@@ -846,6 +854,14 @@ module.exports = {
 			request.params.component = request.params.root;
 			request.params.projId = 'root';
 		}
+		// Ids are checked before the cache or Firestore is read.
+		if(!access.validId(request.params.projId)){
+			response.setHeader('X-Core-Error', 'PROJECT_NOT_FOUND');
+			return response.status(404).send({status: 'error', errors: [access.named('PROJECT_NOT_FOUND', 'projId', 'No such project.')]});
+		}
+		let vq = request.query.v;
+		if(vq !== undefined && vq !== '' && vq !== 'default' && vq !== 'undefined' && !access.validId(vq))
+			return versionNotFound(response);
 		
 		if(getApps().length === 0){
 			response.send('Firebase Not Setup');
@@ -919,12 +935,15 @@ module.exports = {
 							page.vid = proj.id;
 							response.send(page);
 						}else{
-							response.setHeader('X-Core-Error', 'VERSION_NOT_FOUND');
-							response.status(404).send({status: 'error', errors: [access.named('VERSION_NOT_FOUND', 'v', 'No such version of this project.')]});
+							versionNotFound(response);
 						}
 					}).catch(e=>{
+						if(response.headersSent) return;
+						// INVALID_ARGUMENT (gRPC 3): Firestore refused the id, so there is no such version.
+						if(e && (e.code === 3 || e.code === 'invalid-argument' || /INVALID_ARGUMENT/.test(e.message || '')))
+							return versionNotFound(response);
 						console.log('Version read failed', e && e.message);
-						if(!response.headersSent) response.status(500).send({error: 'Version read failed'});
+						response.status(500).send({error: 'Version read failed'});
 					});
 				}else{
 					response.send('Invalid URL');

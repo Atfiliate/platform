@@ -48,4 +48,10 @@ function create({auth, getRoles}){
 	return {requireDeveloper};
 }
 
-module.exports = {versionAccess, isDeveloper, tokenOf, create, named};
+// Project and version ids: Firestore-safe doc ids only. Reserved ids (__name__) and any other
+// character (., /, spaces, and so on) are refused before the cache or Firestore is read.
+function validId(v){
+	return typeof v == 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(v) && !/^__.*__$/.test(v);
+}
+
+module.exports = {versionAccess, isDeveloper, tokenOf, create, named, validId};

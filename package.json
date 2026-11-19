@@ -40,5 +40,9 @@
 	"overrides": {
 		"qs": "6.17.1",
 		"axios": "0.35.0"
+	},
+	"allowScripts": {
+		"@firebase/util": false,
+		"protobufjs": false
 	}
 }
