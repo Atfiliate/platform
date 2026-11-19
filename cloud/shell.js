@@ -1,12 +1,13 @@
 // Site shell settings. A site opts in to shell 2 with the site project's
 // component site.json: {"platform": {"shell": 2}, "brand": {...}, "theme": {...}}.
-// Shell 2 loads the core client from this app (/core/*) instead of the shared
-// remote copy, and takes title/favicon/description/colors from site.json brand/theme.
-// Shell 2 also renders site.json integrations (tracking tags) in the page head, and
-// "header": "default" uses the core header (/core/header.html) built from brand + nav.
+// Shell 2 loads the core client from this site's own starred 'core' project in
+// Firestore (/project/core/component/*), takes title/favicon/description/colors from
+// site.json brand/theme, and renders the site project's head.html into the page head.
+// "header": "default" uses the core project's header.html.
 // No site project, no site.json, invalid JSON or shell != 2: nothing changes.
+// Shell 2 without a core project: named warning MISSING_CORE_PROJECT, shell 1 is used.
 const SHARED_BASE = '//a.alphabetize.us/project/code/cloud/code/iZTQIVnPzPW7b2CzNUmO;WAEzasxjWZSggmwP3MER;';
-const LOCAL_BASE = '/core/';
+const CORE_BASE = '/project/core/component/';
 let warned = {};
 
 function warnOnce(code, detail){
@@ -55,32 +56,25 @@ function nav(site){
 		.map(n=>({label: n.label, href: n.href, auth: !!n.auth}));
 }
 
-// site.json integrations: {clarity: '<project id>', xPixel: '<pixel id>'}. Ids must be
-// plain tokens; anything else is dropped with a named warning (INVALID_INTEGRATION).
-const INTEGRATIONS = ['clarity', 'xPixel'];
-function integrations(site){
-	let src = (site && site.integrations) || {}, out = {};
-	for(let k of INTEGRATIONS){
-		if(src[k] == null || src[k] === '') continue;
-		if(typeof src[k] == 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(src[k])) out[k] = src[k];
-		else warnOnce('INVALID_INTEGRATION', k);
-	}
-	return out;
-}
-
 // View locals for head.ejs / scripts.ejs / index.ejs.
-function locals(project, site){
+// project: the starred site project; core: the starred core project (auto.getProject('core')).
+function locals(project, site, core){
 	let v = version(site);
-	let hasManifest = !!(project && project.component && project.component['manifest.json']);
+	if(v == 2 && !(core && core.component && core.component['app.js'])){
+		warnOnce('MISSING_CORE_PROJECT', 'shell 2 needs a starred core project; using shell 1');
+		v = 1;
+	}
+	let comp = (project && project.component) || {};
+	let head = comp['head.html'] && typeof comp['head.html'].code == 'string' ? comp['head.html'].code : '';
 	return {
 		version: v,
-		base: v == 2 ? LOCAL_BASE : SHARED_BASE,
-		manifest: v == 2 && hasManifest ? '/component/manifest.json' : null,
-		header: v == 2 && site.header == 'default' ? LOCAL_BASE + 'header.html' : null,
-		integrations: v == 2 ? integrations(site) : {}
+		base: v == 2 ? CORE_BASE : SHARED_BASE,
+		manifest: v == 2 && comp['manifest.json'] ? '/component/manifest.json' : null,
+		header: v == 2 && site.header == 'default' ? CORE_BASE + 'header.html' : null,
+		head: v == 2 ? head : ''
 	};
 }
 
 function resetWarnings(){ warned = {}; }
 
-module.exports = {SHARED_BASE, LOCAL_BASE, read, version, brand, nav, integrations, locals, resetWarnings};
+module.exports = {SHARED_BASE, CORE_BASE, read, version, brand, nav, locals, resetWarnings};

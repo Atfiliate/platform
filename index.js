@@ -83,7 +83,7 @@ if(setupMode){
 				config.description = project.page.description;
 			
 			
-			app.render('pages/index', {config, shell: shell.locals(siteProject, site)}, (e, html)=>{
+			app.render('pages/index', {config, shell: shell.locals(siteProject, site, auto.getProject('core'))}, (e, html)=>{
 				if(e)
 					return response.status(500).send(e.message || e);
 				response.send(html);
