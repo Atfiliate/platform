@@ -56,7 +56,8 @@ let warnings = [];
 const origWarn = console.warn;
 console.warn = (msg)=>warnings.push(String(msg));
 const origLog = console.log;
-console.log = ()=>{};
+let logs = [];
+console.log = (...a)=>logs.push(a.join(' '));
 
 const auto = require(path.join(__dirname, '../cloud/auto.js'));
 const siteRoute = require(path.join(__dirname, '../cloud/siteRoute.js'));
@@ -82,6 +83,7 @@ function call(fn, params, extra){
 const cloudCode = (txt)=>`{init: function(request, response){ response.send(${JSON.stringify(txt)}) }}`;
 function reset(){
 	warnings = [];
+	logs = [];
 	mstore = {};
 	siteRoute.resetWarnings();
 }
@@ -206,9 +208,12 @@ test("'_' cloud handlers are never served (legacy route or project route)", asyn
 	reset();
 	loadDev([{id: 'site', projectId: 'site', stage: 'prod', default: true,
 		cloud: {hello: {code: cloudCode('site hello')}, _boot: {code: cloudCode('boot ran')}}, component: {}}]);
+	rtdb.endpoints._boot = {code: cloudCode('legacy boot')};
 	let r = await call('cloud', {path: '_boot'});
-	assert.notStrictEqual(r.body, 'boot ran');
+	assert.strictEqual(r.body, 'No path found.');
 	assert.strictEqual(r.headers['x-core-error'], 'CLOUD_NOT_FOUND');
+	assert.ok(!warnings.some(w=>w.startsWith('LEGACY_FALLBACK cloud/_boot')), 'no RTDB fallback for _ names');
+	delete rtdb.endpoints._boot;
 	let p = await call('project', {projId: 'site', cloud: '_boot'});
 	assert.strictEqual(p.body, 'Cloud not found.');
 	let ok = await call('project', {projId: 'site', cloud: 'hello'});
@@ -229,6 +234,7 @@ test('boot runs dev/site _ handlers and skips RTDB startupfns', async ()=>{
 	rtdb.startupfns = {legacy: {code: bootCode('legacy')}};
 	auto.startup(); await tick();
 	assert.deepStrictEqual(global.__boot, ['site one']);
+	assert.ok(logs.includes('STARTUP site _one ok'));
 	assert.ok(!warnings.some(w=>w.startsWith('LEGACY_FALLBACK startup')));
 });
 
@@ -238,6 +244,7 @@ test('boot falls back to RTDB startupfns with LEGACY_FALLBACK when dev/site has 
 		siteDoc = doc;
 		auto.startup(); await tick();
 		assert.deepStrictEqual(global.__boot, ['legacy']);
+		assert.ok(logs.includes('STARTUP rtdb legacy ok'));
 		assert.ok(warnings.includes('LEGACY_FALLBACK startup/startupfns'));
 	}
 });

@@ -702,12 +702,13 @@ module.exports = {
 	startup: ()=>{
 		if(db){
 			console.log('STARTUP-F(N)S----------> ');
-			let run = (key, code)=>{
+			let run = (key, code, from)=>{
 				try{
 					var js; eval('js = '+code)
-					if(js && js.init)
+					if(js && js.init){
 						js.init();
-					else
+						console.log(`STARTUP ${from} ${key} ok`);
+					}else
 						console.log(`JS had no init function: ${key}`);
 				}catch(e){
 					console.log(`Error running startup function: ${key}`);
@@ -718,12 +719,12 @@ module.exports = {
 			let legacy = ()=>{
 				console.warn('LEGACY_FALLBACK startup/startupfns');
 				firebase.database().ref('site/private/startupfns').once('value', function(snapshot){
-					snapshot.forEach(snap=>run(snap.key, (snap.val() || {}).code));
+					snapshot.forEach(snap=>run(snap.key, (snap.val() || {}).code, 'rtdb'));
 				});
 			};
 			db.collection('dev').doc(siteRoute.SITE_PROJECT).get().then(s=>{
 				let fns = siteRoute.startup(s.exists ? s.data() : null);
-				fns.length ? fns.forEach(f=>run(f.name, f.code)) : legacy();
+				fns.length ? fns.forEach(f=>run(f.name, f.code, 'site')) : legacy();
 			}).catch(e=>{ console.log('Startup: site project read failed', e?.message || e); legacy(); });
 		}
 	},
@@ -784,6 +785,10 @@ module.exports = {
 				response.send(e);
 			}
 			return;
+		}
+		if(siteRoute.isStartup(path)){ // startup functions are never endpoints: no RTDB fallback
+			response.setHeader('X-Core-Error', 'CLOUD_NOT_FOUND');
+			return response.send('No path found.');
 		}
 		siteRoute.warn('LEGACY_FALLBACK', 'cloud', path);
 		var code = mcache.get(path)
