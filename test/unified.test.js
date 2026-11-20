@@ -229,3 +229,26 @@ test('page: settings-mode config renders; </script> and </style> in values canno
 	assert.strictEqual(cfg.title, 'A</script><b>x');
 	assert.deepStrictEqual(cfg.firebase, FB);
 });
+
+test('sender name, primary-color text contrast and add-on signing key are typed settings', ()=>{
+	const jwk = {kty: 'RSA', alg: 'PS256', e: 'AQAB', n: 'abc', key_ops: ['verify'], ext: true};
+	let {sc, settings} = build({values: Object.assign({}, migrated, {systemEmailName: 'Main Site', colorPrimaryContrast: 'light', addonPublicKey: jwk}),
+		sites: [Object.assign({}, subDoc, {overrides: Object.assign({}, subDoc.overrides, {systemEmailName: 'Sub Site', colorPrimaryContrast: 'dark'})})]});
+	assert.strictEqual(sc.systemSender(null), 'Main Site <system@main.example>');
+	assert.strictEqual(sc.systemSender('sub.example'), 'Sub Site <hello@sub.example>');
+	let main = sc.page('main.example', null);
+	assert.strictEqual(main.color.customPrimary.contrastDefaultColor, 'light');
+	assert.strictEqual(main.color.primary, 'indigo');
+	assert.deepStrictEqual(main.publicKey, jwk);
+	assert.strictEqual(sc.page('sub.example', null).color.customPrimary.contrastDefaultColor, 'dark');
+	// no name: the address alone
+	assert.strictEqual(build({values: migrated}).sc.systemSender(null), 'system@main.example');
+	// env mode: env systemEmail as is
+	assert.strictEqual(build({}).sc.systemSender(null), 'env@main.example');
+	// invalid values are named errors
+	let bad = settings.validate({systemEmailName: 'A <b@c.d>', colorPrimaryContrast: 'grey', systemEmail: 'Name <a@b.c>'});
+	const names = bad.errors.map(e=>e.name);
+	for(const n of ['systemEmailName', 'colorPrimaryContrast', 'systemEmail']) assert.ok(names.includes(n), n + ' ' + JSON.stringify(bad.errors));
+	// a private JWK (signing key) is refused
+	assert.ok(settings.validate({addonPublicKey: Object.assign({d: 'secret'}, jwk)}).errors.some(e=>e.name == 'addonPublicKey'));
+});

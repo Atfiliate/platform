@@ -77,6 +77,14 @@ function create(opts){
 		return v || null;
 	}
 
+	// The From value for system email: "Name <address>" when a sender name is set, else the address. env mode: env systemEmail as is.
+	function systemSender(host){
+		let address = systemEmail(host);
+		if(mode() == 'env' || !address) return address;
+		let name = value('systemEmailName', host);
+		return name ? `${name} <${address}>` : address;
+	}
+
 	// The page config for a request host; page: the project being shown (title/description win).
 	function page(host, project, environment){
 		let {site} = siteJson();
@@ -141,7 +149,7 @@ function create(opts){
 		return {errors, warnings};
 	}
 
-	return {mode, page, server, value, systemEmail, originFor, problems, setProjectGetter: fn=>{ getProject = fn; }, PRIVATE_SUBSITE};
+	return {mode, page, server, value, systemEmail, systemSender, originFor, problems, setProjectGetter: fn=>{ getProject = fn; }, PRIVATE_SUBSITE};
 }
 
 let shared = null;

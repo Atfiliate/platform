@@ -9,7 +9,9 @@
 const CORE = require('../install/settings.schema.json').settings;
 
 const DOC = 'admin/settings';
-const TYPES = ['string', 'text', 'number', 'integer', 'boolean', 'enum', 'list', 'url', 'email', 'json'];
+const TYPES = ['string', 'text', 'number', 'integer', 'boolean', 'enum', 'list', 'url', 'email', 'json', 'jwk'];
+// jwk: a PUBLIC JSON Web Key only. Private members are refused, so a signing key can never be stored as a setting or reach the page.
+const JWK_PRIVATE = ['d', 'p', 'q', 'dp', 'dq', 'qi', 'oth', 'k'];
 const KEY = /^[A-Za-z][A-Za-z0-9_]{0,63}$/;
 const DEF_KEYS = ['type', 'label', 'group', 'section', 'description', 'help', 'options', 'min', 'max', 'pattern', 'required', 'default', 'public', 'maxLength', 'env', 'client', 'override'];
 // client: where the value goes in the page config (window.config and handler `config`), e.g. "gapi.clientId".
@@ -87,6 +89,12 @@ function coerce(def, v){
 	if(t == 'json'){
 		if(v === null || typeof v != 'object') return {error: 'must be a JSON object or list'};
 		if(JSON.stringify(v).length > MAX_TEXT) return {error: `must be at most ${MAX_TEXT} characters as JSON`};
+		return {value: clone(v)};
+	}
+	if(t == 'jwk'){
+		if(!v || typeof v != 'object' || Array.isArray(v) || typeof v.kty != 'string') return {error: 'must be a JSON Web Key object with kty'};
+		if(JWK_PRIVATE.some(k=>k in v)) return {error: 'must be a public key: private key members are not allowed'};
+		if(JSON.stringify(v).length > 4000) return {error: 'must be at most 4000 characters as JSON'};
 		return {value: clone(v)};
 	}
 	return {error: `unknown type ${t}`};

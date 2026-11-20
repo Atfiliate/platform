@@ -57,6 +57,11 @@
 			"label": "Accent color", "group": "Branding", "section": "Colors",
 			"description": "Accent color for buttons and highlights: a Material palette name or a hex color."
 		},
+		"colorPrimaryContrast": {
+			"type": "enum", "options": ["light", "dark"], "client": "color.customPrimary.contrastDefaultColor", "override": true,
+			"label": "Text on primary color", "group": "Branding", "section": "Colors",
+			"description": "Text color on the primary color (toolbar, primary buttons): light or dark. Unset: the palette's own contrast."
+		},
 		"css": {
 			"type": "text", "maxLength": 20000, "client": "css", "override": true,
 			"label": "Custom CSS", "group": "Branding", "section": "Custom CSS",
@@ -101,6 +106,16 @@
 			"type": "string", "pattern": "^[A-Za-z0-9_-]{40,200}$", "client": "fire.messagingKey",
 			"label": "Push public key (VAPID)", "group": "Integrations", "section": "Push notifications",
 			"description": "Web push public key from Firebase Cloud Messaging, used by browsers to subscribe to notifications."
+		},
+		"addonPublicKey": {
+			"type": "jwk", "client": "publicKey",
+			"label": "Add-on verification key", "group": "Integrations", "section": "Add-ons",
+			"description": "Public half (JWK, RSA-PSS) of the key that signs reviewed add-ons; pages use it to verify add-on manifests. The private signing key never goes here (refused)."
+		},
+		"systemEmailName": {
+			"type": "string", "maxLength": 80, "pattern": "^[^<>\"\\r\\n@]+$", "override": true,
+			"label": "Sender name", "group": "Messaging", "section": "Email",
+			"description": "Name shown with the sender email, for example the site name. Handlers get the combined sender as systemSender."
 		},
 		"systemEmail": {
 			"type": "email", "override": true,

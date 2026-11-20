@@ -15,7 +15,7 @@ var access		= require('./access.js');
 // Handlers read non-secret site settings with siteSetting('<name>') (admin/settings, typed; see cloud/settings.js).
 // siteSetting(name, request?): with a request, a sub-site's override wins (admin/settings/sites/{host}).
 // studioSetting(name): studio settings (admin/studio). Both throw named SettingErrors.
-// `config` (per request) is the host's page config; `systemEmail` (per request) the sender address.
+// `config` (per request) is the host's page config; `systemEmail` (per request) the sender address; `systemSender` the From value ("Name <address>" with systemEmailName).
 var siteSettings	= require('./settings.js').shared;
 var studioSettings	= require('./settings.js').studio;
 var siteConfig		= require('./siteConfig.js').shared;
@@ -37,6 +37,7 @@ let $settings = {};
 // Main-site handler config (startup handlers and helpers). Request handlers get their host's config.
 let config = siteConfig.server(null);
 let systemEmail = siteConfig.systemEmail(null);
+let systemSender = siteConfig.systemSender(null);
 
 
 if(getApps().length)
@@ -697,6 +698,7 @@ siteSettings.onChange(raw=>{
 	$settings = raw || {};
 	config = siteConfig.server(null);
 	systemEmail = siteConfig.systemEmail(null);
+	systemSender = siteConfig.systemSender(null);
 });
 
 let $emailTemplates = {};
@@ -805,6 +807,7 @@ module.exports = {
 		let host = hostOf(request);
 		let config = siteConfig.server(host);
 		let systemEmail = siteConfig.systemEmail(host);
+		let systemSender = siteConfig.systemSender(host);
 		let settings = siteConfig.mode() == 'settings' ? config : (($settings.subSite || {})[request.headers.host] || config);
 			settings.origin = settings.origin || settings.domain;
 			
@@ -873,6 +876,7 @@ module.exports = {
 		let host = hostOf(request);
 		let config = siteConfig.server(host);
 		let systemEmail = siteConfig.systemEmail(host);
+		let systemSender = siteConfig.systemSender(host);
 		let settings = siteConfig.mode() == 'settings' ? config : (($settings.subSite || {})[request.headers.host] || config);
 			settings.origin = settings.origin || settings.domain;
 					

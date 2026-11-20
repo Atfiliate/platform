@@ -37,6 +37,7 @@ Firebase Admin SDK 14, modular API only. There is no `firebase` global and no na
 | `studioSetting(name)` | A typed studio setting from `admin/studio` |
 | `config` | This request host's page config (settings mode: merged, see Page config) |
 | `systemEmail` | This request host's sender address, or `null` (named `SETTING_MISSING systemEmail` in health) |
+| `systemSender` | The From value for system email: `Name <address>` when `systemEmailName` is set, else the address (env mode: env `systemEmail` as is) |
 | `http(options)` | Core HTTP helper (`cloud/http.js`), built on `fetch`. Returns a promise; no callbacks or streams. |
 
 `http(options)` takes `url` (or `uri`), `method`, `qs`, `headers`, `json`, `body`, `form` (arrays repeat the key), `formData`, `auth` (`{bearer}` or `{user, pass}`), `timeout`, `encoding: null` (resolve a Buffer), `resolveWithFullResponse`, `simple` and `followRedirect`. A non-2xx reply rejects with `{name: 'StatusCodeError', statusCode, error: <body>}` unless `simple: false`. Any other option throws `HTTP_OPTION_UNSUPPORTED`. The `request` and `request-promise` packages are not installed.
@@ -50,7 +51,7 @@ An unhandled promise rejection in a handler is logged and does not stop the serv
 Non-secret settings live in one Firestore doc, `admin/settings`, and are edited in the admin page. Secrets stay in env. A setting is never read from env, and an env var is never read as a setting.
 
 - `values`: `{<name>: <value>}`, typed.
-- `schema`: the site's own definitions, `{<name>: {type, label, group, help, options, min, max, pattern, maxLength, required, default, public, env}}`. Types: `string`, `text`, `number`, `integer`, `boolean`, `enum`, `list`, `url` (https only), `email`, `json`. `env` records the env var a setting replaced (documentation only). Core definitions are in `install/settings.schema.json`, and a site definition cannot reuse a core name.
+- `schema`: the site's own definitions, `{<name>: {type, label, group, help, options, min, max, pattern, maxLength, required, default, public, env}}`. Types: `string`, `text`, `number`, `integer`, `boolean`, `enum`, `list`, `url` (https only), `email`, `json`, `jwk` (a public JSON Web Key; private members are refused). `env` records the env var a setting replaced (documentation only). Core definitions are in `install/settings.schema.json`, and a site definition cannot reuse a core name.
 - `valuesMeta` and `admin/settings/log/*`: who saved which names, and when.
 
 Core watches the doc, so a save takes effect at once, without a restart. Handlers call `siteSetting('<name>')`. It returns the stored value, else the definition's `default`, else `null` for an optional setting. Otherwise it throws a named error (`code`, `setting`): `SETTINGS_NOT_READY`, `SETTING_UNKNOWN`, `SETTING_MISSING` (required, no value and no default) or `SETTING_INVALID` (the stored value fails its type). `/__core/health` lists the same problems by name.
@@ -72,7 +73,7 @@ Three docs, three scopes:
 
 `/__core/health` lists leftovers by name in settings mode: `CONFIG_ENV_UNUSED config.<key>`, `ENV_UNUSED systemEmail`, `LEGACY_SUBSITE_MAP`, `LEGACY_FIELD admin/settings.domain`, `SITE_JSON_BRAND_UNUSED`.
 
-Core settings (tabs): General `configSource`, `environment`, `title`, `description`, `homeGroup`; Branding `logo`, `tagline`, `favicon`, `icons`, `colorPrimary`, `colorSecondary`, `css`; Sign-in `login`; Integrations `stripePublishableKey`, `cloudinaryCloudName`, `cloudinaryUploadPreset`, `googleClientId`, `googleApiKey`, `googleMapsKey`, `pushPublicKey`; Messaging `systemEmail`. `environment` = `beta` adds a red BETA bar at the top and bottom of every page shell and a thin red frame that never takes clicks.
+Core settings (tabs): General `configSource`, `environment`, `title`, `description`, `homeGroup`; Branding `logo`, `tagline`, `favicon`, `icons`, `colorPrimary`, `colorSecondary`, `colorPrimaryContrast`, `css`; Sign-in `login`; Integrations `stripePublishableKey`, `cloudinaryCloudName`, `cloudinaryUploadPreset`, `googleClientId`, `googleApiKey`, `googleMapsKey`, `pushPublicKey`, `addonPublicKey`; Messaging `systemEmailName`, `systemEmail`. `environment` = `beta` adds a red BETA bar at the top and bottom of every page shell and a thin red frame that never takes clicks.
 
 ## Env
 
