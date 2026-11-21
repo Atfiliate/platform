@@ -252,3 +252,21 @@ test('sender name, primary-color text contrast and add-on signing key are typed 
 	// a private JWK (signing key) is refused
 	assert.ok(settings.validate({addonPublicKey: Object.assign({d: 'secret'}, jwk)}).errors.some(e=>e.name == 'addonPublicKey'));
 });
+
+test('page: favicon comes only from the favicon setting (escaped); the upload widget script is the current Cloudinary URL', async ()=>{
+	const render = values=>ejs.renderFile(path.join(views, 'pages/index.ejs'), {config: build({values}).sc.page('main.example', null), shell: {version: 1}, env: {name: 'production', beta: false}}, {views: [views]});
+	let none = await render(migrated);
+	assert.ok(!/rel="shortcut icon"/.test(none), 'no favicon link without the setting');
+	assert.ok(!none.includes('res.cloudinary.com/easybusiness'));
+	let set = await render(Object.assign({}, migrated, {favicon: 'https://img.example/f.ico?a=1&b="x"'}));
+	assert.ok(set.includes('<link rel="shortcut icon" href="https://img.example/f.ico?a=1&amp;b=&#34;x&#34;">'));
+	assert.ok(set.includes('<script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>'));
+	assert.ok(!set.includes('widget.cloudinary.com/v2.0') && !set.includes('//widget.cloudinary.com/global'));
+});
+
+test('sms sender: a site-defined serviceNumber setting resolves through siteConfig.value; unset is null (named warning, no default)', ()=>{
+	let {sc} = build({schema: {serviceNumber: {type: 'string', label: 'SMS number', group: 'Messaging'}}, values: Object.assign({}, migrated, {serviceNumber: '15551230000'})});
+	assert.strictEqual(sc.mode(), 'settings');
+	assert.strictEqual(sc.value('serviceNumber', null), '15551230000');
+	assert.strictEqual(build({values: migrated}).sc.value('serviceNumber', null), null);
+});

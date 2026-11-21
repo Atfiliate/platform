@@ -480,7 +480,8 @@ Fire.ct = {
 	 5. cleanDevice() is fire-and-forget and catches its own errors.
 	 6. email(): rejects cleanly when payload.email is missing, and rejects when the _comm response has
 	    status === 'error' (previously counted as sent).
-	 sms() is byte-for-byte the original. $settings usage is unchanged.
+	 7. sms(): the sender number is the serviceNumber setting in settings mode (the legacy admin/settings
+	    field in env mode). With no number it rejects with a named SETTING_MISSING error instead of sending without a sender.
 */
 let Comm = function(payload){
 	let _normalize = number=>{
@@ -592,7 +593,9 @@ let Comm = function(payload){
 
 	let sms = (payload, $profile)=>{
 		return new Promise((res, rej)=>{
-			let From = $settings.serviceNumber;
+			// settings mode: the serviceNumber setting (admin/settings values); env mode: the legacy admin/settings field
+			let From = siteConfig.mode() == 'settings' ? siteConfig.value('serviceNumber', null) : $settings.serviceNumber;
+			if(!From) return rej({status:'error', type:'SMS', code:'SETTING_MISSING', name:'serviceNumber', message:'No SMS sender number is set (serviceNumber).'});
 			let To = _normalize(pathValue($profile,'phone'));
 			let tenDLC = `\n\nreply "STOP" to quit receiving messages.`;
 
@@ -693,7 +696,7 @@ let Comm = function(payload){
 	});
 };
 
-// Live admin/settings (watched once in cloud/settings.js): serviceNumber, domain, subSite.
+// Live admin/settings (watched once in cloud/settings.js). Env mode reads the legacy fields serviceNumber, domain and subSite from it.
 siteSettings.onChange(raw=>{
 	$settings = raw || {};
 	config = siteConfig.server(null);

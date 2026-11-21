@@ -16,6 +16,7 @@
 		"@tuya/tuya-connector-nodejs": "2.1.2",
 		"algoliasearch": "5.56.0",
 		"body-parser": "2.4.0",
+		"busboy": "1.6.0",
 		"cloudinary": "2.10.0",
 		"compression": "1.8.2",
 		"connect-busboy": "1.0.0",
