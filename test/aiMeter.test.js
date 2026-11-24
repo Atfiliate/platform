@@ -143,7 +143,7 @@ test('increments accumulate on the period and feature/model buckets', async () =
 	await M.record(d, input);
 	const p = d.db._store['meterBill/ai-userA'].details.periods['2026-11'];
 	assert.strictEqual(p.requests, 2);
-	assert.strictEqual(p.costMicros, 4e6);
+	assert.strictEqual(p.costMicros, undefined); assert.strictEqual(p.billedMicros, (4e6) * 2);
 	assert.strictEqual(p.billedMicros, 8e6);
 	assert.strictEqual(p.byFeature['groups._gpt.chat'].byModel['gpt-4.1'].requests, 2);
 	assert.strictEqual(p.byFeature['groups._gpt.chat'].byModel['gpt-4.1'].billedMicros, 8e6);
@@ -164,13 +164,13 @@ test('requestId is idempotent', async () => {
 	assert.strictEqual(d.db._store['meterBill/ai-userA'].details.periods['2026-11'].requests, 1);
 });
 
-test('event expireAt is six months out', async () => {
+test('event expireAt is one month out (Ryan t515u)', async () => {
 	const d = deps();
 	const r = await M.record(d, { jwtUid: 'userA', feature: 'groups._gpt.chat', costUsd: 0.01, requestId: 'exp1' });
 	const ev = d.db._store['meterBill/ai-userA/aiEvents/exp1'];
 	assert.ok(ev.expireAt);
 	const months = (ev.expireAt.getFullYear() - ev.createdOn.getFullYear()) * 12 + (ev.expireAt.getMonth() - ev.createdOn.getMonth());
-	assert.strictEqual(months, 6);
+	assert.strictEqual(months, 1);
 });
 
 test('getPrices caches and falls back when the doc is missing', async () => {
@@ -611,7 +611,7 @@ test('track reads openai chat and responses usage, including cached tokens', asy
 		assert.strictEqual(chat.tokensIn, 900);
 		assert.strictEqual(chat.tokensCached, 100);
 		assert.strictEqual(chat.tokensOut, 50);
-		assert.strictEqual(chat.costMicros, 2250);
+		assert.strictEqual(chat.costMicros, undefined); assert.strictEqual(chat.billedMicros, (2250) * 2);
 		assert.strictEqual(chat.billedMicros, 4500);
 		assert.strictEqual(chat.source, 'table');
 		assert.strictEqual(chat.billedUid, 'userA');
@@ -630,7 +630,7 @@ test('track reads openai chat and responses usage, including cached tokens', asy
 		assert.strictEqual(resp.tokensIn, 900);
 		assert.strictEqual(resp.tokensCached, 100);
 		assert.strictEqual(resp.tokensOut, 20);
-		assert.strictEqual(resp.costMicros, 2010);
+		assert.strictEqual(resp.costMicros, undefined); assert.strictEqual(resp.billedMicros, (2010) * 2);
 		assert.strictEqual(resp.billedMicros, 4020);
 		assert.strictEqual(db._store['meterBill/ai-userA'].details.periods[period].byFeature['groups._gpt.chat'].byModel['gpt-4.1'].requests, 1);
 	});
@@ -653,7 +653,7 @@ test('track prices openai images from data.length and usage', async () => {
 		assert.strictEqual(ev.images, 2);
 		assert.strictEqual(ev.tokensIn, 16);
 		assert.strictEqual(ev.tokensOut, 80);
-		assert.strictEqual(ev.costMicros, 80000);
+		assert.strictEqual(ev.costMicros, undefined); assert.strictEqual(ev.billedMicros, (80000) * 2);
 		assert.strictEqual(ev.billedMicros, 160000);
 		assert.strictEqual(ev.source, 'table');
 	});
@@ -673,7 +673,7 @@ test('track prices openai tts from character count', async () => {
 		const ev = eventAt(db, 'userA', 'tts-1');
 		assert.strictEqual(ev.chars, 1500);
 		assert.strictEqual(ev.source, 'estimate');
-		assert.strictEqual(ev.costMicros, 22500);
+		assert.strictEqual(ev.costMicros, undefined); assert.strictEqual(ev.billedMicros, (22500) * 2);
 		assert.strictEqual(ev.billedMicros, 45000);
 	});
 });
@@ -691,7 +691,7 @@ test('track reads elevenlabs characters and seconds', async () => {
 		const chars = eventAt(db, 'userA', 'el-chars');
 		assert.strictEqual(chars.chars, 1000);
 		assert.strictEqual(chars.source, 'estimate');
-		assert.strictEqual(chars.costMicros, 15000);
+		assert.strictEqual(chars.costMicros, undefined); assert.strictEqual(chars.billedMicros, (15000) * 2);
 		assert.strictEqual(chars.billedMicros, 30000);
 
 		await M.track({ aiUser: 'userA' }, {
@@ -704,7 +704,7 @@ test('track reads elevenlabs characters and seconds', async () => {
 		});
 		const secs = eventAt(db, 'userA', 'el-sec');
 		assert.strictEqual(secs.source, 'table');
-		assert.strictEqual(secs.costMicros, 100000);
+		assert.strictEqual(secs.costMicros, undefined); assert.strictEqual(secs.billedMicros, (100000) * 2);
 		assert.strictEqual(secs.billedMicros, 200000);
 	});
 });
@@ -720,7 +720,7 @@ test('track reads xai video seconds and provider cost ticks', async () => {
 			result: { video: { duration: 10 } }
 		});
 		const timed = eventAt(db, 'userA', 'xai-sec');
-		assert.strictEqual(timed.costMicros, 500000);
+		assert.strictEqual(timed.costMicros, undefined); assert.strictEqual(timed.billedMicros, (500000) * 2);
 		assert.strictEqual(timed.billedMicros, 1000000);
 		assert.strictEqual(timed.source, 'table');
 		assert.strictEqual(db._store['meterBill/ai-userA'].details.periods[periodNow()].videos, 1);
@@ -735,7 +735,7 @@ test('track reads xai video seconds and provider cost ticks', async () => {
 		});
 		const ticks = eventAt(db, 'userA', 'xai-ticks');
 		assert.strictEqual(ticks.source, 'provider');
-		assert.strictEqual(ticks.costMicros, 2e6);
+		assert.strictEqual(ticks.costMicros, undefined); assert.strictEqual(ticks.billedMicros, (2e6) * 2);
 		assert.strictEqual(ticks.billedMicros, 4e6);
 	});
 });
@@ -754,7 +754,7 @@ test('track reads google vision pages and whisper minutes', async () => {
 		assert.ok(ocr, 'ocr bills ai-system');
 		assert.strictEqual(ocr.pages, 3);
 		assert.strictEqual(ocr.billedUid, 'system');
-		assert.strictEqual(ocr.costMicros, 4500);
+		assert.strictEqual(ocr.costMicros, undefined); assert.strictEqual(ocr.billedMicros, (4500) * 2);
 		assert.strictEqual(ocr.billedMicros, 9000);
 
 		await M.track({ aiUser: 'userA' }, {
@@ -767,7 +767,7 @@ test('track reads google vision pages and whisper minutes', async () => {
 		});
 		const wh = eventAt(db, 'userA', 'wh-1');
 		assert.strictEqual(wh.ms, 60000);
-		assert.strictEqual(wh.costMicros, 6000);
+		assert.strictEqual(wh.costMicros, undefined); assert.strictEqual(wh.billedMicros, (6000) * 2);
 		assert.strictEqual(wh.billedMicros, 12000);
 		assert.strictEqual(wh.source, 'table');
 	});
@@ -820,11 +820,11 @@ test('unknown model records a zero cost and does not throw', async () => {
 				result: { usage: { prompt_tokens: 10, completion_tokens: 4 } }
 			});
 			assert.strictEqual(rec.source, 'unknown');
-			assert.strictEqual(rec.costMicros, 0);
+			assert.strictEqual(rec.costMicros, undefined); assert.strictEqual(rec.billedMicros, (0) * 2);
 			assert.strictEqual(rec.billedMicros, 0);
 			const ev = eventAt(db, 'userA', 'unk-1');
 			assert.strictEqual(ev.source, 'unknown');
-			assert.strictEqual(ev.costMicros, 0);
+			assert.strictEqual(ev.costMicros, undefined); assert.strictEqual(ev.billedMicros, (0) * 2);
 			assert.strictEqual(ev.tokensIn, 10);
 			assert.strictEqual(ev.tokensOut, 4);
 			assert.ok(warnings.some(w => String(w[0]).indexOf('unknown model') !== -1 && w[1] === 'brand-new-x'));
@@ -855,6 +855,61 @@ test('auto.js exposes aiMeter to cloud handlers', () => {
 	const src = fs.readFileSync(path.join(__dirname, '../cloud/auto.js'), 'utf8');
 	assert.ok(src.includes("var aiMeter") && src.includes("require('./aiMeter.js')"));
 	assert.ok(src.includes('\taiMeter,'));
+});
+
+function noCost(o, where) {
+	const bad = [];
+	(function walk(n, path) {
+		if (!n || typeof n !== 'object' || n instanceof Date) return;
+		Object.keys(n).forEach(k => {
+			if (k === 'costMicros' || k === 'multiplier') bad.push(path + k);
+			walk(n[k], path + k + '.');
+		});
+	})(o, '');
+	assert.deepStrictEqual(bad, [], (where || '') + ' has cost fields: ' + bad.join(', '));
+}
+test('meter doc and aiEvents store billed usage only (no costMicros / multiplier anywhere)', async () => {
+	const d = deps();
+	const r = await M.record(d, { jwtUid: 'teacher1', studentId: 'stu1', feature: 'groups._gpt.chat', model: 'gpt-4.1', tokensIn: 1e6, tokensOut: 0, requestId: 'nc1' });
+	const doc = d.db._store['meterBill/ai-parent1'];
+	noCost(doc, 'meter doc');
+	noCost(d.db._store['meterBill/ai-parent1/aiEvents/nc1'], 'aiEvent');
+	noCost(r, 'record result');
+	assert.strictEqual(r.billedMicros, 4e6);
+	assert.strictEqual(doc.details.periods['2026-11'].billedMicros, 4e6);
+	assert.strictEqual(doc.details.periods['2026-11'].byFeature['groups._gpt.chat'].byModel['gpt-4.1'].billedMicros, 4e6);
+	assert.strictEqual(doc.details.periods['2026-11'].byStudent.stu1.billedMicros, 4e6);
+	assert.strictEqual(d.db._store['meterBill/ai-parent1/aiEvents/nc1'].billedMicros, 4e6);
+	const replay = await M.record(d, { jwtUid: 'teacher1', studentId: 'stu1', feature: 'groups._gpt.chat', model: 'gpt-4.1', tokensIn: 1e6, requestId: 'nc1' });
+	assert.strictEqual(replay.replay, true);
+	noCost(replay, 'replay result');
+});
+
+test('legacy cost fields on an existing meter doc are dropped on the next write; totals kept', async () => {
+	const legacy = {
+		id: 'ai-userA', createdBy: 'userA', _type: 'ai', _rate: { price: 1, quantity: 1, unit: 'usd', repeat: 'monthly' },
+		details: { tz: 'America/Phoenix', multiplier: 2, periods: {
+			'2026-10': { costMicros: 500, billedMicros: 1000, requests: 1, byFeature: { f: { costMicros: 500, billedMicros: 1000, byModel: { m: { costMicros: 500, billedMicros: 1000 } } } } },
+			'2026-11': { costMicros: 1e6, billedMicros: 2e6, requests: 1, byStudent: { s1: { costMicros: 1e6, billedMicros: 2e6 } } }
+		} }
+	};
+	const d = deps({ store: { 'meterBill/ai-userA': legacy } });
+	await M.record(d, { jwtUid: 'userA', feature: 'groups._gpt.chat', costUsd: 0.5 });
+	const doc = d.db._store['meterBill/ai-userA'];
+	noCost(doc, 'meter doc');
+	assert.strictEqual(doc.details.periods['2026-10'].billedMicros, 1000);
+	assert.strictEqual(doc.details.periods['2026-10'].byFeature.f.byModel.m.billedMicros, 1000);
+	assert.strictEqual(doc.details.periods['2026-11'].billedMicros, 3e6);
+	assert.strictEqual(doc.details.periods['2026-11'].requests, 2);
+	assert.strictEqual(doc._rate.price, 3);
+});
+
+test('billed rate still uses the server multiplier from prices config', async () => {
+	const d = deps();
+	d.prices.multiplier = 3;
+	const r = await M.record(d, { jwtUid: 'userA', feature: 'groups._gpt.chat', costUsd: 1 });
+	assert.strictEqual(r.billedMicros, 3e6);
+	noCost(d.db._store['meterBill/ai-userA'], 'meter doc');
 });
 
 (async () => {

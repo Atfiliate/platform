@@ -303,8 +303,9 @@ function inc(obj, key, n) {
 	obj[key] = (Number(obj[key]) || 0) + v;
 }
 
+// Usage is stored at the billed rate only. Provider cost and the multiplier stay
+// server-side (prices config); never write them to meterBill or aiEvents.
 function bumpUnits(target, input, cost, requests) {
-	inc(target, 'costMicros', cost.costMicros);
 	inc(target, 'billedMicros', cost.billedMicros);
 	inc(target, 'requests', requests);
 	['tokensIn', 'tokensCached', 'tokensOut', 'chars', 'ms', 'images', 'pages', 'videos'].forEach(k => {
@@ -314,6 +315,14 @@ function bumpUnits(target, input, cost, requests) {
 
 function clone(o) {
 	return JSON.parse(JSON.stringify(o || {}));
+}
+
+// Drop legacy provider-cost fields from a meter doc (every period bucket).
+function stripCost(node) {
+	if (!node || typeof node !== 'object') return;
+	delete node.costMicros;
+	delete node.multiplier;
+	Object.keys(node).forEach(k => stripCost(node[k]));
 }
 
 async function record(deps, rawInput) {
@@ -343,7 +352,7 @@ async function record(deps, rawInput) {
 		const evSnap = requestId ? await t.get(eventRef) : { exists: false };
 		if (evSnap && evSnap.exists) {
 			const ev = typeof evSnap.data === 'function' ? evSnap.data() : evSnap.data;
-			return { replay: true, billedUid: payer.billedUid, period, eventId, costMicros: ev.costMicros, billedMicros: ev.billedMicros, source: ev.source };
+			return { replay: true, billedUid: payer.billedUid, period, eventId, billedMicros: ev.billedMicros, source: ev.source };
 		}
 		const mSnap = await t.get(meterRef);
 		const existing = mSnap && mSnap.exists ? clone(typeof mSnap.data === 'function' ? mSnap.data() : mSnap.data) : null;
@@ -356,13 +365,13 @@ async function record(deps, rawInput) {
 			_acl: { view: 'users', id: payer.billedUid, role: 'owner' },
 			_config: { title: 'AI usage', status: 'active' },
 			_rate: { price: 0, quantity: 1, unit: 'usd', repeat: 'monthly' },
-			details: { tz, multiplier: cost.multiplier, periods: {} }
+			details: { tz, periods: {} }
 		};
 		doc.updatedOn = now;
 		doc.details = doc.details || {};
 		doc.details.tz = doc.details.tz || tz;
-		doc.details.multiplier = cost.multiplier;
 		doc.details.periods = doc.details.periods || {};
+		stripCost(doc.details);
 		const p = doc.details.periods[period] || (doc.details.periods[period] = {});
 		bumpUnits(p, input, cost, 1);
 
@@ -386,16 +395,14 @@ async function record(deps, rawInput) {
 
 		const event = {
 			createdOn: now,
-			expireAt: addMonths(now, 6),
+			expireAt: addMonths(now, 1),
 			period,
 			provider: input.provider || null,
 			model: input.model || null,
 			feature,
 			billedUid: payer.billedUid,
 			actorUid: payer.actorUid,
-			costMicros: cost.costMicros,
 			billedMicros: cost.billedMicros,
-			multiplier: cost.multiplier,
 			source: cost.source,
 			requestId: requestId || eventId
 		};
@@ -417,10 +424,8 @@ async function record(deps, rawInput) {
 			meterId: mid,
 			period,
 			eventId,
-			costMicros: cost.costMicros,
 			billedMicros: cost.billedMicros,
-			source: cost.source,
-			multiplier: cost.multiplier
+			source: cost.source
 		};
 	});
 	if (result && !result.replay)
