@@ -385,6 +385,37 @@ test('handlers: settings mode gives each host its own config, sender and overrid
 	S.studio.load({}); Sites.shared.load([]); delete process.env.origin;
 });
 
+test('project() ?v=default and ?v=undefined without a starred version return new-project stub without Firestore read', async ()=>{
+	reset();
+	await ready;
+	let saved = siteDoc;
+	siteDoc = new Error('Firestore must not be read');
+	try{
+		loadDev([
+			{id: 'draftOnly', projectId: 'unstarredProj', stage: 'dev', default: false, page: {id: 'draftOnly'}},
+			{id: 'starredV1', projectId: 'starredProj', stage: 'prod', default: true, page: {id: 'starredPage'}}
+		]);
+		for(const projId of ['zz-newpage-test', 'unstarredProj']){
+			for(const v of ['default', 'undefined']){
+				let r = await call('project', {projId}, {query: {v}});
+				assert.strictEqual(r.status, 200, `${projId}?v=${v}`);
+				assert.deepStrictEqual(r.body, {id: `${projId}Default`});
+			}
+		}
+		for(const v of ['default', 'undefined']){
+			let r = await call('project', {projId: 'starredProj'}, {query: {v}});
+			assert.strictEqual(r.status, 200);
+			assert.deepStrictEqual(r.body, {id: 'starredPage', vid: 'starredV1'});
+		}
+		let bare = await call('project', {projId: 'zz-newpage-test'});
+		assert.strictEqual(bare.body, 'Invalid URL');
+		siteDoc = null;
+		let missing = await call('project', {projId: 'starredProj'}, {query: {v: 'doesNotExist123'}});
+		assert.strictEqual(missing.status, 404);
+		assert.strictEqual(missing.headers['x-core-error'], 'VERSION_NOT_FOUND');
+	}finally{ siteDoc = saved; }
+});
+
 (async ()=>{
 	await ready;
 	let failed = 0;

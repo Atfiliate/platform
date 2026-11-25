@@ -959,7 +959,9 @@ module.exports = {
 			else
 				proj = pathValue(filecache, `${request.params.projId}.default`);
 			if(!proj){
-				if(request.params.projId && request.query.v){
+				if(request.params.projId && (request.query.v == 'default' || request.query.v == 'undefined')){
+					response.send({id: `${request.params.projId}Default`});
+				}else if(request.params.projId && request.query.v){
 					// Not in the cache yet (for example a version created a moment ago): read it once.
 					db.collection('dev').doc(String(request.query.v)).get().then(r=>{
 						if(r.exists && (r.data() || {}).projectId == request.params.projId){
