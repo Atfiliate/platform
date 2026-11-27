@@ -36,7 +36,8 @@ app.use(express.static(__dirname + '/public'));
 const CLOUD_BODY_LIMIT = process.env.bodyLimit || '50mb';
 const UPLOAD_LIMIT_MB = Number(process.env.uploadLimitMb) || 50;
 const cloudBody = [
-	bodyParser.json({limit: CLOUD_BODY_LIMIT}),
+	// rawBody: exact request bytes, kept so a cloud handler can verify a signed webhook (finance cloud.billing / cloud.market, Stripe-Signature).
+	bodyParser.json({limit: CLOUD_BODY_LIMIT, verify: (req, res, buf)=>{ req.rawBody = buf; }}),
 	bodyParser.urlencoded({extended: true, limit: CLOUD_BODY_LIMIT, parameterLimit: 5000}),
 	multer({limits: {fileSize: UPLOAD_LIMIT_MB * 1024 * 1024, files: 20, fields: 1000, parts: 1100}}).any(),
 	busboy({limits: {fileSize: UPLOAD_LIMIT_MB * 1024 * 1024, files: 20, fields: 1000}})
